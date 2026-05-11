@@ -30,10 +30,10 @@ int createDefaultIni(const char *filePath)
     fprintf(file, "# Set to true if you\'d like to add a border for optical light gun tracking\n");
     fprintf(file, "BORDER_ENABLED = %s\n\n", defaults.borderEnabled ? "true" : "false");
     fprintf(file, "# Set the thickness of the white border as a percentage of the width of the screen\n");
-    fprintf(file, "WHITE_BORDER_PERCENTAGE = %.0f\n\n", defaults.whiteBorderPercentage * 100);
+    fprintf(file, "WHITE_BORDER_PERCENTAGE = %.1f\n\n", defaults.whiteBorderPercentage * 100.0f);
     fprintf(file, "# Set the thickness of the black border which sits around the\n");
     fprintf(file, "# white border as a percentage of the width of the screen\n");
-    fprintf(file, "BLACK_BORDER_PERCENTAGE = %.0f\n\n", defaults.blackBorderPercentage * 100);
+    fprintf(file, "BLACK_BORDER_PERCENTAGE = %.1f\n\n", defaults.blackBorderPercentage * 100.0f);
     fprintf(file, "# Set to keep the aspect ratio in games like Sega Race TV Primeval Hunt and LGJ-SP\n");
     fprintf(file, "KEEP_ASPECT_RATIO = %s\n\n", defaults.keepAspectRatio ? "true" : "false");
     fprintf(file, "# Set to true to enable the mouse pointer/Cursor\nHIDE_CURSOR = %s\n\n", defaults.hideCursor ? "true" : "false");
