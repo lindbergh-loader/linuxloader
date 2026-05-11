@@ -314,8 +314,8 @@ void applyIniConfig(EmulatorConfig *config, const IniConfig *ini)
     config->boostRenderRes = getInt(ini, "Display", "BOOST_RENDER_RES", config->boostRenderRes);
     config->fullscreen = getInt(ini, "Display", "FULLSCREEN", config->fullscreen);
     config->borderEnabled = getInt(ini, "Display", "BORDER_ENABLED", config->borderEnabled);
-    config->whiteBorderPercentage = getInt(ini, "Display", "WHITE_BORDER_PERCENTAGE", config->whiteBorderPercentage * 100) / 100.0f;
-    config->blackBorderPercentage = getInt(ini, "Display", "BLACK_BORDER_PERCENTAGE", config->blackBorderPercentage * 100) / 100.0f;
+	config->whiteBorderPercentage = getFloat(ini, "Display", "WHITE_BORDER_PERCENTAGE", config->whiteBorderPercentage * 100.0f) / 100.0f;
+	config->blackBorderPercentage = getFloat(ini, "Display", "BLACK_BORDER_PERCENTAGE", config->blackBorderPercentage * 100.0f) / 100.0f;
     config->keepAspectRatio = getInt(ini, "Display", "KEEP_ASPECT_RATIO", config->keepAspectRatio);
     config->hideCursor = getInt(ini, "Display", "HIDE_CURSOR", config->hideCursor);
 
