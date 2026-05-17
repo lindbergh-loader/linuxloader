@@ -58,6 +58,8 @@ void initBlitting()
 
 void blitSetWidthandHeightSize()
 {
+    EmulatorConfig *config = getConfig();
+
     if (gGrp == GROUP_ID4_EXP || gGrp == GROUP_ID4_JAP || gGrp == GROUP_ID5)
     {
         if (isTestMode())
@@ -76,6 +78,13 @@ void blitSetWidthandHeightSize()
         blitWidth = 640;
         blitHeight = 480;
     }
+#ifdef _WIN32
+    else if (gGrp == GROUP_ABC && config->keepAspectRatio)
+    {
+        blitWidth = 640;
+        blitHeight = 480;
+    }
+#endif
     else if (gId == QUIZ_AXA_SBMS || gId == QUIZ_AXA_SBUR_LIVE || gId == MJ4_SBPN_REVG || gId == MJ4_EVO_SBTA)
     {
         blitWidth = 1024;
@@ -189,17 +198,45 @@ void blitStretch()
 
         glad_glReadBuffer(GL_BACK);
         CHECK_GL("readbuffer GL_BACK");
+		
+		#ifdef _WIN32
+        GLint vp[4];
+        glad_glGetIntegerv(GL_VIEWPORT, vp);
+		#endif
 
-        glad_glBlitFramebuffer(0, 0, blitWidth, blitHeight, 0, 0, blitWidth, blitHeight, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-        CHECK_GL("first blit to fboId");
+		#ifdef _WIN32
+        if (gGrp == GROUP_ABC && vp[2] > blitWidth && vp[3] > blitHeight)
+        {
+            glad_glBlitFramebuffer(
+                vp[0], vp[1],
+                vp[0] + vp[2], vp[1] + vp[3],
+                0, 0,
+                blitWidth, blitHeight,
+                GL_COLOR_BUFFER_BIT,
+                GL_NEAREST
+            );
+        }
+        else
+		#endif
+        {
+            glad_glBlitFramebuffer(
+                0, 0,
+                blitWidth, blitHeight,
+                0, 0,
+                blitWidth, blitHeight,
+                GL_COLOR_BUFFER_BIT,
+                GL_NEAREST
+            );
+        }
+		CHECK_GL("first blit to fboId");
 
         float gameAspect = (float)blitWidth / (float)blitHeight;
-        float windowAspect = (float)drawableW / (float)drawableH;
+		float windowAspect = (float)drawableW / (float)drawableH;
 
         dest.W = drawableW;
         dest.H = drawableH;
 
-        if (windowAspect > gameAspect)
+		if (windowAspect > gameAspect)
         {
             dest.W = (GLsizei)(drawableH * gameAspect);
             dest.X = (drawableW - dest.W) / 2;
@@ -209,7 +246,7 @@ void blitStretch()
             dest.H = (GLsizei)(drawableW / gameAspect);
             dest.Y = (drawableH - dest.H) / 2;
         }
-
+	   
         glad_glBindFramebuffer(GL_FRAMEBUFFER, 0);
         CHECK_GL("bind default framebuffer");
 
