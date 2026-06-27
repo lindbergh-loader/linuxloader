@@ -72,7 +72,7 @@ JVSPassthroughStatus initJVSPassthroughLinux(char *jvsPath)
     options.c_oflag &= ~ONLCR; // Prevent conversion of newline to carriage return/line feed
 
     options.c_cc[VMIN] = 0;
-    options.c_cc[VTIME] = 2; // 200ms
+    options.c_cc[VTIME] = 1; // 200ms
 
     if (tcsetattr(jvsHandle, TCSANOW, &options) != 0)
     {
@@ -254,7 +254,7 @@ JVSPassthroughStatus readJVSFrame(unsigned char *buffer, int *size)
 {
     int bytesAvailable = 0, escape = 0, phase = 0, index = 0, finished = 0;
 	unsigned char checksum = 0x00;
-    int timeout = 3;
+    int timeout = 1;
 
     unsigned char destination, length;
     unsigned char inputBuffer[JVSBUFFER_SIZE];
@@ -265,19 +265,9 @@ JVSPassthroughStatus readJVSFrame(unsigned char *buffer, int *size)
 	{
 		int bytesRead = read(jvsHandle, inputBuffer + bytesAvailable, JVSBUFFER_SIZE - bytesAvailable);
 
-        if(bytesRead > 0) {
-            timeout = 3;
-        } else {
-            timeout = timeout - 1;
-        }
-
-        if(timeout == 0) {
+        if(bytesRead < 1) {
             return JVS_PASSTHROUGH_STATUS_TIMEOUT;
         }
-
-
-		if (bytesRead < 0)
-			return JVS_PASSTHROUGH_STATUS_ERROR;
 
 		bytesAvailable += bytesRead;
 
@@ -288,7 +278,7 @@ JVSPassthroughStatus readJVSFrame(unsigned char *buffer, int *size)
 			{
 				phase = 0;
 				*size = 0;
-				buffer[*size++] = inputBuffer[index];
+				buffer[(*size)++] = inputBuffer[index];
 				index++;
 				continue;
 			}
@@ -312,14 +302,14 @@ JVSPassthroughStatus readJVSFrame(unsigned char *buffer, int *size)
 			switch (phase)
 			{
 			case 0: // If we have not yet got the address
-				buffer[*size++] = inputBuffer[index];
+				buffer[(*size)++] = inputBuffer[index];
 				destination = inputBuffer[index];
 				checksum = destination & 0xFF;
 				phase++;
 				break;
 			case 1: // If we have not yet got the length
 				length = inputBuffer[index];
-				buffer[*size++] = inputBuffer[index];
+				buffer[(*size)++] = inputBuffer[index];
 				checksum = (checksum + length) & 0xFF;
 				phase++;
 				break;
@@ -331,13 +321,13 @@ JVSPassthroughStatus readJVSFrame(unsigned char *buffer, int *size)
                         return JVS_PASSTHROUGH_STATUS_ERROR; // Checksum error, return empty frame
                     }
 
-				    buffer[*size++] = checksum;
+				    buffer[(*size)++] = checksum;
 
                     
 					finished = 1;
 					break;
 				}
-				buffer[*size++] = inputBuffer[index];
+				buffer[(*size)++] = inputBuffer[index];
 				checksum = (checksum + inputBuffer[index]) & 0xFF;
 				break;
 			default:

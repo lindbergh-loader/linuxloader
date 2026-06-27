@@ -220,7 +220,10 @@ int baseboardIoctl(int fd, unsigned long request, void *data)
                     }
                     else
                     {
-                        writeJVSFrame(inputBuffer, jvsCommand.srcSize);
+                        JVSPassthroughStatus status = writeJVSFrame(inputBuffer, jvsCommand.srcSize);
+                        if(status != JVS_PASSTHROUGH_STATUS_OK) {
+                            printf("Error: Failed to write JVS frame, status: %d\n", status);
+                        }
 
                         for (uint32_t i = 0; i < jvsCommand.srcSize; i++)
                         {
@@ -294,21 +297,22 @@ int baseboardIoctl(int fd, unsigned long request, void *data)
                         else
                         {
                             JVSPassthroughStatus status = readJVSFrame(passthroughInputBuffer, &jvsPacketSize);
-                            if (status == JVS_PASSTHROUGH_STATUS_OK)
+                            if(status != JVS_PASSTHROUGH_STATUS_OK) {
+                                printf("Error: Failed to read JVS frame, status: %d\n", status);
+                                // If it times out then we can just set the system to error out
+                                memcpy(&sharedMemory[jvsCommand.destAddress], "\x00", 1);
+                                _data[2] = jvsCommand.destAddress;
+                                _data[3] = 1;
+                                _data[1] = 1; // Set the status to failure
+                            }
+                            else
                             {
                                 memcpy(&sharedMemory[jvsCommand.destAddress], passthroughInputBuffer, jvsPacketSize);
                                 _data[2] = jvsCommand.destAddress;
                                 _data[3] = jvsPacketSize;
                                 _data[1] = 1; // Set the status to success
                             }
-                            else
-                            {
-                                // If it times out then we can just set the system to error out
-                                memcpy(&sharedMemory[jvsCommand.destAddress], "/x00", 1);
-                                _data[2] = jvsCommand.destAddress;
-                                _data[3] = 1;
-                                _data[1] = 1; // Set the status to failure
-                            }
+                         
                         }
                     }
                 }
