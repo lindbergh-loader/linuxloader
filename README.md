@@ -12,7 +12,7 @@ For detailed information on configuration and controls, please see the following
 
 - [**🚀 Linux Guide**](docs/guide-linux.md): Information on supported games, known issues, and general configuration for Linux.
 - [**🎮 Windows Guide**](docs/guide-windows.md): Information on supported games, known issues, and general configuration for Windows.
-- [**🎮 Controls Guide**](docs/Controls-Guide.pdf): A detailed guide on how to customize your controls using the `controls.ini` file.
+- [**🎮 Controls Guide**](docs/Controls-Guide.md): A detailed guide on how to customize your controls using the `controls.ini` file.
 
 If you'd like to support the development work of this loader, see early development builds or get support from the authors please consider [becoming a patreon here](https://www.patreon.com/c/LinuxLoader).
 
