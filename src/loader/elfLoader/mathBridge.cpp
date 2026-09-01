@@ -55,6 +55,8 @@ namespace MathBridge
         MAP("finite", bridge_finite);
         MAP("frexp", bridge_frexp);
         MAP("frexpf", bridge_frexpf);
+        MAP("ldexpf", bridge_ldexpf);
+        MAP("fabsf", bridge_fabsf);
     }
 }   
 
@@ -221,6 +223,15 @@ extern "C" double bridge_frexp(double x, int *exp)
 extern "C" float bridge_frexpf(float x, int *exp)
 {
     return ::frexpf(x, exp);
+}
+extern "C" float bridge_ldexpf(float x, int exp)
+{
+    return ::ldexpf(x, exp);
+}
+
+extern "C" float bridge_fabsf(float x)
+{
+    return ::fabsf(x);
 }
 
 #endif

@@ -1071,6 +1071,38 @@ void bridgeglBindTexture(GLenum target, GLuint texture)
     }
 }
 
+#ifdef __linux__
+#undef glVertexPointer
+void glVertexPointer(GLint size, GLenum type, GLsizei stride, const GLvoid *pointer)
+#else
+void bridgeglVertexPointer(GLint size, GLenum type, GLsizei stride, const GLvoid *pointer)
+#endif
+{
+    if (glad_glVertexPointer)
+        glad_glVertexPointer(size, type, stride, pointer);
+    if (getConfig()->GPUVendor != NVIDIA_GPU && glad_glVertexAttribPointer && glad_glEnableVertexAttribArray && gGrp == GROUP_OUTRUN)
+    {
+        glad_glVertexAttribPointer(0, size, type, GL_FALSE, stride, pointer);
+        glad_glEnableVertexAttribArray(0);
+    }
+}
+
+#ifdef __linux__
+#undef glTexCoordPointer
+void glTexCoordPointer(GLint size, GLenum type, GLsizei stride, const GLvoid *pointer)
+#else
+void bridgeglTexCoordPointer(GLint size, GLenum type, GLsizei stride, const GLvoid *pointer)
+#endif
+{
+    if (glad_glTexCoordPointer)
+        glad_glTexCoordPointer(size, type, stride, pointer);
+    if (getConfig()->GPUVendor != NVIDIA_GPU && glad_glVertexAttribPointer && glad_glEnableVertexAttribArray && gGrp == GROUP_OUTRUN)
+    {
+        glad_glVertexAttribPointer(8, size, type, GL_FALSE, stride, pointer);
+        glad_glEnableVertexAttribArray(8);
+    }
+}
+
 int parseCgcArgs(const char *input, const char ***compilerArgs, const char **outputFileName, char **bufferToFree)
 {
     char *inputCopy = strdup(input);
@@ -1132,7 +1164,6 @@ char *findLibCg()
     if (appImageRoot != NULL)
         snprintf(appImageLib, MAX_PATH_LENGTH, "%s/usr/lib32/libCg2.so", appImageRoot);
 
-
     char *pathsToCheck[] = {NULL, "/app/lib32/libCg2.so", appImageLib, NULL};
 
     if (strcmp(getConfig()->libCgPath, "") != 0)
@@ -1146,10 +1177,21 @@ char *findLibCg()
         size_t pathLen = strlen(envPath) + strlen("/ll-deps/libCg2.so") + 1;
         pathsToCheck[0] = malloc(pathLen);
         snprintf(pathsToCheck[0], pathLen, "%s/ll-deps/libCg2.so", envPath);
-        if(access(pathsToCheck[0], F_OK) != 0)
+        if (access(pathsToCheck[0], F_OK) != 0)
         {
             free(pathsToCheck[0]);
             pathsToCheck[0] = NULL;
+        }
+        if(pathsToCheck[0] == NULL)
+        {
+            pathLen = strlen(envPath) + strlen("/libCg2.so") + 1;
+            pathsToCheck[0] = malloc(pathLen);
+            snprintf(pathsToCheck[0], pathLen, "%s/libCg2.so", envPath);
+            if (access(pathsToCheck[0], F_OK) != 0)
+            {
+                free(pathsToCheck[0]);
+                pathsToCheck[0] = NULL;
+            }
         }
     }
 
@@ -1168,10 +1210,6 @@ char *findLibCg()
             }
         }
     }
-
-
-
-
 
     for (int i = 0; i < 3; ++i)
     {

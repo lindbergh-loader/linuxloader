@@ -2,7 +2,7 @@
 #define __i386__
 #endif
 #undef __x86_64__
-#include <GL/gl.h>
+#include <glad/gl.h>
 #include <SDL3/SDL.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -10,13 +10,32 @@
 
 #include "../config/config.h"
 
-bool gettingGPUVendor;
+#ifdef _WIN32
+#include <windows.h>
+
+extern HMODULE hGlDLL; 
+
+GLADapiproc gladGlLoader(const char* name) {
+    GLADapiproc proc = (GLADapiproc)GetProcAddress(hGlDLL, name);
+    if (proc) return proc;
+
+    typedef PROC(WINAPI* PFNWGLGETPROCADDRESS)(LPCSTR);
+    PFNWGLGETPROCADDRESS wglGPA = (PFNWGLGETPROCADDRESS)GetProcAddress(hGlDLL, "wglGetProcAddress");
+    
+    if (wglGPA)
+        return (GLADapiproc)wglGPA(name);
+
+    return NULL;
+}
+#endif
+
+bool gettingGPUVendor = true;
 
 int getGPUVendorID()
 {
     int vendorId;
     EmulatorConfig *config = getConfig();
-    gettingGPUVendor = true;
+    
     if (!SDL_Init(SDL_INIT_VIDEO))
     {
         fprintf(stderr, "SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
@@ -39,7 +58,17 @@ int getGPUVendorID()
         exit(1);
     }
 
-    config->GPUVendorString = strdup((char *)glGetString(GL_VENDOR));
+#ifdef _WIN32
+    if (!gladLoadGL((GLADloadfunc)gladGlLoader))
+#else
+    if (!gladLoadGL((GLADloadfunc)SDL_GL_GetProcAddress))
+#endif
+    {
+        fprintf(stderr, "Failed to initialize GLAD.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    config->GPUVendorString = strdup((char *)glad_glGetString(GL_VENDOR));
     
     if (!config->GPUVendorString)
     {

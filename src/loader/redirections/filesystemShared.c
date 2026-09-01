@@ -306,6 +306,11 @@ FILE *sharedFopen(const char *restrict pathname, const char *restrict mode)
 {
     if (_fopen == NULL)
         _fopen = REAL_FUNC(fopen);
+#ifdef _WIN32
+
+    if (strcmp(mode, "r") == 0)
+        mode = "rb";
+#endif
 
     if (strcmp(pathname, "/proc/net/route") == 0)
     {
@@ -602,6 +607,14 @@ FILE *sharedFopen64(const char *pathname, const char *mode)
         {
             hummerExtremeShaderFileIndex = idx;
         }
+#ifdef _WIN32
+            char winPath[MAX_PATH];
+            ConvertPath(winPath, pathname, MAX_PATH);
+            if (strcmp(mode, "r") == 0)
+                mode = "rb";
+
+            return _fopen64(winPath, mode);
+#endif
         return _fopen64(pathname, mode);
     }
 

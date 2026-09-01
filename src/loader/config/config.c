@@ -146,6 +146,7 @@ void setDefaultValues(EmulatorConfig *cfg)
     cfg->hummerFlickerFix = 0;
     cfg->keepAspectRatio = 1;
     cfg->ramboGunsSwitch = 0;
+    cfg->harleyAnalogRemap = 0;
     cfg->id5ChineseLanguage = 0;
     cfg->idSteeringPercentageReduction = 0.0f;
     cfg->lgjRenderWithMesa = 1;
@@ -162,6 +163,7 @@ void setDefaultValues(EmulatorConfig *cfg)
     cfg->fpsTarget = 60.0f;
     cfg->phScreenMode = 2;
     cfg->phTestScreenSingle = 1;
+    cfg->phUseZink = 1;
     cfg->disableBuiltinFont = 0;
     cfg->disableBuiltinLogos = 0;
     cfg->hideCursor = 1;
@@ -382,10 +384,12 @@ void applyIniConfig(EmulatorConfig *config, const IniConfig *ini)
     // [GameSpecific]
     config->phScreenMode = getInt(ini, "GameSpecific", "PRIMEVAL_HUNT_SCREEN_MODE", config->phScreenMode);
     config->phTestScreenSingle = getInt(ini, "GameSpecific", "PRIMEVAL_HUNT_TEST_SCREEN_SINGLE", config->phTestScreenSingle);
+    config->phUseZink = getInt(ini, "GameSpecific", "PRIMEVAL_HUNT_USE_ZINK", config->phUseZink);
     config->skipOutrunCabinetCheck = getInt(ini, "GameSpecific", "SKIP_OUTRUN_CABINET_CHECK", config->skipOutrunCabinetCheck);
     config->mj4EnabledAtT = getInt(ini, "GameSpecific", "MJ4_ENABLED_ALL_THE_TIME", config->mj4EnabledAtT);
     config->cpuFreqGhz = getFloat(ini, "GameSpecific", "CPU_FREQ_GHZ", config->cpuFreqGhz);
     config->ramboGunsSwitch = getInt(ini, "GameSpecific", "RAMBO_GUNS_SWITCH", config->ramboGunsSwitch);
+    config->harleyAnalogRemap = getInt(ini, "GameSpecific", "HARLEY_ANALOG_REMAP", config->harleyAnalogRemap);
     config->id5ChineseLanguage = getInt(ini, "GameSpecific", "ID5_CHINESE_LANGUAGE", config->id5ChineseLanguage);
     config->idSteeringPercentageReduction =
         getFloat(ini, "GameSpecific", "ID_STEERING_REDUCTION_PERCENTAGE", config->idSteeringPercentageReduction);

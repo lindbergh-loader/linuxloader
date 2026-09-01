@@ -35,6 +35,8 @@ namespace GccBridge
         MAP("__strtod_internal", __strtod_internal);
         MAP("__strtol_internal", __strtol_internal);
         MAP("__strtoul_internal", __strtoul_internal);
+        MAP("__strtof_internal", bridge__strtof_internal);
+        MAP("__strtoll_internal", __strtoll_internal);
 
         MAP("__assert_fail", __assert_fail);
         MAP("__errno_location", __errno_location);
@@ -72,6 +74,7 @@ namespace GccBridge
         MAP("iswxdigit", iswxdigit);
         MAP("iswblank", iswblank);
         MAP("iswctype", iswctype);
+        MAP("isalpha", isalpha);
     }
 
     extern "C"
@@ -87,6 +90,16 @@ namespace GccBridge
         unsigned long __strtoul_internal(const char *n, char **e, int b, int g)
         {
             return strtoul(n, e, b);
+        }
+
+        float bridge__strtof_internal(const char *n, char **e, int g)
+        {
+            return strtof(n, e);
+        } 
+
+        long long __strtoll_internal(const char *n, char **e, int b, int g)
+        {
+            return strtoll(n, e, b);
         }
 
         const unsigned short **__ctype_b_loc(void)

@@ -76,6 +76,8 @@ namespace GraphicsBridge
         MAP("gluLookAt", bridgegluLookAt);
         MAP("gluOrtho2D", bridgegluOrtho2D);
         MAP("gluErrorString", bridgegluErrorString);
+        MAP("gluProject", bridgegluProject);
+        MAP("gluUnProject", bridgegluUnProject);
 
         // XF86VidMode
         MAP("XF86VidModeQueryExtension", bridgeXF86VidModeQueryExtension);
@@ -99,8 +101,10 @@ namespace GraphicsBridge
         MAP("_XReply", bridgeXReply);
         MAP("XCreateWindow", bridgeXCreateWindow);
         MAP("XDestroyWindow", bridgeXDestroyWindow);
+        MAP("XConfigureWindow", bridgeXConfigureWindow);
         MAP("XMapWindow", bridgeXMapWindow);
         MAP("XGetWindowAttributes", bridgeXGetWindowAttributes);
+        MAP("XChangeWindowAttributes", bridgeXChangeWindowAttributes);
         MAP("XGetGeometry", bridgeXGetGeometry);
         MAP("XMapRaised", bridgeXMapRaised);
         MAP("XextFindDisplay", bridgeXextFindDisplay);
@@ -116,6 +120,7 @@ namespace GraphicsBridge
         MAP("XLookupString", bridgeXLookupString);
         MAP("XStoreName", bridgeXStoreName);
         MAP("XCreateColormap", bridgeXCreateColormap);
+        MAP("XFreeColormap", bridgeXFreeColormap);
         MAP("XSetTransientForHint", bridgeXSetTransientForHint);
 
         MAP("XDisplayWidth", bridgeXDisplayWidth);
@@ -139,6 +144,7 @@ namespace GraphicsBridge
         MAP("XFreePixmap", bridgeXFreePixmap);
         MAP("XFreeCursor", bridgeXFreeCursor);
         MAP("XDefineCursor", bridgeXDefineCursor);
+        MAP("XUndefineCursor", bridgeXUndefineCursor);
 
         MAP("XSetInputFocus", bridgeXSetInputFocus);
         MAP("XSetWMProtocols", bridgeXSetWMProtocols);
@@ -154,6 +160,8 @@ namespace GraphicsBridge
         MAP("XUngrabKeyboard", bridgeXUngrabKeyboard);
         MAP("XKeysymToKeycode", bridgeXKeysymToKeycode);
         MAP("XSendEvent", bridgeXSendEvent);
+
+        MAP("XAllocWMHints", bridgeXAllocWMHints);
 
         // ============================================================
         // GLX Functions

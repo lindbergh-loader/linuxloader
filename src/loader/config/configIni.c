@@ -121,6 +121,8 @@ int createDefaultIni(const char *filePath)
     fprintf(file, "PRIMEVAL_HUNT_SCREEN_MODE = %d\n\n", defaults.phScreenMode);
     fprintf(file, "# Set Primeval Hunt Test mode screen to single screen\n");
     fprintf(file, "PRIMEVAL_HUNT_TEST_SCREEN_SINGLE = %s\n\n", defaults.phTestScreenSingle ? "true" : "false");
+    fprintf(file, "# Set to true to make Primeval Hunt use a special opengl.dll to fix the graphic glitches.\n");
+    fprintf(file, "PRIMEVAL_HUNT_USE_ZINK = %s\n\n", defaults.phUseZink ? "true" : "false");
     fprintf(file, "# Set to true to bypass cabinet checks including drive board and tower in Outrun 2 SP SDX\n");
     fprintf(file, "SKIP_OUTRUN_CABINET_CHECK = %s\n\n", defaults.skipOutrunCabinetCheck ? "true" : "false");
     fprintf(file, "# Hacky way to make MJ4 and AxA work at prohibited times\nMJ4_ENABLED_ALL_THE_TIME = %s\n\n",
@@ -128,6 +130,8 @@ int createDefaultIni(const char *filePath)
     fprintf(file, "# House of the dead 4 speed fix, set the frequency of your CPU in Ghz\nCPU_FREQ_GHZ = %.1f\n\n", defaults.cpuFreqGhz);
     fprintf(file, "# Set to true if you want to chnge the way the guns are show in Rambo\n");
     fprintf(file, "RAMBO_GUNS_SWITCH = false\n\n");
+    fprintf(file, "# Set to true if you want to enable analog swapping of the steering wheel and Gas for Harley for JVS Passthrough\n");
+    fprintf(file, "HARLEY_ANALOG_REMAP = %s\n\n", defaults.harleyAnalogRemap ? "true" : "false");
     fprintf(file, "# Set to true to set the language in Chinese for ID5 DVP-0084 and DVP-0084A\n");
     fprintf(file, "ID5_CHINESE_LANGUAGE = %s\n\n", defaults.id5ChineseLanguage ? "true" : "false");
     fprintf(file, "# Set the percentage of the steering wheel travel reduction\n");

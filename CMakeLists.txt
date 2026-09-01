@@ -161,7 +161,10 @@ elseif(WIN32 OR MINGW OR CMAKE_C_COMPILER MATCHES "mingw")
     target_link_directories(${PROJECT_NAME} PRIVATE "libs/win32")
 
     # Link dependencies
-    target_link_libraries(${PROJECT_NAME} minhook -static-libgcc -static-libstdc++ SDL3 SDL3_ttf SDL3_image FAudio gdi32 winmm ole32 ws2_32 xdiff opengl32 pthread psapi)
+    target_link_directories(${PROJECT_NAME} PRIVATE "libs/win32")
+    target_link_libraries(${PROJECT_NAME}
+        minhook xdiff -Wl,-Bstatic SDL3 SDL3_ttf SDL3_image FAudio freetype harfbuzz winpthread stdc++ gcc gcc_eh -Wl,-Bdynamic gdi32 winmm ole32 ws2_32 psapi usp10 rpcrt4 setupapi version imm32 hid delayimp
+    )
 
 else()
     message(WARNING "Unknown platform, doing nothing. Please use Linux or MinGW.")

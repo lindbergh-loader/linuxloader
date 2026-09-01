@@ -63,6 +63,7 @@ namespace LibcBridge
         MAP("fscanf", bridgeFscanf);
         MAP("sscanf", bridgeSscanf);
         MAP("index", bridgeIndex);
+        MAP("fnmatch", bridgeFnmatch);
 
         MAP("stdin", &native_stdin);
         MAP("stdout", &native_stdout);
@@ -175,6 +176,7 @@ namespace LibcBridge
 
         MAP("isinf", bridgeIsinf);
         MAP("isnan", bridgeIsnan);
+        MAP("__isnanf", bridgeIsnanf); 
         MAP("wcscoll_l", bridgeWcscoll_l);
         MAP("wcsxfrm_l", bridgeWcsxfrm_l);
         MAP("towlower_l", bridgeTowlower_l);
@@ -199,6 +201,7 @@ namespace LibcBridge
         MAP("dlerror", sharedDlerror);
 
         MAP("kswap_collect", sharedKswap_collect);
+        MAP("bzero", bridgeBzero);
 
         // Wide char string functions
         MAP("wmemcmp", bridgeWmemcmp);
@@ -442,6 +445,11 @@ namespace LibcBridge
         return std::isnan(x) ? 1 : 0;
     }
 
+    int bridgeIsnanf(float x)
+    {
+        return std::isnan(x) ? 1 : 0;
+    }
+
     int bridgeWcscoll_l(const uint32_t *s1, const uint32_t *s2, void *locale)
     {
         size_t len1 = 0, len2 = 0;
@@ -624,6 +632,87 @@ namespace LibcBridge
     {
         log_trace("Intercepted index");
         return strchr(str, c);
+    }
+
+#define FNM_NOMATCH 1
+#define FNM_NOESCAPE 0x01
+#define FNM_PATHNAME 0x02
+#define FNM_PERIOD 0x04
+
+    int bridgeFnmatch(const char *pattern, const char *string, int flags)
+    {
+        const char *p = pattern, *n = string;
+
+        if ((flags & FNM_PERIOD) && *n == '.' && *p != '.')
+            return FNM_NOMATCH;
+
+        while (*p)
+        {
+            if (*p == '*')
+            {
+                while (*p == '*')
+                    p++;
+                if (!*p)
+                    return 0;
+                while (*n)
+                {
+                    if (bridgeFnmatch(p, n, flags & ~FNM_PERIOD) == 0)
+                        return 0;
+                    if ((flags & FNM_PATHNAME) && *n == '/')
+                        break;
+                    n++;
+                }
+                return FNM_NOMATCH;
+            }
+            else if (*p == '?')
+            {
+                if (!*n || ((flags & FNM_PATHNAME) && *n == '/'))
+                    return FNM_NOMATCH;
+                p++;
+                n++;
+            }
+            else if (*p == '[')
+            {
+                if (!*n || ((flags & FNM_PATHNAME) && *n == '/'))
+                    return FNM_NOMATCH;
+                p++;
+                bool negate = (*p == '!' || *p == '^');
+                if (negate)
+                    p++;
+                bool match = false;
+                while (*p && *p != ']')
+                {
+                    if (p[1] == '-' && p[2] && p[2] != ']')
+                    {
+                        if (*n >= *p && *n <= p[2])
+                            match = true;
+                        p += 3;
+                    }
+                    else
+                    {
+                        if (*n == *p)
+                            match = true;
+                        p++;
+                    }
+                }
+                if (!*p)
+                    return FNM_NOMATCH;
+                p++;
+                if (match == negate)
+                    return FNM_NOMATCH;
+                n++;
+            }
+            else
+            {
+                if (*p == '\\' && !(flags & FNM_NOESCAPE) && p[1])
+                    p++;
+                if (*p != *n)
+                    return FNM_NOMATCH;
+                p++;
+                n++;
+            }
+        }
+        return *n ? FNM_NOMATCH : 0;
     }
 
     int32_t bridgeTime(int32_t *tloc)
@@ -1162,6 +1251,12 @@ namespace LibcBridge
             fds[i].revents = 0;
         }
         return 0;
+    }
+
+    void bridgeBzero(void *s, size_t n)
+    {
+        log_debug("Intercepted bzero");
+        memset(s, 0, n);
     }
 
     int bridgeWmemcmp(const uint32_t *s1, const uint32_t *s2, size_t n)

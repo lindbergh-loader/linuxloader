@@ -15,6 +15,10 @@ The follow list of games are supported. It is worth noting that there are multip
 | After Burner Climax SE                | SBLR    | Lindbergh Yellow | DVP-0031  | ✓      | ✓      | ✓       |
 | After Burner Climax SE Rev A          | SBLR    | Lindbergh Yellow | DVP-0031A | ✓      | ✓      | ✓       |
 | Ghost Squad Evolution                 | SBNJ    | Lindbergh Red    | DVP-0029  | ✓      |        | ✓       |
+| Hummer                                | SBQN    | Lindbergh Yellow | DVP-0057B | ✓      | ✓      | ✓       |
+| Hummer SDLX                           | SBST    | Lindbergh Yellow | DVP-0057  | ✓      | ✓      | ✓       |
+| Hummer Extreme                        | SBST    | Lindbergh Yellow | DVP-0079  | ✓      | ✓      | ✓       |
+| Hummer Extreme MDX                    | SBST    | Lindbergh Yellow | DVP-0083  | ✓      | ✓      | ✓       |
 | Initial D Arcade Stage 4 Rev A        | SBML    | Lindbergh Yellow | DVP-0019A | ✓      | ✓      | ✓       |
 | Initial D Arcade Stage 4 Rev B        | SBML    | Lindbergh Yellow | DVP-0019B | ✓      | ✓      | ✓       |
 | Initial D Arcade Stage 4 Rev C        | SBML    | Lindbergh Yellow | DVP-0019C | ✓      | ✓      | ✓       |
@@ -35,6 +39,8 @@ The follow list of games are supported. It is worth noting that there are multip
 | Outrun 2 SP SDX                       | SBMB    | Lindbergh Yellow | DVP-0015  | ✓      | ✓      | ✓       |
 | Outrun 2 SP SDX Rev A                 | SBMB    | Lindbergh Yellow | DVP-0015A | ✓      | ✓      | ✓       |
 | Primeval Hunt                         | SBPP    | Lindbergh Red    | DVP-0048  | ✓      | ✓      | ✓       |
+| RAMBO_SBQL                            | SBQL    | Lindbergh Red EX | DVP-0069  | ✓      | ✓      | ✓       |
+| RAMBO_SBQL (China)                    | SBSS    | Lindbergh Red EX | DVP-0078  | ✓      | ✓      | ✓       |
 | The House of the Dead 4 Rev A         | SBLC    | Lindbergh Yellow | DVP-0003A | ✓      | ✓      | ✓       |
 | The House of the Dead 4 Rev B         | SBLC    | Lindbergh Yellow | DVP-0003B | ✓      | ✓      | ✓       |
 | The House of the Dead 4 Rev C         | SBLC    | Lindbergh Yellow | DVP-0003C | ✓      | ✓      | ✓       |

@@ -6,6 +6,7 @@
 #include <windows.h>
 #include <libgen.h>
 
+#include "glad/gl.h"
 #include "elfLoader/alsa2sdlBridge.hpp"
 #include "elfLoader/segaapiBridge.hpp"
 #include "elfLoader/gccBridge.hpp"
@@ -22,6 +23,7 @@
 #include "elfLoader/mathBridge.hpp"
 #include "elfLoader/symbolResolver.hpp"
 #include "elfLoader/pthread/pthreadEmu.hpp"
+#include "loader/config/config.h"
 #include "log/log.h"
 #include "graphics/gpuVendor.h"
 #include "init.h"
@@ -36,11 +38,12 @@ extern SDLControllers sdlJoysticks;
 
 extern int gGrp;
 
+HMODULE hGlDLL = NULL;
+
 LONG CALLBACK myVectoredHandler(PEXCEPTION_POINTERS ExceptionInfo)
 {
     DWORD exceptionCode = ExceptionInfo->ExceptionRecord->ExceptionCode;
     PCONTEXT ctx = ExceptionInfo->ContextRecord;
-
 
     if (exceptionCode == EXCEPTION_ACCESS_VIOLATION || exceptionCode == EXCEPTION_PRIV_INSTRUCTION) {
         uint8_t* pint = (uint8_t*)ctx->Eip;
@@ -55,7 +58,6 @@ LONG CALLBACK myVectoredHandler(PEXCEPTION_POINTERS ExceptionInfo)
 
     return EXCEPTION_CONTINUE_SEARCH;
 }   
-
 
 void initBridges()
 {
@@ -133,6 +135,26 @@ int main(int argc, char *argv[], char *envp[])
     uint8_t *baseAddr = (uint8_t *)loader.GetBaseAddress();
     if (baseAddr)
         partialElfCrc = getCrc32Mem(baseAddr + 10, 0x4000);
+
+    initConfig(configPath);
+
+    if (partialElfCrc == PRIMEVAL_HUNT_SBPP && getConfig()->phUseZink)
+    {
+        SymbolResolver::GetInstance().AddDllSearchSubPath("zink");
+        SetEnvironmentVariableA("GALLIUM_DRIVER", "zink");
+        std::string zinkGlPath = SymbolResolver::GetInstance().GetDllSearchBase() + "\\zink\\opengl32.dll";
+        hGlDLL = LoadLibraryA(zinkGlPath.c_str());
+    }
+    else
+    {
+        hGlDLL = LoadLibraryA("opengl32.dll");
+    }
+
+    if (!hGlDLL)
+    {
+        printf("Failed to load OpenGL!\n");
+        return -1;
+    }
 
     log_debug("Initializing main...");
     initMain(configPath, controlsPath);

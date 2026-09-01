@@ -2,9 +2,7 @@ make win32 -j$(nproc)
 
 mkdir win-release
 cp build-win32/linuxloader.exe win-release/linuxloader.exe
-cp libs/win32/SDL3.dll win-release/SDL3.dll
-cp libs/win32/SDL3_ttf.dll win-release/SDL3_ttf.dll
-cp /usr/i686-w64-mingw32/lib/libwinpthread-1.dll win-release/
+#cp libs/win32/SDL3.dll win-release/SDL3.dll
 cp -r libs/win32/ll-deps win-release/
 cp /usr/lib/gcc/i686-w64-mingw32/13-win32/libgcc_s_dw2-1.dll win-release/ll-deps/
 

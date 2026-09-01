@@ -482,17 +482,6 @@ extern "C" void __attribute__((cdecl)) wrap_glClientActiveTexture(GLenum texture
         glad_glClientActiveTexture(texture);
 }
 
-extern "C" void __attribute__((cdecl)) wrap_glVertexPointer(GLint size, GLenum type, GLsizei stride, const GLvoid *pointer)
-{
-    if (glad_glVertexPointer)
-        glad_glVertexPointer(size, type, stride, pointer);
-}
-
-extern "C" void __attribute__((cdecl)) wrap_glTexCoordPointer(GLint size, GLenum type, GLsizei stride, const GLvoid *pointer)
-{
-    if (glad_glTexCoordPointer)
-        glad_glTexCoordPointer(size, type, stride, pointer);
-}
 
 extern "C" void __attribute__((cdecl)) wrap_glNormalPointer(GLenum type, GLsizei stride, const GLvoid *pointer)
 {
@@ -930,6 +919,12 @@ extern "C" void __attribute__((cdecl)) wrap_glUniform2fv(GLint location, GLsizei
 {
     if (glad_glUniform2fv)
         glad_glUniform2fv(location, count, value);
+}
+
+extern "C" void __attribute__((cdecl)) wrap_glUniform3f(GLint location, GLfloat v0, GLfloat v1, GLfloat v2)
+{
+    if (glad_glUniform3f)
+        glad_glUniform3f(location, v0, v1, v2);
 }
 
 extern "C" void __attribute__((cdecl)) wrap_glUniform2iv(GLint location, GLsizei count, const GLint *value)
@@ -1984,6 +1979,17 @@ extern "C" void __attribute__((cdecl)) wrap_glGenerateMipmapEXT(GLenum target)
     if (glad_glGenerateMipmapEXT)
         glad_glGenerateMipmapEXT(target);
 }
+extern "C" void __attribute__((cdecl)) wrap_glTexCoord2d(GLdouble u, GLdouble v)
+{
+    if (glad_glTexCoord2d)
+        glad_glTexCoord2d(u, v);
+}
+
+extern "C" void __attribute__((cdecl)) wrap_glBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, const GLvoid *data)
+{
+    if (glad_glBufferSubData)
+        glad_glBufferSubData(target, offset, size, data);
+}
 
 // The interceptor router mapping string names to our safe __cdecl wrappers
 void *GLHooks_GetProcAddress(const char *procName)
@@ -2014,6 +2020,10 @@ void *GLHooks_GetProcAddress(const char *procName)
         return (void *)&bridgeglIsFenceNV;
     if (strcmp(procName, "glBindTexture") == 0)
         return (void *)&bridgeglBindTexture;
+    if (strcmp(procName, "glTexCoordPointer") == 0)
+        return (void *)&bridgeglTexCoordPointer;
+    if (strcmp(procName, "glVertexPointer") == 0)
+        return (void *)&bridgeglVertexPointer;
 
     if (strcmp(procName, "glDrawArrays") == 0)
         return (void *)&wrap_glDrawArrays;
@@ -2511,8 +2521,6 @@ void *GLHooks_GetProcAddress(const char *procName)
         return (void *)&wrap_glTexCoord3f;
     if (strcmp(procName, "glTexCoord4f") == 0)
         return (void *)&wrap_glTexCoord4f;
-    if (strcmp(procName, "glTexCoordPointer") == 0)
-        return (void *)&wrap_glTexCoordPointer;
     if (strcmp(procName, "glTexEnvf") == 0)
         return (void *)&wrap_glTexEnvf;
     if (strcmp(procName, "glTexEnvfv") == 0)
@@ -2553,6 +2561,8 @@ void *GLHooks_GetProcAddress(const char *procName)
         return (void *)&wrap_glUniform2fv;
     if (strcmp(procName, "glUniform2iv") == 0)
         return (void *)&wrap_glUniform2iv;
+    if (strcmp(procName, "glUniform3f") == 0)
+        return (void *)&wrap_glUniform3f;
     if (strcmp(procName, "glUniform3fv") == 0)
         return (void *)&wrap_glUniform3fv;
     if (strcmp(procName, "glUniform3iv") == 0)
@@ -2609,8 +2619,6 @@ void *GLHooks_GetProcAddress(const char *procName)
         return (void *)&wrap_glVertexAttribPointer;
     if (strcmp(procName, "glVertexAttribPointerARB") == 0)
         return (void *)&wrap_glVertexAttribPointerARB;
-    if (strcmp(procName, "glVertexPointer") == 0)
-        return (void *)&wrap_glVertexPointer;
     if (strcmp(procName, "glWindowPos2sARB") == 0)
         return (void *)&wrap_glWindowPos2sARB;
     if (strcmp(procName, "glTexImage1D") == 0)
@@ -2647,20 +2655,20 @@ void *GLHooks_GetProcAddress(const char *procName)
         return (void *)&wrap_glUniform3fvARB;
     if (strcmp(procName, "glDrawPixels") == 0)
         return (void *)&wrap_glDrawPixels;
-
     if (strcmp(procName, "glGetTexEnvfv") == 0)
         return (void *)&wrap_glGetTexEnvfv;
     if (strcmp(procName, "glGetTexEnviv") == 0)
         return (void *)&wrap_glGetTexEnviv;
     if (strcmp(procName, "glGetTexParameterfv") == 0)
         return (void *)&wrap_glGetTexParameterfv;
-
     if (strcmp(procName, "glMultMatrixd") == 0)
         return (void *)&wrap_glMultMatrixd;
-
     if (strcmp(procName, "glGenerateMipmapEXT") == 0)
-        return (void *)&wrap_glGenerateMipmapEXT;
-        
+        return (void *)&wrap_glGenerateMipmapEXT;        
+    if (strcmp(procName, "glBufferSubData") == 0)
+        return (void *)&wrap_glBufferSubData;
+    if (strcmp(procName, "glTexCoord2d") == 0)
+        return (void *)&wrap_glTexCoord2d;
     void *proc = (void *)SDL_GL_GetProcAddress(procName);
     if (proc)
         return proc;

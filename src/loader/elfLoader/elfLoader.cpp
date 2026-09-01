@@ -187,7 +187,6 @@ bool ElfLoader::Load(const std::string &path)
         return false;
     RegisterAllEhFrames();
 
-    log_debug("After EH frames");
     return true;
 }
 
@@ -945,6 +944,13 @@ bool ElfLoader::Execute(int argc, char **argv, char **envp)
     log_info("Stack ESP: 0x%08X", esp);
 
     Sleep(100);
+
+    __asm__ volatile("push $0x1F80\n\t"
+                     "ldmxcsr (%%esp)\n\t"
+                     "add $4, %%esp\n\t"
+                     :
+                     :
+                     : "memory");
 
     __asm__ volatile("mov %0, %%esp\n\t"
                      "xor %%eax, %%eax\n\t"

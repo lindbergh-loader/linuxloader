@@ -48,4 +48,6 @@ namespace MathBridge
     extern "C" int bridge_finitef(float x);
     extern "C" double bridge_frexp(double x, int *exp);
     extern "C" float bridge_frexpf(float x, int *exp);
+    extern "C" float bridge_ldexpf(float x, int exp);
+    extern "C" float bridge_fabsf(float x);
 }

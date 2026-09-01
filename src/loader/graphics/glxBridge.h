@@ -78,6 +78,8 @@ extern "C"
                          double upZ);
     void bridgegluOrtho2D(double left, double right, double bottom, double top);
     const unsigned char *bridgegluErrorString(unsigned int error);
+    int bridgegluProject(double objX, double objY, double objZ, const double *model, const double *proj, const int *view, double* winX, double* winY, double* winZ);
+    int bridgegluUnProject(double winX, double winY, double winZ, const double *model, const double *proj, const int *view, double* objX, double* objY, double* objZ);
 
 #ifdef __cplusplus
 }

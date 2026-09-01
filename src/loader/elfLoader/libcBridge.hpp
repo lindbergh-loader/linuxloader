@@ -63,6 +63,7 @@ namespace LibcBridge
     int bridgeFscanf(FILE *stream, const char *format, ...);
     int bridgeSscanf(const char *str, const char *format, ...);
     char *bridgeIndex(const char *str, int c);
+    int bridgeFnmatch(const char *pattern, const char *string, int flags);
     char *bridgeRealpath(const char *path, char *resolved_path);
     FILE *bridgePopen(const char *command, const char *type);
     int bridgePclose(FILE *stream);
@@ -117,6 +118,7 @@ namespace LibcBridge
 
     int bridgeIsinf(double x);
     int bridgeIsnan(double x);
+    int bridgeIsnanf(float x);
     int bridgeWcscoll_l(const uint32_t *s1, const uint32_t *s2, void *locale);
     size_t bridgeWcsxfrm_l(uint32_t *dst, const uint32_t *src, size_t n, void *locale);
     int bridgeTowlower_l(int wc, void *locale);
@@ -183,6 +185,7 @@ namespace LibcBridge
     int bridgeWaitpid(int pid, int *wstatus, int options);
     pid_t bridgeGetuid(void);
 
+    void bridgeBzero(void *s, size_t n);
 } // namespace LibcBridge
 
 #endif

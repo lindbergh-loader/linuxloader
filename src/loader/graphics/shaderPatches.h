@@ -67,6 +67,8 @@ extern "C"
     GLboolean bridgeglIsFenceNV(GLuint fence);
 
     void bridgeglBindTexture(GLenum target, GLuint texture);
+    void bridgeglTexCoordPointer(GLint size, GLenum type, GLsizei stride, const GLvoid *pointer);
+    void bridgeglVertexPointer(GLint size, GLenum type, GLsizei stride, const GLvoid *pointer);
 
 #ifdef __cplusplus
 }

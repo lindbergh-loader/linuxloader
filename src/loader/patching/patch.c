@@ -209,6 +209,30 @@ bool checkTrgOn(int param_1, long param_2)
     return false;
 }
 
+// Harley-Davidson - Steering/Throttle Swap
+static int (*originalAmJvspAckAnalogInput)(void *a, void *b, uint32_t channel, void *d) = NULL;
+static int harleyAnalogRemapHook(void *a, void *b, uint32_t channel, void *d)
+{
+    uint32_t remappedChannel = channel;
+
+    switch (channel)
+    {
+        case 0:
+            remappedChannel = 1;
+            break; /* Gas  → read physical Steer */
+        case 1:
+            remappedChannel = 0;
+            break; /* Steer→ read physical Gas   */
+        case 3:
+            remappedChannel = 2;
+            break; /* Brake→ read physical Ch2   */
+        default:
+            break;
+    }
+
+    return originalAmJvspAckAnalogInput(a, b, remappedChannel, d);
+}
+
 #ifdef _WIN32
 uint32_t bridgeGettid(void)
 {
@@ -510,6 +534,9 @@ int initPatch()
             // Turns off the opponent marker at higher resolutions because it is out of place.
             // if (getConfig()->width > 1360)
             //     detourFunction(0x080f19a6, stubRetZero);
+
+            if (getConfig()->harleyAnalogRemap)
+                originalAmJvspAckAnalogInput = trampolineHook((void *)0x08398737, harleyAnalogRemapHook, 6);
         }
         break;
         case HUMMER_SBQN: // DVP-0057
@@ -556,7 +583,7 @@ int initPatch()
             // values.
             patchMemoryFromString(0x082e99ec, "C3");
             // Fixes Black screen after finishing the race
-            // patchMemory(0x08078b84, "C3");
+            patchMemoryFromString(0x08078b84, "C3");
 
             detourFunction(0x082b650a, stubReturn); // adx_err_callback
             // detourFunction(0x082d2414, stubReturn); // clSerialLindbergh::send
@@ -618,7 +645,7 @@ int initPatch()
             // // values.
             patchMemoryFromString(0x082e8f48, "C3");
             // // Fixes Black screen after finishing the race
-            // patchMemory(0x08078b4c, "C3");
+            patchMemoryFromString(0x08078b4c, "C3");
 
             detourFunction(0x082b5e4a, stubReturn); // adx_err_callback
             // detourFunction(0x082d199c, stubReturn); // clSerialLindbergh::send
@@ -689,7 +716,7 @@ int initPatch()
             // values.
             patchMemoryFromString(0x080e8b40, "C3");
             // Fixes Black screen after finishing the race
-            // patchMemory(0x0811d0c0, "C3");
+            patchMemoryFromString(0x0811d0c0, "C3");
 
             // Shader patching
             cacheModedShaderFiles();
@@ -764,7 +791,7 @@ int initPatch()
             // values.
             patchMemoryFromString(0x080ebe20, "C3");
             // Fixes Black screen after finishing the race
-            // patchMemory(0x081260f0, "C3");
+            patchMemoryFromString(0x081260f0, "C3");
 
             // Shader patching
             cacheModedShaderFiles();

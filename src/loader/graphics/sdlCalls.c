@@ -196,12 +196,6 @@ void startSDL()
         exit(EXIT_FAILURE);
     }
 
-    if (!gladLoadGL((GLADloadfunc)SDL_GL_GetProcAddress))
-    {
-        log_error("Failed to initialize GLAD.\n");
-        exit(EXIT_FAILURE);
-    }
-
     if (getConfig()->showDebugMessages)
     {
         // Enable OpenGL debug output

@@ -36,6 +36,7 @@ extern "C" {
                                       char **argv, int argc, XSetWindowAttributes *attributes);
 
     Atom bridgeXCreateColormap(Display *dpy, Window w, Visual *visual, int alloc);
+    int bridgeXFreeColormap(Display *dpy, Colormap colormap);
     void *bridgeXextFindDisplay(Display *dpy);
 
     // --- Event Handling ---
@@ -96,6 +97,7 @@ extern "C" {
     int bridgeXFreePixmap(Display *dpy, Pixmap pixmap);
     int bridgeXFreeCursor(Display *dpy, Cursor cursor);
     int bridgeXDefineCursor(Display *dpy, Window w, Cursor c);
+    void bridgeXUndefineCursor(Display *dpy, Window w);
     Cursor bridgeXCreateFontCursor(Display *dpy, int shape);
     Pixmap bridgeXCreateBitmapFromData(Display *dpy, Drawable drawable, char *data, unsigned int width, unsigned int height);
 

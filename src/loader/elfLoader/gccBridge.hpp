@@ -36,6 +36,9 @@ extern "C"
     double __strtod_internal(const char *n, char **e, int g);
     long __strtol_internal(const char *n, char **e, int b, int g);
     unsigned long __strtoul_internal(const char *n, char **e, int b, int g);
+    float bridge__strtof_internal(const char *n, char **e, int g);
+    long long __strtoll_internal(const char *n, char **e, int b, int g);
+
     const unsigned short **__ctype_b_loc(void);
     const int32_t **__ctype_tolower_loc(void);
     const int32_t **__ctype_toupper_loc(void);

@@ -414,6 +414,23 @@ const unsigned char *bridgegluErrorString(unsigned int error)
     }
 }
 
+int bridgegluProject(double objX, double objY, double objZ, const double *model, const double *proj, const int *view, double* winX, double* winY, double* winZ)
+{
+    log_trace("gluProject(objX=%f, objY=%f, objZ=%f) - STUB", objX, objY, objZ);
+    if (winX) *winX = 0.0;
+    if (winY) *winY = 0.0;
+    if (winZ) *winZ = 0.0;
+    return 1;
+}
+int bridgegluUnProject(double winX, double winY, double winZ, const double *model, const double *proj, const int *view, double* objX, double* objY, double* objZ)
+{
+    log_trace("gluUnProject(winX=%f, winY=%f, winZ=%f) - STUB", winX, winY, winZ);
+    if (objX) *objX = 0.0;
+    if (objY) *objY = 0.0;
+    if (objZ) *objZ = 0.0;
+    return 1; 
+}
+
 #endif
 
 void bridgeGlxSwapBuffers(Display *dpy, GLXDrawable drawable)
@@ -480,9 +497,9 @@ GLXContext glXCreateContext(Display *dpy, XVisualInfo *vis, GLXContext shareList
     GLXContext (*_glXCreateContext)(Display *dpy, XVisualInfo *vis, GLXContext shareList, int direct) =
         dlsym(RTLD_NEXT, "glXCreateContext");
 
-    GLXContext ctx = NULL;
     static int ctxCnt = 0;
-    if (ctx == NULL)
+    GLXContext ctx = NULL;
+    if (ctxCnt == 0)
         ctx = (GLXContext)getSDLContext();
     else
         ctx = _glXCreateContext(dpy, vis, shareList, direct);

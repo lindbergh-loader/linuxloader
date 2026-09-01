@@ -438,6 +438,10 @@ int bridgeXDefineCursor(Display *dpy, Window w, Cursor c)
     return 0;
 }
 
+void bridgeXUndefineCursor(Display *dpy, Window w)
+{
+}
+
 Cursor bridgeXCreateFontCursor(Display *dpy, int shape)
 {
     return 1001;
@@ -521,6 +525,11 @@ int bridgeXF86VidModeQueryVersion(Display *dpy, int *major_return, int *minor_re
 }
 
 Atom bridgeXCreateColormap(Display *dpy, Window w, Visual *visual, int alloc)
+{
+    return 1;
+}
+
+int bridgeXFreeColormap(Display *dpy, Colormap colormap)
 {
     return 1;
 }

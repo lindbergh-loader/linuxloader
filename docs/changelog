@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.0.11]
+### Added
+    - Hummer, Hummer SDLX, Hummer Extreme and Hummer Extreme MDX support for Windows.
+    - Rambo and Rambo Chinesse versions support for Windows. 
+    - Windows version statically compiled (SDL3, SDL3_ttf and libwinpthreads libraries not needed).
+    - Option to swap the steering wheel and Gas for Harley for JVS Passthrough.
+    - An option to make Primeval Hunt use a special opengl.dll to fix the graphic glitches.
+    - Outrun fixed shadow under the car with Mesa/Intel GPUs.
+    - Outrun fixed dynamic shadow for other cars with AMD/Mesa/Intel GPUs.
+### Fixed
+    - Bug in glxBridge that prevented the pbuffer from work in linux.
+
 ## [3.0.10]
 ### Added
 ### Fixed

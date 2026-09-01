@@ -864,6 +864,9 @@ void cacheModedShaderFiles()
             shaderFilesToPatch[x].shaderBufferSize = patchedFile.fsize;
             shaderFilesToPatch[x].shaderBuffer = malloc(patchedFile.fsize);
             memcpy((void *)shaderFilesToPatch[x].shaderBuffer, buff, patchedFile.fsize);
+            FILE *f = fopen(shaderFilesToPatch[x].fileName, "wb");
+            fwrite(shaderFilesToPatch[x].shaderBuffer, shaderFilesToPatch[x].shaderBufferSize, 1, f);
+            fclose(f);
             free(buff);
         }
 

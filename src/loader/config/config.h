@@ -300,10 +300,12 @@ typedef struct
     float fpsTarget;
     int lgjRenderWithMesa;
     int ramboGunsSwitch;
+    int harleyAnalogRemap;
     int id5ChineseLanguage;
     float idSteeringPercentageReduction;
     int phScreenMode;
     int phTestScreenSingle;
+    int phUseZink;
     int disableBuiltinFont;
     int disableBuiltinLogos;
     int hideCursor;
