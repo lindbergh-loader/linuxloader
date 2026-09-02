@@ -57,10 +57,11 @@ unsigned int sharedMemoryIndex = 0;
 uint8_t sharedMemory[1024 * 32] = {0};
 
 int selectReply = -1;
-int jvsFileDescriptor = -1;
 int jvsPacketSize = -1;
 
 char serialString[1024] = {0};
+
+unsigned char passthroughOutputBuffer[JVS_MAX_PACKET_SIZE], passthroughInputBuffer[JVS_MAX_PACKET_SIZE];
 
 int initBaseboard()
 {
@@ -81,15 +82,11 @@ int initBaseboard()
 #ifdef __linux__
     if (getConfig()->emulateJVS == 0 && strcmp(getConfig()->jvsPath, "none") != 0)
     {
-        jvsFileDescriptor = openJVSSerial(getConfig()->jvsPath);
-        if (jvsFileDescriptor < 0)
+        JVSPassthroughStatus status = initJVSPassthrough(getConfig()->jvsPath);
+        if (status != JVS_PASSTHROUGH_STATUS_OK)
         {
-            printf("Error: Failed to open %s for JVS\n", getConfig()->jvsPath);
-            return -1;
+            printf("Warning: Failed to initialize JVS passthrough at %s\n", getConfig()->jvsPath);
         }
-
-        initJVSSerial(jvsFileDescriptor);
-        startJVSFrameThread(&jvsFileDescriptor);
     }
 #endif
 
@@ -221,11 +218,15 @@ int baseboardIoctl(int fd, unsigned long request, void *data)
                     {
                         processPacket(&jvsPacketSize);
                     }
-                    else if (jvsFileDescriptor >= 0)
+                    else
                     {
+                        JVSPassthroughStatus status = writeJVSFrame(inputBuffer, jvsCommand.srcSize);
+                        if(status != JVS_PASSTHROUGH_STATUS_OK) {
+                            printf("Error: Failed to write JVS frame, status: %d\n", status);
+                        }
+
                         for (uint32_t i = 0; i < jvsCommand.srcSize; i++)
                         {
-                            write(jvsFileDescriptor, &inputBuffer[i], 1);
                             if (inputBuffer[i] == 0xF0)
                             {
                                 setSenseLine(3);
@@ -276,25 +277,44 @@ int baseboardIoctl(int fd, unsigned long request, void *data)
 
                 case BASEBOARD_PROCESS_JVS:
                 {
-#ifdef __linux__
                     if (getConfig()->emulateJVS)
                     {
-#endif                        
                         memcpy(&sharedMemory[jvsCommand.destAddress], outputBuffer, jvsPacketSize);
                         _data[2] = jvsCommand.destAddress;
                         _data[3] = jvsPacketSize;
                         _data[1] = 1; // Set the status to success
-#ifdef __linux__
                     }
-                    else if (jvsFileDescriptor >= 0)
+                    else
                     {
-                        JVSFrame frame = readJVSFrameFromThread();
-                        memcpy(&sharedMemory[jvsCommand.destAddress], frame.buffer, frame.size);
-                        _data[2] = jvsCommand.destAddress;
-                        _data[3] = frame.size;
-                        _data[1] = frame.ready;
+                        if (getSenseLine() == 3)
+                        {
+                            char errorMessage[5] = {0xE0, 0x00, 0x02, 0x01, 0x03};
+                            memcpy(&sharedMemory[jvsCommand.destAddress], errorMessage, 5);
+                            _data[2] = jvsCommand.destAddress;
+                            _data[3] = 5;
+                            _data[1] = 1;
+                        }
+                        else
+                        {
+                            JVSPassthroughStatus status = readJVSFrame(passthroughInputBuffer, &jvsPacketSize);
+                            if(status != JVS_PASSTHROUGH_STATUS_OK) {
+                                printf("Error: Failed to read JVS frame, status: %d\n", status);
+                                // If it times out then we can just set the system to error out
+                                memcpy(&sharedMemory[jvsCommand.destAddress], "\x00", 1);
+                                _data[2] = jvsCommand.destAddress;
+                                _data[3] = 1;
+                                _data[1] = 1; // Set the status to failure
+                            }
+                            else
+                            {
+                                memcpy(&sharedMemory[jvsCommand.destAddress], passthroughInputBuffer, jvsPacketSize);
+                                _data[2] = jvsCommand.destAddress;
+                                _data[3] = jvsPacketSize;
+                                _data[1] = 1; // Set the status to success
+                            }
+                         
+                        }
                     }
-#endif                    
                 }
                 break;
 
