@@ -407,6 +407,9 @@ int createDefaultControlsIni(const char *fileName)
     iniSetValue(ini, "Config", "ShakeIncreaseRate", "1.0");
     iniSetValue(ini, "Config", "ShakeDecayRate", "0.95");
     iniSetValue(ini, "Config", "ShakeMinScreenFraction", "0.15");
+    iniSetValue(ini, "Config", "FFBGlobalGain", "1");
+    iniSetValue(ini, "Config", "FFBAutocenterGain", "1");
+    iniSetValue(ini, "Config", "FFBRumbleGain", "1");
     iniSetValue(ini, "Config", "CardInsert_Toggle", "1");
     iniSetValue(ini, "Config", "Card1Insert_Toggle", "1");
     iniSetValue(ini, "Config", "Card2Insert_Toggle", "1");

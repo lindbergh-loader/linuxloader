@@ -54,7 +54,7 @@ typedef struct
 FILE *sram = NULL;
 
 unsigned int sharedMemoryIndex = 0;
-uint8_t sharedMemory[1024 * 32] = {0};
+uint8_t sharedMemory[1024 * 64] = {0};
 
 int selectReply = -1;
 int jvsFileDescriptor = -1;
