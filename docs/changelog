@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.0.12]
+### Fixed
+    - Hummer test mode and Extreme would not work in windows due to stack alignment issues.
+    - Fixed a cast to make the building work in newer Mingw toolchains (MSYS2).
+
 ## [3.0.11]
 ### Added
     - Hummer, Hummer SDLX, Hummer Extreme and Hummer Extreme MDX support for Windows.

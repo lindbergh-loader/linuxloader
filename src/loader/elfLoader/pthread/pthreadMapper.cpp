@@ -3,6 +3,7 @@
 // ============================================================
 
 #include "pthreadInternal.hpp"
+#include "../linuxStack.hpp"
 #include <unordered_map>
 
 // ============================================================
@@ -464,6 +465,9 @@ uint32_t PthreadMapper::GetCurrentLinuxTid() {
     // If not found, this thread wasn't created via pthread_create
     // Create an entry for it
     if (result == 0) {
+        // We commit the stack per thread to prevent other threads to reach the ELF threads.
+        LinuxStack::CommitCurrentThreadStack();
+
         uint32_t new_tid;
         PthreadThreadInternal* thread = CreateThread(&new_tid);
         if (thread) {

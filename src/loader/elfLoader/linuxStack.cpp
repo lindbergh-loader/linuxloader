@@ -1,5 +1,7 @@
 #include "linuxStack.hpp"
+#include "../log/log.h"
 #include <windows.h>
+#include <intrin.h>
 
 // Linux auxiliary vector type constants
 #define AT_NULL   0
@@ -63,4 +65,56 @@ uint32_t LinuxStack::Setup(uint32_t size, int argc, char** argv, uint32_t* outSt
     *(--ptr) = argc;  // argc
     
     return (uint32_t)ptr;
+}
+
+bool LinuxStack::CommitCurrentThreadStack()
+{
+    // Cheap enough to call from any ELF entry point: after the first successful
+    // call on a thread this is a single TLS load.
+    static thread_local bool alreadyCommitted = false;
+    if (alreadyCommitted)
+        return true;
+
+    // A local gives us an address that is guaranteed to sit inside the current
+    // thread's committed stack region.
+    volatile char probe = 0;
+
+    MEMORY_BASIC_INFORMATION mbi;
+    if (VirtualQuery((LPCVOID)&probe, &mbi, sizeof(mbi)) != sizeof(mbi))
+    {
+        log_error("CommitCurrentThreadStack: VirtualQuery failed (%lu)", GetLastError());
+        return false;
+    }
+
+    // AllocationBase is the bottom of the entire stack reservation; BaseAddress
+    // is the bottom of the committed run we are currently standing in. Anything
+    // between the two is the guard page plus still-reserved pages.
+    uint8_t* allocBase = (uint8_t*)mbi.AllocationBase;
+    uint8_t* committedBase = (uint8_t*)mbi.BaseAddress;
+
+    if (!allocBase || committedBase <= allocBase)
+    {
+        alreadyCommitted = true; // Already fully committed (e.g. the main ELF stack)
+        return true;
+    }
+
+    SIZE_T uncommitted = (SIZE_T)(committedBase - allocBase);
+
+    // MEM_COMMIT over an already-committed page is legal and simply re-applies
+    // the protection, so this single call also clears PAGE_GUARD from the guard
+    // page that sits at the bottom of the committed run.
+    if (!VirtualAlloc(allocBase, uncommitted, MEM_COMMIT, PAGE_READWRITE))
+    {
+        log_error("CommitCurrentThreadStack: failed to commit %zu bytes at %p (%lu)",
+                  (size_t)uncommitted, (void*)allocBase, GetLastError());
+        return false;
+    }
+
+    // Keep the TIB's StackLimit in sync with the real bottom of the stack. This
+    // only ever widens the range the OS considers valid, so it cannot make an
+    // otherwise-legal access look out of bounds.
+    __writefsdword(0x08, (DWORD)(uintptr_t)allocBase);
+
+    alreadyCommitted = true;
+    return true;
 }

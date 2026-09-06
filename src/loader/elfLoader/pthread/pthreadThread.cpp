@@ -4,6 +4,8 @@
 
 #include "pthreadEmu.hpp"
 #include "pthreadInternal.hpp"
+#include "../linuxStack.hpp"
+#include "../../log/log.h"
 #include <process.h>
 
 // ============================================================
@@ -54,6 +56,10 @@ struct ThreadStartContext
 __attribute__((force_align_arg_pointer)) static unsigned __stdcall ThreadEntryPoint(void *param)
 {
     ThreadStartContext *ctx = (ThreadStartContext *)param;
+
+    // We commit the whole stack before any ELF code
+    // runs on this thread, matching the main stack from LinuxStack::Setup.
+    LinuxStack::CommitCurrentThreadStack();
 
     void *(*start_routine)(void *) = ctx->start_routine;
     void *arg = ctx->arg;
