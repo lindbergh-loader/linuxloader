@@ -82,6 +82,7 @@ char *games[] = {"a.elf",
                  "n_gun_station_rel_opt_es1", // Namco ES1 (Gundam: Senjo no Kizuna)
                  "main",           // Namco N2 (Wangan Midnight Maximum Tune 3)
                  "hlds_amd",       // Namco N2 (Counter Strike NEO, GoldSrc HLDS)
+                 "med_pball",      // Teamplay (Crossfire Maximum Paintball)
                  "END"};
 
 /**
@@ -175,6 +176,7 @@ uint32_t cleanElfCRC32[] = {
     0x509A97C4, // Namco N2  | WMMT3DX+ main (W3P100-1-NA-DAT0-B02)
     0x66136EE9, // Namco ES1 | Tank! Tank! Tank! n_tank_release (rev 1.03.14)
     0x84777366, // Namco ES1 | Gundam: Senjo no Kizuna n_gun_station_rel_opt_es1 (REV3.57.07)
+    0xC2AFF8D4, // Teamplay  | Crossfire Maximum Paintball med_pball
     0xFE266A17, // Namco N2  | Counter Strike NEO hlds_amd (code segment)
 };
 

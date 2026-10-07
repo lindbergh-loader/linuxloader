@@ -27,6 +27,7 @@ static const GameData gameData[] = {
     {DEADHEAT_ES1, "Dead Heat", "deadheat", "Namco ES1", "USDRIVE", "2011", "1360x768", WORKING, NAMCO_NA_JV, DRIVING, 1360, 768, -1, 0, 0, 0, 0, 0, 0, RED},
     {MAXIMUMHEAT3D_ES1, "Maximum Heat 3D", "maximumheat3d", "Namco ES1", "USDRIVE", "2011", "1360x768", WORKING, NAMCO_ES1_JAMMA, DRIVING, 1360, 768, -1, 0, 0, 0, 0, 0, 0, RED},
     {WMMT3_N2, "Wangan Midnight Maximum Tune 3", "wmmt3", "Namco N2", "WM3100", "2007", "640x480", WORKING, NAMCO_FCA_1, DRIVING, 640, 480, -1, 0, 0, 0, 0, 0, 0, RED},
+    {CROSSFIRE_TEAMPLAY, "Crossfire Maximum Paintball", "crossfire", "Teamplay", "TPL-CF", "2003", "512x384", WORKING, NO_JVS_IO, SHOOTING, 512, 384, -1, 0, 0, 0, 0, 0, 0, RED},
     {WMMT3DXPLUS_N2, "Wangan Midnight Maximum Tune 3DX+", "wmmt3dxp", "Namco N2", "W3P100", "2010", "640x480", NOT_WORKING, NAMCO_FCA_1, DRIVING, 640, 480, -1, 0, 0, 0, 0, 0, 0, RED},
     {CSNEO_N2, "Counter Strike NEO", "csneo", "Namco N2", "csneo2", "2005", "640x480", WORKING, NO_JVS_IO, SHOOTING, 640, 480, -1, 0, 0, 0, 0, 0, 0, RED},
     {DHRIDERS_ES1, "Dead Heat Riders", "dhriders", "Namco ES1", "DHR100", "2013", "1360x768", WORKING, NAMCO_NA_JV, DRIVING, 1360, 768, -1, 0, 0, 0, 0, 0, 0, RED},

@@ -74,6 +74,13 @@ void blitSetWidthandHeightSize()
         blitWidth = 640;
         blitHeight = 480;
     }
+    // Crossfire Maximum Paintball draws 512x384 (its medium-resolution
+    // monitor's size), whatever its window's size.
+    else if (gId == CROSSFIRE_TEAMPLAY)
+    {
+        blitWidth = 512;
+        blitHeight = 384;
+    }
     else if (gId == QUIZ_AXA_SBMS || gId == QUIZ_AXA_SBUR_LIVE || gId == MJ4_SBPN_REVG || gId == MJ4_EVO_SBTA)
     {
         blitWidth = 1024;
