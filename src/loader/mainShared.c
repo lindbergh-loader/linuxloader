@@ -6,6 +6,9 @@
 #endif
 #undef __x86_64__
 
+#ifdef __linux__
+#include "rawthrills/rtGame.h"
+#endif
 #include <ctype.h>
 #include <libgen.h>
 #include <limits.h>
@@ -68,6 +71,7 @@ char *games[] = {"a.elf",
                  "vf5",
                  "vsg",
                  "vt3",
+                 "game", // Raw Thrills (Jurassic Park)
                  "vt3_Lindbergh",
                  "END"};
 
@@ -298,6 +302,37 @@ bool dirExists(const char *path)
 {
     struct stat buffer;
     return stat(path, &buffer) == 0 && S_ISDIR(buffer.st_mode);
+}
+
+// The first known game file in the current directory, or NULL. Raw Thrills
+// folders hold both the dump (game_dump.exec) and TeknoParrot's rebuild
+// (game), and either can be the supported one (Space Invaders Frenzy runs the
+// dump, Doodle Jump the rebuild): with several candidates, the first whose
+// CRC32 a Raw Thrills entry knows wins. Folders are not games (a game's
+// data can hold one named as another game's ELF).
+static const char *findGameElf(void)
+{
+    const char *first = NULL;
+    int found = 0;
+    for (int i = 0; games[i] && strcmp(games[i], "END") != 0; i++)
+    {
+        if (!fileExists(games[i]) || dirExists(games[i]))
+            continue;
+        if (!first)
+            first = games[i];
+        found++;
+    }
+
+#ifdef __linux__
+    for (int i = 0; found > 1 && games[i] && strcmp(games[i], "END") != 0; i++)
+    {
+        uint32_t crc;
+        if (fileExists(games[i]) && calculateCRC32inChunks(games[i], &crc) == 0 &&
+            rtGetGameByFileCrc(crc ^ 0xFFFFFFFF))
+            return games[i];
+    }
+#endif
+    return first;
 }
 
 void isCleanElf(char *command)
@@ -1101,14 +1136,9 @@ int parseArgs(int argc, char *argv[], char *command, char *originalDir, char *ga
         }
         else
         {
-            for (int i = 0; games[i] && strcmp(games[i], "END") != 0; i++)
-            {
-                if (fileExists(games[i]))
-                {
-                    strncpy(gameELF, games[i], MAX_PATH_LENGTH);
-                    break;
-                }
-            }
+            const char *found = findGameElf();
+            if (found)
+                strncpy(gameELF, found, MAX_PATH_LENGTH);
 
             if (strlen(gameELF) == 0)
             {
@@ -1128,15 +1158,12 @@ int parseArgs(int argc, char *argv[], char *command, char *originalDir, char *ga
     }
     else
     {
-        for (int i = 0; games[i] && strcmp(games[i], "END") != 0; i++)
+        const char *found = findGameElf();
+        if (found)
         {
-            if (access(games[i], F_OK) == 0)
-            {
-                strncpy(gameELF, games[i], MAX_PATH_LENGTH);
-                gameELF[MAX_PATH_LENGTH - 1] = '\0';
-                printf("Auto-detected ELF: %s\n", gameELF);
-                break;
-            }
+            strncpy(gameELF, found, MAX_PATH_LENGTH);
+            gameELF[MAX_PATH_LENGTH - 1] = '\0';
+            printf("Auto-detected ELF: %s\n", gameELF);
         }
 
         if (gameELF[0] == '\0')
@@ -1189,6 +1216,10 @@ int parseArgs(int argc, char *argv[], char *command, char *originalDir, char *ga
     }
 
     isCleanElf(command);
+#ifdef __linux__
+    // Raw Thrills dumps run from a patched copy (see rawthrills/rtLaunch.c).
+    rtPrepareCommand(command, MAX_PATH_LENGTH, elfCrc, resolvedConfigPath);
+#endif
 
 #ifdef __linux__
     setEnvironmentVariables(libPath, originalDir, targetedGameDir, zink, nvidia, libraryPath, extConfigPath, extControlsPath,

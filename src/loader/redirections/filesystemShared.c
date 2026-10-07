@@ -26,6 +26,13 @@
 #include "../hardware/lindbergh/driveBoard.h"
 #include "../hardware/lindbergh/rideBoard.h"
 #include "../graphics/shaderCache.h"
+#ifdef __linux__
+#include <limits.h>
+#include "../rawthrills/rawthrills.h"
+#include "../common/gamePath.h"
+#include "../common/ossDsp.h"
+#include "../common/webcam.h"
+#endif
 #include "../resources/font.h"
 #include "../resources/lindberghLogo.h"
 #include "../log/log.h"
@@ -93,6 +100,10 @@ int sharedRemove(const char *path)
 {
     if (_remove == NULL)
         _remove = REAL_FUNC(remove);
+#ifdef __linux__
+    char pathBuf[PATH_MAX];
+    path = gameRedirectPath(path, pathBuf, sizeof(pathBuf));
+#endif
 
     if (strncmp(path, "/home/disk1/rankingdata/", 24) == 0 && (gGrp == GROUP_OUTRUN || gGrp == GROUP_OUTRUN_TEST))
     {
@@ -128,6 +139,10 @@ int sharedMkdir(const char *path, mode_t mode)
     static int (*_mkdir)(const char *path, mode_t mode) = NULL;
     if (_mkdir == NULL)
         _mkdir = REAL_FUNC(mkdir);
+#endif
+#ifdef __linux__
+    char pathBuf[PATH_MAX];
+    path = gameRedirectPath(path, pathBuf, sizeof(pathBuf));
 #endif
 
     if (strncmp(path, "/tmp", 4) == 0)
@@ -215,6 +230,14 @@ int sharedOpen(const char *pathname, int flags, ...)
                      strstr(pathname, "Xauthority") != NULL ||
                      strncmp(pathname, "/run/user/", 9) == 0))
         return _open(pathname, flags, mode);
+
+    // Raw Thrills: OSS sound device and cabinet paths.
+    if (ossDspIsPath(pathname))
+        return ossDspOpen();
+    if (webcamIsPath(pathname))
+        return webcamOpen(pathname, flags, mode, _open);
+    char pathBuf[PATH_MAX];
+    pathname = gameRedirectPath(pathname, pathBuf, sizeof(pathBuf));
 #endif
 
     if (strcmp(pathname, "/dev/lbb") == 0)
@@ -318,6 +341,10 @@ FILE *sharedFopen(const char *restrict pathname, const char *restrict mode)
 {
     if (_fopen == NULL)
         _fopen = REAL_FUNC(fopen);
+#ifdef __linux__
+    char pathBuf[PATH_MAX];
+    pathname = gameRedirectPath(pathname, pathBuf, sizeof(pathBuf));
+#endif
 #ifdef _WIN32
 
     if (strcmp(mode, "r") == 0)
@@ -549,6 +576,10 @@ FILE *sharedFopen64(const char *pathname, const char *mode)
 {
     if (_fopen64 == NULL)
         _fopen64 = REAL_FUNC(fopen64);
+#ifdef __linux__
+    char pathBuf[PATH_MAX];
+    pathname = gameRedirectPath(pathname, pathBuf, sizeof(pathBuf));
+#endif
 
     if (strcmp(pathname, "/proc/sys/kernel/osrelease") == 0)
     {
@@ -685,6 +716,11 @@ int sharedClose(int fd)
     static int (*_close)(int fd) = NULL;
     if (_close == NULL)
         _close = REAL_FUNC(close);
+#endif
+
+#ifdef __linux__
+    if (ossDspIsFd(fd))
+        ossDspClose();
 #endif
 
 
@@ -908,6 +944,11 @@ ssize_t sharedWrite(int fd, const void *buf, size_t count)
         _write = REAL_FUNC(write);
 #endif
 
+#ifdef __linux__
+    if (ossDspIsFd(fd))
+        return ossDspWrite(buf, count);
+#endif
+
     // void *addr = __builtin_return_address(0);
     if (fd == (int)hooks[BASEBOARD])
     {
@@ -955,6 +996,11 @@ int sharedIoctl(int fd, unsigned long int request, ...)
     static int (*_ioctl)(int fd, int request, void *data) = NULL;
     if (_ioctl == NULL)
         _ioctl = REAL_FUNC(ioctl);
+#endif
+
+#ifdef __linux__
+    if (ossDspIsFd(fd))
+        return ossDspIoctl(request, argp);
 #endif
 
     if (fd == (int)hooks[EEPROM])
@@ -1056,6 +1102,10 @@ DIR *opendir(const char *dirname)
 {
     if (_opendir == NULL)
         _opendir = REAL_FUNC(opendir);
+#ifdef __linux__
+    char pathBuf[PATH_MAX];
+    dirname = gameRedirectPath(dirname, pathBuf, sizeof(pathBuf));
+#endif
     log_debug("Opendir %s\n", dirname);
 
     if (strcmp(dirname, "/tmp/") == 0 && gGrp == GROUP_ID5)
@@ -1104,6 +1154,8 @@ int __xstat64(int ver, const char *path, struct stat64 *stat_buf)
     if (path && (strncmp(path, "/tmp/.X11-unix/", 16) == 0 ||
                  strncmp(path, "/run/user/", 9) == 0))
         return ___xstat64(ver, path, stat_buf);
+    char pathBuf[PATH_MAX];
+    path = gameRedirectPath(path, pathBuf, sizeof(pathBuf));
 #endif
 
     if (strcmp("/var/tmp/warning", path) == 0)

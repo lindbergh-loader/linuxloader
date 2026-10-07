@@ -5,6 +5,10 @@
 #include <unistd.h>
 
 #include "libcShared.h"
+#ifdef __linux__
+#include <limits.h>
+#include "../rawthrills/rawthrills.h"
+#endif
 #include "../config/config.h"
 #include "loader/elfLoader/symbolResolver.hpp"
 
@@ -276,6 +280,11 @@ int system(const char *command)
 {
     if (_system == NULL)
         _system = (int (*)(const char *))dlsym(RTLD_NEXT, "system");
+
+#ifdef __linux__
+    char rtCommand[PATH_MAX * 2];
+    command = rtRedirectCommand(command, rtCommand, sizeof(rtCommand));
+#endif
 
     if (strcmp(command, "lsmod | grep basebd > /dev/null") == 0)
         return 0;

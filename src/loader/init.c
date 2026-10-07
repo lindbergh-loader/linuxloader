@@ -17,6 +17,9 @@
 #include "config/config.h"
 #include "../minhook/include/MinHook.h"
 #include "log/log.h"
+#if defined(__linux__)
+#include "rawthrills/rawthrills.h"
+#endif
 
 #if defined(__linux__)
 #include "input/evdevInput.h"
@@ -54,6 +57,34 @@ void initMain(char *configPath, char *controlsPath)
     gWidth = getConfig()->width;
     gHeight = getConfig()->height;
 
+#ifdef __linux__
+    // Raw Thrills games use none of the Lindbergh hardware. They also link
+    // SDL 1.2, whose SDL_Init() & co. shadow SDL3's in the global scope, so
+    // the SDL-based GPU detection below cannot run for them.
+    if (isRawThrillsGame())
+    {
+        printf("\nLinux Loader\nBy the Linux Loader Development Team 2026\n\n");
+        printf("  GAME:        %s\n", getGameName());
+        printf("  GAME ID:     %s\n", getGameId());
+        // Evdev input fills the (emulated) JVS state; the Raw Thrills I/O
+        // hooks feed it to the game's own input system.
+        if (getConfig()->inputMode == 2)
+        {
+            initJVS();
+            if (initEvdevControllers(&controllers) != 0)
+                exit(1);
+            for (int i = 0; i < controllers.count; i++)
+                if (controllers.controller[i].inUse)
+                    printf("  CONTROLLER:  %s\n", controllers.controller[i].name);
+        }
+        if (rtInit() != 0)
+            exit(1);
+        printf("\n");
+        return;
+    }
+#endif
+
+
     initFpsLimiter();
 
     getConfig()->GPUVendor = getGPUVendorID();
@@ -63,6 +94,7 @@ void initMain(char *configPath, char *controlsPath)
         log_error("Failed to detect GPU\nUsing default values\n");
         getConfig()->GPUVendor = UNKNOWN_GPU;
     }
+
 
     if (MH_Initialize() != MH_OK)
     {

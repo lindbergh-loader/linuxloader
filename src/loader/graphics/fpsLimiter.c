@@ -1,4 +1,5 @@
 #include <sys/time.h>
+#include <time.h>
 #include <unistd.h>
 #include <string.h>
 #include <stdio.h>
@@ -25,7 +26,7 @@ void initFpsLimiter()
 
     gFpsVisible = (getConfig()->fpsOverlayEnabled != 0);
 
-    if (getConfig()->fpsLimiter == 1)
+    if (getConfig()->fpsLimiter == 1 && getConfig()->fpsTarget > 0)
     {
         fpsLimit.targetFrameTime = 1000000 / getConfig()->fpsTarget;
         fpsLimit.frameEnd = clockNow();
@@ -60,15 +61,26 @@ double calculateFps()
     return fps;
 }
 
-long clockNow()
+// Microseconds, in 64 bits: a 32-bit long (i686) overflowed every 71 minutes,
+// and the first frame then slept for up to 35 of them. Monotonic, so a clock
+// set by NTP does not stall a frame either.
+int64_t clockNow()
 {
-    struct timeval time_now;
-    gettimeofday(&time_now, NULL);
-    return time_now.tv_sec * 1000000L + time_now.tv_usec;
+    struct timespec now;
+    clock_gettime(CLOCK_MONOTONIC, &now);
+    return (int64_t)now.tv_sec * 1000000 + now.tv_nsec / 1000;
 }
 
 void frameTiming()
 {
+    // Paths that never ran initMain's initFpsLimiter (Raw Thrills): start
+    // timing here.
+    if (!fpsLimit.targetFrameTime)
+    {
+        initFpsLimiter();
+        if (!fpsLimit.targetFrameTime)
+            return;
+    }
     fpsLimit.frameStart = clockNow();
     fpsLimiter(&fpsLimit);
     fpsLimit.frameEnd = clockNow();
@@ -80,7 +92,7 @@ void fpsLimiter(FpsLimit *stats)
 
     if (stats->sleepTime > stats->frameOverhead)
     {
-        long adjustedSleep = stats->sleepTime - stats->frameOverhead;
+        int64_t adjustedSleep = stats->sleepTime - stats->frameOverhead;
 
         usleep(adjustedSleep);
 

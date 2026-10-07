@@ -23,6 +23,9 @@
 #include "../config/config.h"
 #include "../patching/flowControl.h"
 #include "../log/log.h"
+#ifdef __linux__
+#include "../rawthrills/rawthrills.h"
+#endif
 #include "shaderWork/common.h"
 
 #include "shaderWork/abc.h"
@@ -321,6 +324,55 @@ void bridgeglDisable(GLenum cap)
         return;
     glad_glDisable(cap);
 }
+
+#ifdef __linux__
+// Shader sources the engines wrote for NVIDIA's compiler, which Mesa's
+// refuses: the family's fixes are applied in place, and the (concatenated)
+// source is passed on as a single string.
+// - Raw Thrills: the g5 bloom output demotion, and the g3 #version 1.20 with
+//   its sized gl_TexCoord (rtPatchShaderSource).
+typedef void (*ShaderSourceFn)(GLuint, GLsizei, const GLchar *const *, const GLint *);
+
+// The sources concatenated, patched for the family, and handed to real.
+static void patchedShaderSource(ShaderSourceFn real, GLuint shader, GLsizei count, const GLchar *const *string,
+                                const GLint *length)
+{
+    size_t total = 0;
+    char *src, *out;
+
+    if (!isRawThrillsGame() || count <= 0)
+        return real(shader, count, string, length);
+
+    for (GLsizei i = 0; i < count; i++)
+        total += length && length[i] >= 0 ? (size_t)length[i] : strlen(string[i]);
+    // Room for the patches' insertions.
+    if (!(src = malloc(total + 256)))
+        return real(shader, count, string, length);
+    out = src;
+    for (GLsizei i = 0; i < count; i++)
+    {
+        size_t n = length && length[i] >= 0 ? (size_t)length[i] : strlen(string[i]);
+        memcpy(out, string[i], n);
+        out += n;
+    }
+    *out = '\0';
+
+    rtPatchShaderSource(src);
+
+    const GLchar *one = src;
+    real(shader, 1, &one, NULL);
+    free(src);
+}
+
+#undef glShaderSource
+void glShaderSource(GLuint shader, GLsizei count, const GLchar *const *string, const GLint *length)
+{
+    static ShaderSourceFn real;
+    if (!real)
+        real = (ShaderSourceFn)dlsym(RTLD_NEXT, "glShaderSource");
+    patchedShaderSource(real, shader, count, string, length);
+}
+#endif
 
 /**
  *	The following 3 functions are replacements for SRTV and OR2

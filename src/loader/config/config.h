@@ -187,7 +187,8 @@ typedef struct
 typedef enum
 {
     SEGA_TYPE_1,
-    SEGA_TYPE_3
+    SEGA_TYPE_3,
+    NO_JVS_IO
 } JVSIOType;
 
 typedef struct
