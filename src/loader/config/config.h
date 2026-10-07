@@ -12,6 +12,7 @@
 #define GALAGA_ASSAULT_RT 0x2986f0ca                             // Raw Thrills
 #define WALKING_DEAD_RT 0xf6330a20                               // Raw Thrills (patched copy: libcsv path shortened)
 #define TERMINATOR_SALVATION_RT 0xa999339e                       // Raw Thrills, v01.25.00
+#define BIG_BUCK_WORLD_RT 0x17633eb3                             // Raw Thrills, v1.20
 #define PACMAN_CHOMP_MANIA_RT 0xf841f9e7                         // Raw Thrills, v1.28C
 #define AFTER_BURNER_CLIMAX_SBLR 0xa3c246e2                       // DVP-0009
 #define AFTER_BURNER_CLIMAX_SBLR_REVA 0xe657b1c0                  // DVP-0009A
