@@ -215,14 +215,28 @@ char *sharedDlerror()
 
 #ifdef __linux__
 
-static __thread timer_t alarmTimer = NULL;
+// The first timer's id is 0, NULL as a timer_t: a flag says there is one.
+static __thread timer_t alarmTimer;
+static __thread int alarmTimerSet;
+
+// The seconds left on this thread's alarm (rounded up, as alarm's are; 0:
+// none).
+static unsigned int timerLeft(void)
+{
+    struct itimerspec its;
+    if (!alarmTimerSet || timer_gettime(alarmTimer, &its) != 0)
+        return 0;
+    if (its.it_value.tv_sec == 0 && its.it_value.tv_nsec == 0)
+        return 0;
+    return its.it_value.tv_sec + (its.it_value.tv_nsec > 0);
+}
 
 static void deleteTimer(void)
 {
-    if (alarmTimer != NULL)
+    if (alarmTimerSet)
     {
         timer_delete(alarmTimer);
-        alarmTimer = NULL;
+        alarmTimerSet = 0;
     }
 }
 
@@ -232,11 +246,17 @@ unsigned int alarm(unsigned int seconds)
     if (_alarm == NULL)
         _alarm = (unsigned int (*)(unsigned int))dlsym(RTLD_NEXT, "alarm");
 
+    // What alarm returns: the previous alarm's seconds left. Code that saves
+    // and restores an alarm around its own (MuziBox's sleep) re-arms what
+    // this says was pending.
+    unsigned int left = timerLeft();
+
     // alarm(0) cancels
     if (seconds == 0)
     {
         deleteTimer();
-        return _alarm(0); // also cancel any process-wide alarm
+        unsigned int process = _alarm(0); // also cancel any process-wide alarm
+        return left ? left : process;
     }
 
     // Create per-thread timer delivering SIGALRM ONLY to this thread
@@ -265,8 +285,9 @@ unsigned int alarm(unsigned int seconds)
     // Replace old timer
     deleteTimer();
     alarmTimer = newTimer;
+    alarmTimerSet = 1;
 
-    return seconds; // approximate — alarm() returns previous timer's remaining
+    return left;
 }
 
 int kswap_collect(int pages)
@@ -330,6 +351,19 @@ char *strncpy(char *dest, const char *src, size_t n)
 int setenv(const char *name, const char *value, int overwrite)
 {
     return sharedSetenv(name, value, overwrite);
+}
+
+// As setenv: the game's display is the loader's (Star Trek: Voyager puts
+// "DISPLAY=:0.0").
+int putenv(char *string)
+{
+    static int (*_putenv)(char *string) = NULL;
+    if (_putenv == NULL)
+        _putenv = (int (*)(char *))dlsym(RTLD_NEXT, "putenv");
+
+    if (strncmp(string, "DISPLAY=", 8) == 0)
+        return 0;
+    return _putenv(string);
 }
 
 char *getenv(const char *name)

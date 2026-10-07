@@ -11,7 +11,9 @@
 #include <minwindef.h>
 #else
 #include <elf.h>
+#include <limits.h>
 #include <sys/mman.h>
+#include <sys/syscall.h>
 #endif
 
 #include "flowControl.h"
@@ -252,9 +254,32 @@ uintptr_t getBaseAddress()
     return base;
 }
 
+// The main program's file: the first mapping's (/proc/self/exe is the
+// dynamic linker when the game was started through it, see hostLinker.c),
+// opened past the loader's own open (which maps /tmp paths).
+static int openMainProgram(void)
+{
+    char line[PATH_MAX + 128];
+    FILE *fp = fopen("/proc/self/maps", "r");
+    int fd = -1;
+
+    if (fp && fgets(line, sizeof(line), fp))
+    {
+        char *path = strchr(line, '/');
+        if (path)
+        {
+            path[strcspn(path, "\n")] = '\0';
+            fd = (int)syscall(SYS_openat, AT_FDCWD, path, O_RDONLY);
+        }
+    }
+    if (fp)
+        fclose(fp);
+    return fd >= 0 ? fd : open("/proc/self/exe", O_RDONLY);
+}
+
 void *findStaticFnAddr(const char *functionName)
 {
-    int fd = open("/proc/self/exe", O_RDONLY);
+    int fd = openMainProgram();
     if (fd < 0)
         return NULL;
 

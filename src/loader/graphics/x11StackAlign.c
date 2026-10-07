@@ -97,14 +97,6 @@ REALIGN int XCloseDisplay(Display *a0)
     return real ? real(a0) : 0;
 }
 
-REALIGN int XConfigureWindow(Display *a0, Window a1, unsigned int a2, XWindowChanges *a3)
-{
-    static int (*real)(Display *, Window, unsigned int, XWindowChanges *) = NULL;
-    if (real == NULL)
-        real = resolveNext("XConfigureWindow");
-    return real ? real(a0, a1, a2, a3) : 0;
-}
-
 REALIGN Pixmap XCreateBitmapFromData(Display *a0, Drawable a1, const char *a2, unsigned int a3, unsigned int a4)
 {
     static Pixmap (*real)(Display *, Drawable, const char *, unsigned int, unsigned int) = NULL;

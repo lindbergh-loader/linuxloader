@@ -306,6 +306,7 @@ typedef struct
     int hummerFlickerFix;
     int keepAspectRatio;
     int scalingFilterNearest;
+    int seats; // games drawing a screen per seat side by side: the seats shown (0: the game's default)
     int fpsLimiter;
     float fpsTarget;
     int lgjRenderWithMesa;
@@ -347,6 +348,9 @@ typedef struct
     float whiteBorderPercentage;
     float blackBorderPercentage;
     int borderEnabled;
+    int rotateVertical;
+    char bezel[MAX_PATH_LENGTH];
+    int bezelEnabled; // -1: auto, when the image exists
     int enableCrosshairs;
     int gsevoCrosshairAlwaysOn;
     int gsevoCrosshairAlwaysOff;

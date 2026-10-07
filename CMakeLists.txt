@@ -96,6 +96,7 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux" AND NOT MINGW AND NOT CMAKE_C_COMPILER MATC
         src/loader/log/*.c
         src/loader/patching/*.c
         src/loader/redirections/*.c
+        src/loader/common/*.c
         src/loader/graphics/shaderWork/*.c
         src/glad/src/gl.c)
 

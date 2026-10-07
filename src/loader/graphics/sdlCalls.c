@@ -17,6 +17,9 @@
 #include <SDL3_image/SDL_image.h>
 #include <stdbool.h>
 #include <unistd.h>
+#ifdef __linux__
+#include "../input/trackball.h"
+#endif
 
 #include "blitStretching.h"
 #include "../config/config.h"
@@ -55,7 +58,9 @@ int glutInitialized = 0;
 bool isFullScreen = false;
 bool sdlFontInit = false;
 SDL_Renderer *fontRenderer;
-TTF_Font *font;
+// glutBitmapCharacter's font (glutBridge.c), not "font": an exported global
+// of that name would take the place of Allegro's in a game's copy of it.
+TTF_Font *glutBitmapFont;
 
 void GLAPIENTRY openglDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message,
                                     const void *userParam)
@@ -95,7 +100,7 @@ int initSDL()
         if (gWidth > 640)
             fontSize = fontSize * (((float)gWidth / 640.0f) + ((float)gHeight / 480.0f)) / 2.0f;
 
-        font = TTF_OpenFontIO(rw, 1, fontSize);
+        glutBitmapFont = TTF_OpenFontIO(rw, 1, fontSize);
         fontRenderer = SDL_CreateRenderer(g_SdlWindow, "");
     }
     return 0;
@@ -375,10 +380,10 @@ void sdlQuit()
 
     if (TTF_WasInit())
     {
-        if (font)
+        if (glutBitmapFont)
         {
-            TTF_CloseFont(font);
-            font = NULL;
+            TTF_CloseFont(glutBitmapFont);
+            glutBitmapFont = NULL;
         }
         TTF_Quit();
     }
@@ -406,11 +411,27 @@ void sdlQuit()
 void pollEvents()
 {
     SDL_Event event;
+#ifdef __linux__
+    trackballApplyCapture(g_SdlWindow);
+#endif
     while (SDL_PollEvent(&event))
     {
 #ifdef __linux__
         if (event.type == SDL_WIIMOTION_EVENT)
             processSdlEvent(&event);
+        // A trackball's motion and buttons (see input/trackball.h).
+        if (event.type == SDL_EVENT_MOUSE_MOTION)
+        {
+            // Fractions of a count are kept for the next motion: a
+            // high-resolution mouse moving slowly would lose them all.
+            static float restX, restY;
+            float x = restX + event.motion.xrel, y = restY + event.motion.yrel;
+            restX = x - (int)x;
+            restY = y - (int)y;
+            trackballAdd((int)x, (int)y);
+        }
+        else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN || event.type == SDL_EVENT_MOUSE_BUTTON_UP)
+            trackballSetButton(event.button.button, event.button.down);
 #endif
         switch (event.type)
         {

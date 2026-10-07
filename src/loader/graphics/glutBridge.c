@@ -42,7 +42,7 @@ extern int drawableH;
 extern int blitWidth;
 extern int gameIsOutrunChihiroMode;
 extern SDL_Renderer *fontRenderer;
-extern TTF_Font *font;
+extern TTF_Font *glutBitmapFont;
 
 void bridgeGlutInit(int *argcp, char **argv)
 {
@@ -320,7 +320,7 @@ void bridgeGlutBitmapCharacter(void *fontID, int character)
     if (penX != glPos[0])
         penX = glPos[0];
 
-    SDL_Surface *glyph = TTF_RenderGlyph_Solid(font, character, sdlColor);
+    SDL_Surface *glyph = TTF_RenderGlyph_Solid(glutBitmapFont, character, sdlColor);
     if (!glyph)
     {
         printf("Failed to render glyph: %s\n", SDL_GetError());
