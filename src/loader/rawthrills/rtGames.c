@@ -1269,6 +1269,72 @@ static const RtIoInput djRioAnalogs[] = {
     {RT_IO_END, 0, 0, 0},
 };
 
+// Tippin' Bloks (ICE, PlayMechanix g3 engine), v1.80: a stripped but
+// normally linked binary, like Wheel of Fortune, whose writable directories
+// it shares the layout of; its data is encrypted for the dongle (recorded
+// answers in its "hasp" folder).
+static const RtPathAlias tbRootAliases[] = {{"/blocksuser", "blocksuser"}, {"/BLOCKS", "."}, {NULL, NULL}};
+
+// Its RIO and HASP libraries are Doodle Jump's (which exports their names):
+// each function below is matched against Doodle Jump's code, addresses
+// masked, the RIO ones confirmed by their error strings (RIO_Connect,
+// RIO_ConnectEx, RIO_SampleInput) and by the sizes of their neighbours.
+static const RtSymbol tbSymbols[] = {
+    {"hasp_login", 0x08334da0},
+    {"hasp_logout", 0x08334d40},
+    {"hasp_encrypt", 0x08334ca0},
+    {"hasp_decrypt", 0x08334c20},
+    {"hasp_read", 0x08333c70},
+    {"hasp_write", 0x08333bc0},
+    {"hasp_get_size", 0x08333b20},
+    {"hasp_get_sessioninfo", 0x08333dc0},
+    // Forks a tracer, as Wheel of Fortune's (the same code): returns 1 in
+    // the traced child.
+    {"TracerGuard", 0x0826dea4},
+    {"RIO_Connect", 0x0846019b},
+    {"RIO_ConnectEx", 0x084602ac},
+    {"RIO_Connected", 0x08460442},
+    {"RIO_SendReport", 0x0846045c},
+    {"RIO_SampleInput", 0x0846056a},
+    {"RIO_ProcessCallbacks", 0x084605f8},
+    {"RIO_SW_State", 0x0846079e},
+    {"RIO_SW_Count", 0x08460826},
+    // The game's switch callback (switch, 3, transition count, time), the
+    // same for every switch it registers (its table at 0x8510f60).
+    {"tb_switch_event", 0x080c6320},
+    // The controller (rtTb.c): the uioai board's init and read, and the
+    // read of the RIO's analog channels.
+    {"uioai_init", 0x0845968c},
+    {"uioai_read", 0x084597ae},
+    {"rio_analog_read", 0x080c5fe0},
+    {NULL, 0},
+};
+
+// The RIO board is connected and needs no transport.
+static const RtStub tbStubs[] = {
+    {"TracerGuard", 1},
+    {"RIO_Connect", 0},
+    {"RIO_ConnectEx", 0},
+    {"RIO_Connected", 0},
+    {"RIO_SendReport", 0},
+    {NULL, 0},
+};
+
+// RIO switch numbers, Wheel of Fortune's (the game's switch table at
+// 0x8510f60 registers 0..8); the main button is 7 (Start: BUTTON_1 is the
+// mouse's left button, a tilt, see rtTb.c), 8 its second one.
+static const RtIoInput tbRioSwitches[] = {
+    {RT_IO_SWITCH, PLAYER_1, WOF_SW_PUSH, BUTTON_START},
+    {RT_IO_SWITCH, PLAYER_1, 0x08, BUTTON_4},
+    {RT_IO_SWITCH, PLAYER_1, WOF_SW_SERVICE, BUTTON_SERVICE},
+    {RT_IO_SWITCH, SYSTEM, WOF_SW_TEST, BUTTON_TEST},
+    {RT_IO_SWITCH, PLAYER_1, WOF_SW_VOL_UP, BUTTON_7},
+    {RT_IO_SWITCH, PLAYER_1, WOF_SW_VOL_DOWN, BUTTON_8},
+    {RT_IO_COIN, 0, WOF_SW_COIN1, 0},
+    {RT_IO_COIN, 1, WOF_SW_COIN2, 0},
+    {RT_IO_END, 0, 0, 0},
+};
+
 // Jurassic Park's renderer: its viewports, render targets, frame grabs and
 // screen-space shaders are sized from the real screen (see layoutRealSize).
 static const char *const jpLayoutRealSize[] = {
@@ -1912,6 +1978,39 @@ static const RtGame rtGames[] = {
         // its settings and audits are written by absolute path): the data
         // files are opened relative to it.
         .workDir = "data",
+    },
+    {
+        .crc32 = TIPPIN_BLOKS_RT,
+        // Mode 644 in the dump: the launcher's copy is executable.
+        .fileCrc32 = 0xab606f24,
+        .envelopeSelfSlot = -1,
+        .symbols = tbSymbols,
+        // hasp_login at 0x8185278 with 0xffff0000 as a literal, the memory
+        // reads at 0x8184c7e and on with 0xfff2.
+        .haspFeature = 0xffff0000,
+        .haspMemoryFileId = 0xfff2,
+        // Its data keys from the dongle: recorded answers named by the
+        // first 32 input bytes.
+        .haspAnswers = "hasp",
+        .haspAnswerKeySize = 32,
+        .stubs = tbStubs,
+        .install = rtTbInstall,
+        .rioSwitches = tbRioSwitches,
+        .rioDesktopKeys = 1,
+        .rioEventSymbol = "tb_switch_event",
+        // "push %ebp; mov %esp,%ebp; sub $0x38,%esp"
+        .ioLoopSymbol = "RIO_ProcessCallbacks",
+        .ioLoopPrologue = 6,
+        .glutGameModeWindow = 1,
+        // Drawn turned counterclockwise in its 1366x768 frame.
+        .frameTurn = -1,
+        .frameTurnWidth = 1366,
+        .frameTurnHeight = 768,
+        // Its size, parsed from its command line: 640x480 without one, or
+        // for one it does not take (anything but 1366x768).
+        .sizeArgument = "-r%dx%d",
+        .rootPath = "/g3",
+        .rootAliases = tbRootAliases,
     },
 };
 

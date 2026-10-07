@@ -449,6 +449,8 @@ typedef struct RtGame
 // Wheel of Fortune's own hooks (rtWof.c), its descriptor's install. Weak:
 // the launcher links the descriptors without them (NULL there, never called).
 void rtWofInstall(const RtGame *game) __attribute__((weak));
+// Tippin' Bloks' controller (rtTb.c), the same way.
+void rtTbInstall(const RtGame *game) __attribute__((weak));
 // Angry Birds Arcade's touch frame (rtAb.c), the same way.
 void rtAbInstall(const RtGame *game) __attribute__((weak));
 void rtAbIoFrame(struct JVSIO *io) __attribute__((weak));
