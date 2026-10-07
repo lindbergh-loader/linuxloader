@@ -243,6 +243,11 @@ typedef struct
     void (*install)(void);
 } NamcoEs1Game;
 
+// Game-specific installs (the loader's; weak: the launcher links the game
+// table without them).
+void namcoEs1GundamInstall(void) __attribute__((weak));
+void namcoEs1GundamPanel(JVSIO *io) __attribute__((weak));
+
 const NamcoEs1Game *namcoEs1GetGame(uint32_t crc32);
 const NamcoEs1Game *namcoEs1GetGameByFileCrc(uint32_t fileCrc32);
 
