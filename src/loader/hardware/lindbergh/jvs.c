@@ -75,6 +75,27 @@ int initJVS()
         strcpy(io.capabilities.name, "namco ltd.;NA-JV;Ver4.00;JPN,Multipurpose + Rotary Encoder");
     }
     break;
+
+    // The Namco N2 Wangan cabinets' board (the Pacloader fork's): the N2
+    // master clamps each function to what the board declares and wants the
+    // command and JVS versions at exactly 0x10.
+    case NAMCO_FCA_1:
+    {
+        io.capabilities.switches = 24;
+        io.capabilities.coins = 2;
+        io.capabilities.players = 2;
+        io.capabilities.analogueInBits = 16;
+        io.capabilities.rightAlignBits = 0;
+        io.capabilities.analogueInChannels = 8;
+        io.capabilities.rotaryChannels = 1;
+        io.capabilities.generalPurposeInputs = 16;
+        io.capabilities.generalPurposeOutputs = 6;
+        io.capabilities.analogueOutChannels = 4;
+        io.capabilities.commandVersion = 0x10;
+        io.capabilities.jvsVersion = 0x10;
+        io.capabilities.commsVersion = 0x10;
+        strcpy(io.capabilities.name, "namco ltd.;FCA-1;Ver1.00;JPN,Multipurpose + Rotary Encoder");
+    }
     break;
 
     // The ES1 driving cabinets' board (Maximum Heat 3D), as the Pacloader

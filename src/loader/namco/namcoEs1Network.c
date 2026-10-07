@@ -26,6 +26,7 @@
 #include <unistd.h>
 
 #include "namcoEs1.h"
+#include "namcoN2.h"
 #include "../log/log.h"
 
 static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
@@ -113,9 +114,13 @@ static void interfaceReport(const char *command)
         return;
     pthread_mutex_lock(&lock);
     initialize();
-    snprintf(line, sizeof(line), "0 %u %u %u %u %u %u %u %u %u %u %u %u %u %u 1\n", address[0], address[1],
+    // The link: up for the ES1 games (Maximum Heat 3D's start waits on its
+    // LAN), down for the N2 ones, a single cabinet (the fork's NETWORK_ENABLED
+    // 0). With it up, an N2 game links with itself wherever its connection to
+    // its own address succeeds (Batocera) and waits for its ghost data.
+    snprintf(line, sizeof(line), "0 %u %u %u %u %u %u %u %u %u %u %u %u %u %u %d\n", address[0], address[1],
              address[2], address[3], mask[0], mask[1], mask[2], mask[3], mac[0], mac[1], mac[2], mac[3], mac[4],
-             mac[5]);
+             mac[5], isNamcoN2Game() ? 0 : 1);
     pthread_mutex_unlock(&lock);
     writeFile(path, line);
 }
