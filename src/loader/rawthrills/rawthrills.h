@@ -66,6 +66,9 @@ void rtJammaDesktopSwitch(int player, int bit, int held);
 // A position of the input (two analogue channels) as a fraction of the
 // picture from its top left: 0 when it is off it (see rtJamma.c).
 int rtJammaPosition(struct JVSIO *io, int xChannel, int yChannel, float *x, float *y);
+// Deal or No Deal's parallel port panel: an in (in = 1) or out instruction
+// on a port, emulated (1) or not the panel's (0). eax: the register.
+int rtDondPortIo(int in, uint16_t port, uint32_t *eax);
 // A gun's position from the loader's input (evdev or the desktop pointer),
 // 0..1 from the picture's top left: 0 when it is off the screen.
 int rtGunOnScreen(int gun, float *x, float *y);

@@ -21,6 +21,9 @@
 #define BIG_BUCK_HD_WILD_840_RT 0xbf99bb07                       // v08.40, patched copy (0x2120cafb untouched)
 #define PACMAN_CHOMP_MANIA_RT 0xf841f9e7                         // Raw Thrills, v1.28C
 #define WHEEL_OF_FORTUNE_RT 0x4a739bbd                           // Raw Thrills, g3 engine
+#define DEAL_OR_NO_DEAL_RT 0x7d589b9a                             // Raw Thrills, v01.07.06
+#define DEAL_OR_NO_DEAL_UK_RT 0x13c57d44                          // Raw Thrills, v01.06.06 UK
+#define DEAL_OR_NO_DEAL_DELUXE_RT 0x0bb3d477                      // Raw Thrills, v01.18.00.NJS
 // Raw Thrills, g6 engine; like Big Buck HD Wild, the CRC of the patched copy
 // (0xd394437b is the untouched file).
 #define PINK_PANTHER_RT 0x2a0ca1ef
