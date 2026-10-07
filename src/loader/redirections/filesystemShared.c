@@ -33,6 +33,7 @@
 #include "../common/ossDsp.h"
 #include "../common/webcam.h"
 #include "../namco/namcoEs1.h"
+#include "../namco/namcoN2.h"
 #endif
 #include "../resources/font.h"
 #include "../resources/lindberghLogo.h"
@@ -240,6 +241,8 @@ int sharedOpen(const char *pathname, int flags, ...)
         return namcoEs1JvsOpen(_open);
     if (namcoEs1KickbackIsPath(pathname))
         return namcoEs1KickbackOpen(_open);
+    if (namcoN2KickbackIsPath(pathname))
+        return namcoN2KickbackOpen(_open);
     if (webcamIsPath(pathname))
         return webcamOpen(pathname, flags, mode, _open);
     char pathBuf[PATH_MAX];
@@ -731,6 +734,8 @@ int sharedClose(int fd)
         namcoEs1JvsClose();
     if (namcoEs1KickbackIsFd(fd))
         namcoEs1KickbackClose();
+    if (namcoN2KickbackIsFd(fd))
+        namcoN2KickbackClose();
 #endif
 
 
@@ -792,6 +797,8 @@ ssize_t sharedRead(int fd, void *buf, size_t count)
         return namcoEs1JvsRead(buf, count);
     if (namcoEs1KickbackIsFd(fd))
         return namcoEs1KickbackRead(buf, count);
+    if (namcoN2KickbackIsFd(fd))
+        return namcoN2KickbackRead(buf, count);
 #endif
 
     if (fd == (int)hooks[BASEBOARD])
@@ -965,6 +972,8 @@ ssize_t sharedWrite(int fd, const void *buf, size_t count)
         return namcoEs1JvsWrite(buf, count);
     if (namcoEs1KickbackIsFd(fd))
         return namcoEs1KickbackWrite(buf, count);
+    if (namcoN2KickbackIsFd(fd))
+        return namcoN2KickbackWrite(buf, count);
 #endif
 
     // void *addr = __builtin_return_address(0);
@@ -1023,6 +1032,8 @@ int sharedIoctl(int fd, unsigned long int request, ...)
         return namcoEs1JvsIoctl(request, argp);
     if (namcoEs1KickbackIsFd(fd))
         return namcoEs1KickbackIoctl(request, argp);
+    if (namcoN2KickbackIsFd(fd))
+        return namcoN2KickbackIoctl(request, argp);
     if (request == SIOCGIFHWADDR && isNamcoEs1Game())
         return namcoEs1HwAddr(fd, argp, _ioctl);
     if ((request == SIOCGIFFLAGS || request == SIOCGIFADDR || request == SIOCGIFNETMASK || request == SIOCGIFBRDADDR) &&

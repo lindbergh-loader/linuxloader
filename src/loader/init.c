@@ -20,6 +20,7 @@
 #if defined(__linux__)
 #include "rawthrills/rawthrills.h"
 #include "namco/namcoEs1.h"
+#include "namco/namcoN2.h"
 #endif
 
 #if defined(__linux__)
@@ -102,6 +103,28 @@ void initMain(char *configPath, char *controlsPath)
                     printf("  CONTROLLER:  %s\n", controllers.controller[i].name);
         }
         if (namcoEs1Init() != 0)
+            exit(1);
+        printf("\n");
+        return;
+    }
+
+    // Namco N2 games: the same, with no X server on the cabinet: the window
+    // is the loader's (see namco/namcoN2.c).
+    if (isNamcoN2Game())
+    {
+        printf("\nLinux Loader\nBy the Linux Loader Development Team 2026\n\n");
+        printf("  GAME:        %s\n", getGameName());
+        printf("  GAME ID:     %s\n", getGameId());
+        initJVS();
+        if (getConfig()->inputMode == 2)
+        {
+            if (initEvdevControllers(&controllers) != 0)
+                exit(1);
+            for (int i = 0; i < controllers.count; i++)
+                if (controllers.controller[i].inUse)
+                    printf("  CONTROLLER:  %s\n", controllers.controller[i].name);
+        }
+        if (namcoN2Init() != 0)
             exit(1);
         printf("\n");
         return;

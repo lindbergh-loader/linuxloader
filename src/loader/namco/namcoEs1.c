@@ -27,6 +27,7 @@
 #include <glad/gl.h>
 
 #include "namcoEs1.h"
+#include "namcoN2.h"
 #include "../config/config.h"
 #include "../hardware/lindbergh/jvs.h"
 #include "../log/log.h"
@@ -109,12 +110,15 @@ static int jvsFd = -1;
 static unsigned char rx[1024], tx[1024];
 static size_t rxLen, txLen, txPos;
 
+// The same n2Jvio library drives the N2 games' board: their port is served
+// here too (with their own calibration, namcoN2Calibrate).
 int namcoEs1JvsIsPath(const char *path)
 {
     const NamcoEs1Game *g = namcoEs1CurrentGame();
+    const char *device = g ? g->jvsDevice : isNamcoN2Game() ? namcoN2CurrentGame()->jvsDevice : NULL;
     if (g && g->jvsDeviceAlias && path && strcmp(path, g->jvsDeviceAlias) == 0)
         return 1;
-    return g && g->jvsDevice && path && strcmp(path, g->jvsDevice) == 0;
+    return device && path && strcmp(path, device) == 0;
 }
 
 int namcoEs1JvsOpen(int (*realOpen)(const char *, int, ...))
@@ -242,7 +246,7 @@ static void desktopInput(void)
         seenCoins[c] = keys->state.coinCount[c];
     }
     const NamcoEs1Game *g = namcoEs1CurrentGame();
-    if (g && (g->calibration || g->jammaCalibration || g->axisCalibration || g->keyboardAnalog))
+    if ((g && (g->calibration || g->jammaCalibration || g->axisCalibration || g->keyboardAnalog)) || isNamcoN2Game())
     {
         keyboardAnalog(g, io);
         return;
@@ -353,7 +357,11 @@ static void calibrate(const NamcoEs1Game *g, int saved[3])
     for (int i = 0; i < 3; i++)
         saved[i] = ch[i];
     if (!g)
+    {
+        if (isNamcoN2Game())
+            namcoN2Calibrate(ch);
         return;
+    }
     const volatile NamcoEs1Calibration *c = (const volatile NamcoEs1Calibration *)(uintptr_t)g->calibration;
     if (g->axisCalibration)
     {
@@ -435,7 +443,7 @@ static void keyboardOverPad(JVSIO *io, int savedSwitches[3], int savedAnalog[3])
     }
     pthread_mutex_unlock(&jvsMutex);
     const NamcoEs1Game *g = namcoEs1CurrentGame();
-    if (g && (g->calibration || g->jammaCalibration || g->axisCalibration || g->keyboardAnalog))
+    if ((g && (g->calibration || g->jammaCalibration || g->axisCalibration || g->keyboardAnalog)) || isNamcoN2Game())
         keyboardAnalogFrom(g, io, keys->state.inputSwitch[PLAYER_1], 1);
 }
 

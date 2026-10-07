@@ -9,6 +9,7 @@
 #include <limits.h>
 #include "../rawthrills/rawthrills.h"
 #include "../namco/namcoEs1.h"
+#include "../namco/namcoN2.h"
 #endif
 #include "../config/config.h"
 #include "loader/elfLoader/symbolResolver.hpp"
@@ -287,6 +288,9 @@ int system(const char *command)
     command = rtRedirectCommand(command, rtCommand, sizeof(rtCommand));
     if (namcoEs1DropCommand(command))
         return 0;
+    int n2Status;
+    if (namcoN2Command(command, &n2Status))
+        return n2Status;
 #endif
 
     if (strcmp(command, "lsmod | grep basebd > /dev/null") == 0)

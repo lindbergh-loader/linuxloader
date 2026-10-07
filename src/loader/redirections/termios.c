@@ -7,6 +7,7 @@
 #include "termios.h"
 #include "filesystemShared.h"
 #include "../namco/namcoEs1.h"
+#include "../namco/namcoN2.h"
 
 #define REAL_FUNC(name) dlsym(RTLD_NEXT, #name)
 
@@ -21,7 +22,7 @@ int tcgetattr(int fd, struct termios *termios_p)
     if (fd == hooks[SERIAL0] && getConfig()->emulateDriveboard == 1)
         return 0;
 
-    if (namcoEs1JvsIsFd(fd) || namcoEs1KickbackIsFd(fd))
+    if (namcoEs1JvsIsFd(fd) || namcoEs1KickbackIsFd(fd) || namcoN2KickbackIsFd(fd))
     {
         memset(termios_p, 0, sizeof(*termios_p));
         return 0;
@@ -39,7 +40,7 @@ int tcsetattr(int fd, int optional_actions, const struct termios *termios_p)
     if (fd == hooks[SERIAL0] && getConfig()->emulateDriveboard == 1)
         return 0;
 
-    if (namcoEs1JvsIsFd(fd) || namcoEs1KickbackIsFd(fd))
+    if (namcoEs1JvsIsFd(fd) || namcoEs1KickbackIsFd(fd) || namcoN2KickbackIsFd(fd))
         return 0;
 
     return _tcsetattr(fd, optional_actions, termios_p);

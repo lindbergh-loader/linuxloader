@@ -9,6 +9,7 @@
 #ifdef __linux__
 #include "rawthrills/rtGame.h"
 #include "namco/namcoEs1Game.h"
+#include "namco/namcoN2.h"
 #endif
 #include <ctype.h>
 #include <libgen.h>
@@ -74,6 +75,7 @@ char *games[] = {"a.elf",
                  "vt3",
                  "game", // Raw Thrills (Jurassic Park)
                  "vt3_Lindbergh",
+                 "main",           // Namco N2 (Wangan Midnight Maximum Tune 3)
                  "END"};
 
 /**
@@ -1222,6 +1224,8 @@ int parseArgs(int argc, char *argv[], char *command, char *originalDir, char *ga
     rtPrepareCommand(command, MAX_PATH_LENGTH, elfCrc, resolvedConfigPath);
     // Namco ES1 games ask for the cabinet's dynamic linker (see namco/namcoEs1Launch.c).
     namcoEs1PrepareCommand(command, MAX_PATH_LENGTH, elfCrc);
+    // Namco N2 games with a cabinet command line append it (see namco/namcoN2Launch.c).
+    namcoN2PrepareCommand(command, MAX_PATH_LENGTH, elfCrc);
 #endif
 
 #ifdef __linux__
