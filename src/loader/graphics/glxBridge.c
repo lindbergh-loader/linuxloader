@@ -18,6 +18,7 @@
 #include "loader/hardware/lindbergh/touchScreen.h"
 #include "sdlCalls.h"
 #include "../log/log.h"
+#include "../namco/namcoEs1.h"
 
 #include <math.h>
 #include <stdlib.h>
@@ -509,6 +510,7 @@ void glXSwapBuffers(Display *dpy, GLXDrawable drawable)
         // windowX11 games (e.g. Namco ES1 with their own X window) manage their
         // own GLX context and swap; pass straight through to the real GLX.
         void (*_glXSwapBuffers)(Display *, GLXDrawable) = dlsym(RTLD_NEXT, "glXSwapBuffers");
+        namcoEs1BeforeSwap(dpy, drawable);
         if (_glXSwapBuffers)
             _glXSwapBuffers(dpy, drawable);
         return;

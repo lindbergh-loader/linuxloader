@@ -8,6 +8,7 @@
 
 #ifdef __linux__
 #include "rawthrills/rtGame.h"
+#include "namco/namcoEs1Game.h"
 #endif
 #include <ctype.h>
 #include <libgen.h>
@@ -1219,6 +1220,8 @@ int parseArgs(int argc, char *argv[], char *command, char *originalDir, char *ga
 #ifdef __linux__
     // Raw Thrills dumps run from a patched copy (see rawthrills/rtLaunch.c).
     rtPrepareCommand(command, MAX_PATH_LENGTH, elfCrc, resolvedConfigPath);
+    // Namco ES1 games ask for the cabinet's dynamic linker (see namco/namcoEs1Launch.c).
+    namcoEs1PrepareCommand(command, MAX_PATH_LENGTH, elfCrc);
 #endif
 
 #ifdef __linux__

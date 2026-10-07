@@ -1,10 +1,12 @@
 #ifdef __linux__
 #include <termios.h>
 #include <dlfcn.h>
+#include <string.h>
 
 #include "../config/config.h"
 #include "termios.h"
 #include "filesystemShared.h"
+#include "../namco/namcoEs1.h"
 
 #define REAL_FUNC(name) dlsym(RTLD_NEXT, #name)
 
@@ -19,6 +21,12 @@ int tcgetattr(int fd, struct termios *termios_p)
     if (fd == hooks[SERIAL0] && getConfig()->emulateDriveboard == 1)
         return 0;
 
+    if (namcoEs1JvsIsFd(fd) || namcoEs1KickbackIsFd(fd))
+    {
+        memset(termios_p, 0, sizeof(*termios_p));
+        return 0;
+    }
+
     return _tcgetattr(fd, termios_p);
 }
 
@@ -29,6 +37,9 @@ int tcsetattr(int fd, int optional_actions, const struct termios *termios_p)
         _tcsetattr = REAL_FUNC(tcsetattr);
 
     if (fd == hooks[SERIAL0] && getConfig()->emulateDriveboard == 1)
+        return 0;
+
+    if (namcoEs1JvsIsFd(fd) || namcoEs1KickbackIsFd(fd))
         return 0;
 
     return _tcsetattr(fd, optional_actions, termios_p);

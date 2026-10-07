@@ -32,6 +32,7 @@
 #include "../common/gamePath.h"
 #include "../common/ossDsp.h"
 #include "../common/webcam.h"
+#include "../namco/namcoEs1.h"
 #endif
 #include "../resources/font.h"
 #include "../resources/lindberghLogo.h"
@@ -234,6 +235,11 @@ int sharedOpen(const char *pathname, int flags, ...)
     // Raw Thrills: OSS sound device and cabinet paths.
     if (ossDspIsPath(pathname))
         return ossDspOpen();
+    // Namco: the JVS I/O board's serial port.
+    if (namcoEs1JvsIsPath(pathname))
+        return namcoEs1JvsOpen(_open);
+    if (namcoEs1KickbackIsPath(pathname))
+        return namcoEs1KickbackOpen(_open);
     if (webcamIsPath(pathname))
         return webcamOpen(pathname, flags, mode, _open);
     char pathBuf[PATH_MAX];
@@ -721,6 +727,10 @@ int sharedClose(int fd)
 #ifdef __linux__
     if (ossDspIsFd(fd))
         ossDspClose();
+    if (namcoEs1JvsIsFd(fd))
+        namcoEs1JvsClose();
+    if (namcoEs1KickbackIsFd(fd))
+        namcoEs1KickbackClose();
 #endif
 
 
@@ -778,6 +788,10 @@ ssize_t sharedRead(int fd, void *buf, size_t count)
     if (_read == NULL)
         _read = REAL_FUNC(read);
 
+    if (namcoEs1JvsIsFd(fd))
+        return namcoEs1JvsRead(buf, count);
+    if (namcoEs1KickbackIsFd(fd))
+        return namcoEs1KickbackRead(buf, count);
 #endif
 
     if (fd == (int)hooks[BASEBOARD])
@@ -947,6 +961,10 @@ ssize_t sharedWrite(int fd, const void *buf, size_t count)
 #ifdef __linux__
     if (ossDspIsFd(fd))
         return ossDspWrite(buf, count);
+    if (namcoEs1JvsIsFd(fd))
+        return namcoEs1JvsWrite(buf, count);
+    if (namcoEs1KickbackIsFd(fd))
+        return namcoEs1KickbackWrite(buf, count);
 #endif
 
     // void *addr = __builtin_return_address(0);
@@ -1001,6 +1019,24 @@ int sharedIoctl(int fd, unsigned long int request, ...)
 #ifdef __linux__
     if (ossDspIsFd(fd))
         return ossDspIoctl(request, argp);
+    if (namcoEs1JvsIsFd(fd))
+        return namcoEs1JvsIoctl(request, argp);
+    if (namcoEs1KickbackIsFd(fd))
+        return namcoEs1KickbackIoctl(request, argp);
+    if (request == SIOCGIFHWADDR && isNamcoEs1Game())
+        return namcoEs1HwAddr(fd, argp, _ioctl);
+    if ((request == SIOCGIFFLAGS || request == SIOCGIFADDR || request == SIOCGIFNETMASK || request == SIOCGIFBRDADDR) &&
+        isNamcoEs1Game())
+    {
+        int r = _ioctl(fd, request, argp);
+        if (r != 0 && errno == ENODEV && namcoEs1Eth0(request, argp) == 0)
+            return 0;
+        return r;
+    }
+    // The Namco ES1 camera driver crops the cabinet camera's picture; a
+    // webcam may not crop (VIDIOC_S_CROP), and the picture is used whole.
+    if (request == 0x4014563c && isNamcoEs1Game())
+        return 0;
 #endif
 
     if (fd == (int)hooks[EEPROM])

@@ -188,6 +188,8 @@ typedef enum
 {
     SEGA_TYPE_1,
     SEGA_TYPE_3,
+    NAMCO_NA_JV,
+    NAMCO_ES1_JAMMA,
     NO_JVS_IO
 } JVSIOType;
 

@@ -19,6 +19,7 @@
 #include "log/log.h"
 #if defined(__linux__)
 #include "rawthrills/rawthrills.h"
+#include "namco/namcoEs1.h"
 #endif
 
 #if defined(__linux__)
@@ -78,6 +79,29 @@ void initMain(char *configPath, char *controlsPath)
                     printf("  CONTROLLER:  %s\n", controllers.controller[i].name);
         }
         if (rtInit() != 0)
+            exit(1);
+        printf("\n");
+        return;
+    }
+
+    // Namco ES1 games: none of the Lindbergh hardware either, and SDL 1.2
+    // too. Their JVS I/O board is the loader's JVS emulation, on a serial
+    // port (see namco/namcoEs1.c), fed from evdev or the desktop keys.
+    if (isNamcoEs1Game())
+    {
+        printf("\nLinux Loader\nBy the Linux Loader Development Team 2026\n\n");
+        printf("  GAME:        %s\n", getGameName());
+        printf("  GAME ID:     %s\n", getGameId());
+        initJVS();
+        if (getConfig()->inputMode == 2)
+        {
+            if (initEvdevControllers(&controllers) != 0)
+                exit(1);
+            for (int i = 0; i < controllers.count; i++)
+                if (controllers.controller[i].inUse)
+                    printf("  CONTROLLER:  %s\n", controllers.controller[i].name);
+        }
+        if (namcoEs1Init() != 0)
             exit(1);
         printf("\n");
         return;

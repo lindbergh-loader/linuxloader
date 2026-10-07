@@ -8,6 +8,7 @@
 #ifdef __linux__
 #include <limits.h>
 #include "../rawthrills/rawthrills.h"
+#include "../namco/namcoEs1.h"
 #endif
 #include "../config/config.h"
 #include "loader/elfLoader/symbolResolver.hpp"
@@ -284,6 +285,8 @@ int system(const char *command)
 #ifdef __linux__
     char rtCommand[PATH_MAX * 2];
     command = rtRedirectCommand(command, rtCommand, sizeof(rtCommand));
+    if (namcoEs1DropCommand(command))
+        return 0;
 #endif
 
     if (strcmp(command, "lsmod | grep basebd > /dev/null") == 0)
