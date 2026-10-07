@@ -5,6 +5,7 @@ static const GameData gameData[] = {
     {JURASSIC_PARK_RT, "Jurassic Park Arcade", "jurassic-park", "Raw Thrills", "RT-JP", "2015", "1360x768", WORKING, NO_JVS_IO, SHOOTING, 1360, 768, -1, 0, 0, 0, 0, 0, 0, RED},
     {CRUISN_BLAST_RT, "Cruis'n Blast", "cruisn-blast", "Raw Thrills", "RT-CB", "2017", "1920x1080", WORKING, NO_JVS_IO, DRIVING, 1920, 1080, -1, 0, 0, 0, 0, 0, 0, RED},
     {GALAGA_ASSAULT_RT, "Galaga Assault", "galaga-assault", "Raw Thrills", "RT-GA", "2017", "1920x1080", WORKING, NO_JVS_IO, SHOOTING, 1920, 1080, -1, 0, 0, 0, 0, 0, 0, RED},
+    {PACMAN_CHOMP_MANIA_RT, "Pac-Man Chomp Mania", "pacman-chomp-mania", "Raw Thrills", "RT-PM", "2019", "1920x1080", WORKING, NO_JVS_IO, DIGITAL, 1920, 1080, -1, 0, 0, 0, 0, 0, 0, RED},
     {AFTER_BURNER_CLIMAX_SBLR, "After Burner Climax", "abc", "DVP-0009", "SBLR", "2006", "640x480", WORKING, SEGA_TYPE_1, FLYING, 640, 480, GROUP_ABC, 0, 0, 0, 0, 0, 0, YELLOW},
     {AFTER_BURNER_CLIMAX_SBLR_REVA, "After Burner Climax Rev A", "abc-rev-a", "DVP-0009A", "SBLR", "2006", "640x480", WORKING, SEGA_TYPE_1, FLYING, 640, 480, GROUP_ABC, 0, 0, 0, 0, 0, 0, YELLOW},
     {AFTER_BURNER_CLIMAX_SBLR_REVB, "After Burner Climax Rev B", "abc-rev-b", "DVP-0009B", "SBLR", "2006", "640x480", WORKING, SEGA_TYPE_1, FLYING, 640, 480, GROUP_ABC, 0, 0, 0, 0, 0, 0, YELLOW},

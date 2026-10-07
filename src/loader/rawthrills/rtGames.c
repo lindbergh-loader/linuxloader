@@ -3,6 +3,7 @@
 #include "../hardware/lindbergh/jvs.h"
 #include "cruisnblast/cbImports.h"
 #include "galagaassault/gaImports.h"
+#include "pacman/pmImports.h"
 #include "jurassicpark/jpImports.h"
 
 // SDL 1.2 key codes (engine input ids of the keyboard).
@@ -300,6 +301,22 @@ static const RtIoInput gaRioSwitches[] = {
 // The RIO board is reported connected.
 static const RtStub gaStubs[] = {{"RIO_Connected", 0}, {NULL, 0}};
 
+// Pac-Man Chomp Mania (statically linked SDL 1.2), v1.28C: Galaga Assault's
+// RIO layer and switch numbers, one player.
+
+static const RtIoInput pmRioSwitches[] = {
+    {RT_IO_SWITCH, PLAYER_1, GA_SW_START_FIRE, BUTTON_START},
+    {RT_IO_SWITCH, PLAYER_1, GA_SW_UP, BUTTON_UP},
+    {RT_IO_SWITCH, PLAYER_1, GA_SW_DOWN, BUTTON_DOWN},
+    {RT_IO_SWITCH, PLAYER_1, GA_SW_LEFT, BUTTON_LEFT},
+    {RT_IO_SWITCH, PLAYER_1, GA_SW_RIGHT, BUTTON_RIGHT},
+    {RT_IO_SWITCH, PLAYER_1, GA_SW_SERVICE, BUTTON_SERVICE},
+    {RT_IO_SWITCH, SYSTEM, GA_SW_TEST, BUTTON_TEST},
+    {RT_IO_COIN, 0, GA_SW_COIN1, 0},
+    {RT_IO_COIN, 1, GA_SW_COIN2, 0},
+    {RT_IO_END, 0, 0, 0},
+};
+
 // Jurassic Park's renderer: its viewports, render targets, frame grabs and
 // screen-space shaders are sized from the real screen (see layoutRealSize).
 static const char *const jpLayoutRealSize[] = {
@@ -419,6 +436,37 @@ static const RtGame rtGames[] = {
         .stubs = gaStubs,
         // "push %ebp; mov %esp,%ebp; sub $0x58,%esp"
         .orthoSymbol = "set_ortho",
+        .orthoPrologue = 6,
+        .rootPath = "/pm",
+    },
+    {
+        .crc32 = PACMAN_CHOMP_MANIA_RT,
+        .fileCrc32 = 0x19c3fef7,
+        .envelopeGot = PM_ENVELOPE_GOT,
+        .envelopeImports = pmEnvelopeImports,
+        .envelopeImportCount = sizeof(pmEnvelopeImports) / sizeof(pmEnvelopeImports[0]),
+        .envelopeSelfSlot = -1,
+        .gameImports = pmGameImports,
+        .gameImportCount = sizeof(pmGameImports) / sizeof(pmGameImports[0]),
+        .symbols = pmSymbols,
+        .haspFeature = 0xffff0000,
+        .haspMemoryFileId = 0xfff0,
+        .bssStart = 0x08283bbc,
+        .bssEnd = 0x0835fd5c,
+        // Game_PreInit sets the defaults (1920x1080, rotated), then the
+        // command line: "push %ebp; mov %esp,%ebp; sub $0x28,%esp"
+        .parseArgsSymbol = "_Z19Main_ProcessCmdLineiPPc",
+        .parseArgsPrologue = 6,
+        .resolution = 0x08270c80,
+        .rotateFlag = 0x082d4390,
+        .fullscreenFlag = 0x082d4384,
+        // gameh, gamew: the portrait game, 1080x1920
+        .monitorSize = 0x08270c88,
+        .rioSwitches = pmRioSwitches,
+        .rioDesktopKeys = 1,
+        .stubs = gaStubs,
+        // "push %ebp; mov %esp,%ebp; sub $0x48,%esp"
+        .orthoSymbol = "OGL_resize_window_ortho",
         .orthoPrologue = 6,
         .rootPath = "/pm",
     },

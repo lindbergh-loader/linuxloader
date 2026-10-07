@@ -10,6 +10,7 @@
 #define JURASSIC_PARK_RT 0xf7503efd                              // Raw Thrills, v1.33
 #define CRUISN_BLAST_RT 0xddaf18ba                               // Raw Thrills, v1.25
 #define GALAGA_ASSAULT_RT 0x2986f0ca                             // Raw Thrills
+#define PACMAN_CHOMP_MANIA_RT 0xf841f9e7                         // Raw Thrills, v1.28C
 #define AFTER_BURNER_CLIMAX_SBLR 0xa3c246e2                       // DVP-0009
 #define AFTER_BURNER_CLIMAX_SBLR_REVA 0xe657b1c0                  // DVP-0009A
 #define AFTER_BURNER_CLIMAX_SBLR_REVB 0xdb9d8396                  // DVP-0009B
