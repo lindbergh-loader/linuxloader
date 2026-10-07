@@ -451,6 +451,11 @@ typedef struct RtGame
 void rtWofInstall(const RtGame *game) __attribute__((weak));
 // Tippin' Bloks' controller (rtTb.c), the same way.
 void rtTbInstall(const RtGame *game) __attribute__((weak));
+// Target: Terror's files, JAMMA board, window, clock and crosshairs (rtTt.c),
+// the same way.
+void rtTtInstall(const RtGame *game) __attribute__((weak));
+void *rtTtOverride(const char *name) __attribute__((weak));
+void rtTtFrameDraw(int x, int y, int width, int height) __attribute__((weak));
 // Angry Birds Arcade's touch frame (rtAb.c), the same way.
 void rtAbInstall(const RtGame *game) __attribute__((weak));
 void rtAbIoFrame(struct JVSIO *io) __attribute__((weak));

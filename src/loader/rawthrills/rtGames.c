@@ -1343,6 +1343,39 @@ static const char *const jpLayoutRealSize[] = {
     "shader113SetupFunc", "ShaderSetupEnvMapFunc", NULL,
 };
 
+// Target: Terror Gold (2004 engine), "Enhanced" release: a normally linked,
+// unstripped binary (glut, OSS) whose functions are found by name in its
+// symbol table. Its data files and JAMMA board are answered in rtTt.c.
+static const RtSymbol ttSymbols[] = {
+    {"RTFS_TranslateFilename", 0x080dcb10},
+    {"RTFS_open", 0x080dcbc0},
+    {"RTFS_fopen", 0x080dcca0},
+    {"RTFS_LZWfopen", 0x080dcd80},
+    {"JAMMA_Open", 0x080c6bc0},
+    {"JAMMA_Close", 0x080c6c70},
+    {"JAMMA_GetValue", 0x080c6c90},
+    {"JAMMA_GetReport", 0x080c69f0},
+    {"JAMMA_SendReport", 0x080c68e0},
+    {"JAMMA_SendSerial", 0x080c69a0},
+    // The dongle check (a HASP or a Rockey, at the start and in the attract
+    // mode): 1, present.
+    {"poll_for_dongle", 0x080d8e90},
+    // Its clock's init: the TSC's rate from /proc/cpuinfo (see rtTt.c).
+    {"rtTime_Init", 0x080e4e20},
+    {NULL, 0},
+};
+
+static const RtStub ttStubs[] = {{"poll_for_dongle", 1}, {NULL, 0}};
+
+// Its settings, audits and hiscores, files of the cabinet's /tt, are in
+// save/ in the dump (see rtTt.c for its data).
+static const RtPathAlias ttPathAliases[] = {
+    {"0000001", "save/01"}, {"0000002", "save/02"}, {"0000003", "save/03"}, {"ZZZUB%", "save/04"},
+    {"0000005", "save/05"}, {"0000006", "save/06"}, {"0000007", "save/07"}, {"0000008", "save/08"},
+    {"0000009", "save/09"}, {"0000010", "save/10"}, {"0000011", "save/11"}, {"(RCV@15", "save/12"},
+    {NULL, NULL},
+};
+
 static const RtGame rtGames[] = {
     {
         .crc32 = JURASSIC_PARK_RT,
@@ -2011,6 +2044,23 @@ static const RtGame rtGames[] = {
         .sizeArgument = "-r%dx%d",
         .rootPath = "/g3",
         .rootAliases = tbRootAliases,
+    },
+    {
+        .crc32 = TARGET_TERROR_GOLD_RT,
+        // Mode 644 in the dump: the launcher's copy is executable.
+        .fileCrc32 = 0x6e4b0bb4,
+        .envelopeSelfSlot = -1,
+        .symbols = ttSymbols,
+        .stubs = ttStubs,
+        .install = rtTtInstall,
+        .override = rtTtOverride,
+        .frameDraw = rtTtFrameDraw,
+        // 640x480 in GLUT's game mode: a window, with black bars on a wide
+        // screen (see rtTt.c).
+        .glutGameModeWindow = 1,
+        .frameAspect = {4, 3},
+        .rootPath = "/tt",
+        .pathAliases = ttPathAliases,
     },
 };
 
