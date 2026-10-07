@@ -7,6 +7,7 @@
 #define MAX_PATH_LENGTH 1024
 #define INPUT_STRING_LENGTH 256
 
+#define JURASSIC_PARK_RT 0xf7503efd                              // Raw Thrills, v1.33
 #define AFTER_BURNER_CLIMAX_SBLR 0xa3c246e2                       // DVP-0009
 #define AFTER_BURNER_CLIMAX_SBLR_REVA 0xe657b1c0                  // DVP-0009A
 #define AFTER_BURNER_CLIMAX_SBLR_REVB 0xdb9d8396                  // DVP-0009B
