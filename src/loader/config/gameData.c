@@ -12,6 +12,7 @@ static const GameData gameData[] = {
     {BIG_BUCK_HD_WILD_840_RT, "Big Buck HD Wild v8.40", "big-buck-hd-wild-840", "Raw Thrills", "RT-BBHDW840", "2018", "1920x1080", WORKING, NO_JVS_IO, SHOOTING, 1920, 1080, -1, 0, 0, 0, 0, 0, 0, RED},
     {PACMAN_CHOMP_MANIA_RT, "Pac-Man Chomp Mania", "pacman-chomp-mania", "Raw Thrills", "RT-PM", "2019", "1920x1080", WORKING, NO_JVS_IO, DIGITAL, 1920, 1080, -1, 0, 0, 0, 0, 0, 0, RED},
     {PINK_PANTHER_RT, "Pink Panther Jewel Heist", "pink-panther", "Raw Thrills", "RT-PP", "2020", "768x1360", WORKING, NO_JVS_IO, DIGITAL, 768, 1360, -1, 0, 0, 0, 0, 0, 0, RED},
+    {ALIENS_ARMAGEDDON_RT, "Aliens Armageddon", "aliens-armageddon", "Raw Thrills", "RT-AA", "2014", "1360x768", WORKING, NO_JVS_IO, SHOOTING, 1360, 768, -1, 0, 0, 0, 0, 0, 0, RED},
     {AFTER_BURNER_CLIMAX_SBLR, "After Burner Climax", "abc", "DVP-0009", "SBLR", "2006", "640x480", WORKING, SEGA_TYPE_1, FLYING, 640, 480, GROUP_ABC, 0, 0, 0, 0, 0, 0, YELLOW},
     {AFTER_BURNER_CLIMAX_SBLR_REVA, "After Burner Climax Rev A", "abc-rev-a", "DVP-0009A", "SBLR", "2006", "640x480", WORKING, SEGA_TYPE_1, FLYING, 640, 480, GROUP_ABC, 0, 0, 0, 0, 0, 0, YELLOW},
     {AFTER_BURNER_CLIMAX_SBLR_REVB, "After Burner Climax Rev B", "abc-rev-b", "DVP-0009B", "SBLR", "2006", "640x480", WORKING, SEGA_TYPE_1, FLYING, 640, 480, GROUP_ABC, 0, 0, 0, 0, 0, 0, YELLOW},

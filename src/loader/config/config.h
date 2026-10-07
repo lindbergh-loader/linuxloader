@@ -23,6 +23,7 @@
 // Raw Thrills, g6 engine; like Big Buck HD Wild, the CRC of the patched copy
 // (0xd394437b is the untouched file).
 #define PINK_PANTHER_RT 0x2a0ca1ef
+#define ALIENS_ARMAGEDDON_RT 0x1e59ce21                          // Raw Thrills, g6 engine
 #define AFTER_BURNER_CLIMAX_SBLR 0xa3c246e2                       // DVP-0009
 #define AFTER_BURNER_CLIMAX_SBLR_REVA 0xe657b1c0                  // DVP-0009A
 #define AFTER_BURNER_CLIMAX_SBLR_REVB 0xdb9d8396                  // DVP-0009B
