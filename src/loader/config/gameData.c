@@ -21,6 +21,7 @@ static const GameData gameData[] = {
     {MOTOGP_RT, "MotoGP", "motogp", "Raw Thrills", "RT-MGP", "2016", "1360x768", NOT_WORKING, NO_JVS_IO, DRIVING, 1360, 768, -1, 0, 0, 0, 0, 0, 0, RED},
     {DOODLE_JUMP_RT, "Doodle Jump", "doodle-jump", "ICE", "ICE-DJ", "2012", "1366x768", WORKING, NO_JVS_IO, DIGITAL, 1366, 768, -1, 0, 0, 0, 0, 0, 0, RED},
     {TIPPIN_BLOKS_RT, "Tippin' Bloks", "tippin-bloks", "ICE", "ICE-TB", "2018", "1366x768", WORKING, NO_JVS_IO, DIGITAL, 1366, 768, -1, 0, 0, 0, 0, 0, 0, RED},
+    {TARGET_TERROR_GOLD_RT, "Target: Terror Gold", "target-terror-gold", "Raw Thrills", "RT-TTG", "2004", "640x480", WORKING, NO_JVS_IO, SHOOTING, 640, 480, -1, 0, 0, 0, 0, 0, 0, RED},
     {NIRIN_ES1, "Nirin", "nirin", "Namco ES1", "NRN100", "2009", "1360x768", WORKING, NAMCO_NA_JV, DRIVING, 1360, 768, -1, 0, 0, 0, 0, 0, 0, RED},
     {TANKTANKTANK_ES1, "Tank! Tank! Tank!", "tanktanktank", "Namco ES1", "TANK100", "2009", "768x1360", WORKING, NAMCO_NA_JV, DRIVING, 1360, 768, -1, 0, 0, 0, 0, 0, 0, RED},
     {GUNDAM_KIZUNA_ES1, "Mobile Suit Gundam: Bonds of the Battlefield", "gundam-kizuna", "Namco ES1", "GKE1", "2016", "1024x768", NOT_WORKING, NAMCO_NA_JV, DIGITAL, 1024, 768, -1, 0, 0, 0, 0, 0, 0, RED},
