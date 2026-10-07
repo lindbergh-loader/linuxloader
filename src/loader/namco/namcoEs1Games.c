@@ -4,7 +4,57 @@
 #include "../config/config.h"
 #include "../hardware/lindbergh/jvs.h"
 
+// Gundam's save disk (/live, the cabinet's arcadedisk volumes, set up by its
+// ngun_storage script): its crash log (save_nosafe/alert_battle_log) is
+// mapped at boot, which fails without the directory, and its settings live
+// in the data partitions, linked into its directory as save0..7 (E[19-12],
+// "settings reset", at each boot without them).
+static const char *const gundamRoots[] = {"/live", NULL};
+static const char *const gundamDirectories[] = {
+    "live", "live/disk", "live/disk/save_nosafe", "live/disk/save_nosafe/save_nosafe", "live/disk/maint",
+    "live/disk/maint/seal_debug", "live/disk/maint/seal_debug/relay", "live/disk/maint/update",
+    "live/disk/data0", "live/disk/data0/save0", "live/disk/data1", "live/disk/data1/save1",
+    "live/disk/data2", "live/disk/data2/save2", "live/disk/data3", "live/disk/data3/save3",
+    "live/disk/data4", "live/disk/data4/save4", "live/disk/data5", "live/disk/data5/save5",
+    "live/disk/data6", "live/disk/data6/save6", "live/disk/data7", "live/disk/data7/save7",
+    "live/disk/work", "live/disk/work/work", "live/disk/arcade0", "live/disk/arcade1", "live/image",
+    "live/image/arcade", NULL};
+static const char *const gundamLinks[] = {
+    "maint", "live/disk/maint", "save0", "live/disk/data0/save0", "save1", "live/disk/data1/save1",
+    "save2", "live/disk/data2/save2", "save3", "live/disk/data3/save3", "save4", "live/disk/data4/save4",
+    "save5", "live/disk/data5/save5", "save6", "live/disk/data6/save6", "save7", "live/disk/data7/save7",
+    "save_nosafe", "live/disk/save_nosafe/save_nosafe", "work", "live/disk/work/work", NULL};
+
 static const NamcoEs1Game games[] = {
+    {
+        // Mobile Suit Gundam: Bonds of the Battlefield (Senjo no Kizuna,
+        // REV3.57.07), the POD's station program: an X11/GLX window,
+        // stripped. Its boot scripts start it for the T250 projector
+        // (1024x768); libarcaderegistry is the loader's (its registry skips
+        // the projector check).
+        .crc32 = GUNDAM_KIZUNA_ES1,
+        .fileCrc32 = 0x84777366,
+        .jvsDevice = "/dev/ttyS2",
+        .soundEmulation = 1,
+        // The linked HASP HL (stripped: found by its trace strings).
+        .haspLogin = 0x0876bb40,
+        .haspLogout = 0x0876bbe0,
+        .haspRead = 0x0876c938,
+        .haspDecrypt = 0x0876bdb8,
+        .haspGetSessionInfo = 0x0876c6c0,
+        .haspFree = 0x0876c3fc,
+        .haspGetSize = 0x0876cad0,
+        .haspFeature = 0xffff0000,
+        .haspMemorySize = 0xe00,
+        .dongleSerial = "012345678901",
+        .dongleBlockChecksum = 1,
+        .rootPath = "/opt/arcade/exec",
+        .cabinetRoots = gundamRoots,
+        .cabinetDirectories = gundamDirectories,
+        .cabinetLinks = gundamLinks,
+        .windowX11 = 1,
+        .arguments = "window xga",
+    },
     {
         // Nirin (NRN100-4-NA-DAT0-A37)
         .crc32 = NIRIN_ES1,

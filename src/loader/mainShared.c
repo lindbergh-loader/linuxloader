@@ -79,6 +79,7 @@ char *games[] = {"a.elf",
                  "game", // Raw Thrills (Jurassic Park)
                  "vt3_Lindbergh",
                  "n_tank_release", // Namco ES1 (Tank! Tank! Tank!)
+                 "n_gun_station_rel_opt_es1", // Namco ES1 (Gundam: Senjo no Kizuna)
                  "main",           // Namco N2 (Wangan Midnight Maximum Tune 3)
                  "END"};
 
@@ -170,6 +171,7 @@ uint32_t cleanElfCRC32[] = {
     0x7A18BEB3, // Namco ES1 | Dead Heat a.elf (US DRIVE rev 6273)
     0x6E2BE119, // Namco ES1 | Maximum Heat 3D a.elf (US DRIVE rev 8807)
     0x66136EE9, // Namco ES1 | Tank! Tank! Tank! n_tank_release (rev 1.03.14)
+    0x84777366, // Namco ES1 | Gundam: Senjo no Kizuna n_gun_station_rel_opt_es1 (REV3.57.07)
 };
 
 int cleanElfCRC32Count = sizeof(cleanElfCRC32) / sizeof(uint32_t);

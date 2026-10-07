@@ -103,6 +103,12 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux" AND NOT MINGW AND NOT CMAKE_C_COMPILER MATC
     target_compile_options(glew_gvr PRIVATE ${LIBS_C_FLAGS})
     add_custom_command(TARGET glew_gvr POST_BUILD COMMAND ln -s -f libGLEW.so ${CMAKE_BINARY_DIR}/libGLEW.so.1.3)
 
+    # libarcaderegistry.so.1 (Namco ES1: Gundam Senjo no Kizuna)
+    add_library(arcaderegistry SHARED src/loader/extraLibs/namco/libarcaderegistry/libarcaderegistry.c)
+    target_link_libraries(arcaderegistry ${SHARED_LINKER_FLAGS} pthread)
+    target_compile_options(arcaderegistry PRIVATE ${LIBS_C_FLAGS})
+    add_custom_command(TARGET arcaderegistry POST_BUILD COMMAND ln -s -f libarcaderegistry.so ${CMAKE_BINARY_DIR}/libarcaderegistry.so.1)
+
     # libsegaapi.so
     add_library(segaapi SHARED src/loader/audio/lindbergh/libsegaapi/libsegaapi.c)
     target_include_directories(segaapi PRIVATE ${PROJECT_SOURCE_DIR}/src/FAudio)
