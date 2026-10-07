@@ -46,6 +46,7 @@
 #define TANKTANKTANK_ES1 0xd7270b7d                              // Namco ES1, tank_us_100226_rev1.03.14
 #define GUNDAM_KIZUNA_ES1 0xb647d490                             // Namco ES1, Senjo no Kizuna REV3.57.07
 #define CROSSFIRE_TEAMPLAY 0x0a8b80a6                            // Teamplay, med_pball
+#define POLICE_TRAINER_2_TEAMPLAY 0xf1709a8e                     // Teamplay, pt2s_g11
 #define AFTER_BURNER_CLIMAX_SBLR 0xa3c246e2                       // DVP-0009
 #define AFTER_BURNER_CLIMAX_SBLR_REVA 0xe657b1c0                  // DVP-0009A
 #define AFTER_BURNER_CLIMAX_SBLR_REVB 0xdb9d8396                  // DVP-0009B

@@ -83,6 +83,7 @@ char *games[] = {"a.elf",
                  "main",           // Namco N2 (Wangan Midnight Maximum Tune 3)
                  "hlds_amd",       // Namco N2 (Counter Strike NEO, GoldSrc HLDS)
                  "med_pball",      // Teamplay (Crossfire Maximum Paintball)
+                 "pt2s_g11",       // Teamplay (Police Trainer 2)
                  "END"};
 
 /**
