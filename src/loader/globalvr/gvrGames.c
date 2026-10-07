@@ -15,6 +15,14 @@ static const GvrGame games[] = {
         .frameWidth = 640,
         .frameHeight = 480,
     },
+    {
+        // America's Army, 1.0.1.082.
+        .crc32 = AMERICAS_ARMY_GVR,
+        .fileCrc32 = 0x1492d7cd,
+        .rootPath = "/game",
+        .ownWindow = 1,
+        .linkPort = 8888,
+    },
 };
 
 const GvrGame *gvrGetGame(uint32_t crc32)
