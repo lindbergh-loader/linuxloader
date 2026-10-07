@@ -18,6 +18,7 @@ static const GameData gameData[] = {
     {DEAL_OR_NO_DEAL_DELUXE_RT, "Deal or No Deal Deluxe", "deal-or-no-deal-deluxe", "Raw Thrills", "RT-DONDDLX", "2012", "1366x768", NOT_WORKING, NO_JVS_IO, DIGITAL, 1366, 768, -1, 0, 0, 0, 0, 0, 0, RED},
     {ALIENS_ARMAGEDDON_RT, "Aliens Armageddon", "aliens-armageddon", "Raw Thrills", "RT-AA", "2014", "1360x768", WORKING, NO_JVS_IO, SHOOTING, 1360, 768, -1, 0, 0, 0, 0, 0, 0, RED},
     {ANGRY_BIRDS_RT, "Angry Birds Arcade", "angry-birds", "Raw Thrills", "RT-AB", "2016", "768x1360", WORKING, NO_JVS_IO, SHOOTING, 768, 1360, -1, 0, 0, 0, 0, 0, 0, RED},
+    {MOTOGP_RT, "MotoGP", "motogp", "Raw Thrills", "RT-MGP", "2016", "1360x768", NOT_WORKING, NO_JVS_IO, DRIVING, 1360, 768, -1, 0, 0, 0, 0, 0, 0, RED},
     {AFTER_BURNER_CLIMAX_SBLR, "After Burner Climax", "abc", "DVP-0009", "SBLR", "2006", "640x480", WORKING, SEGA_TYPE_1, FLYING, 640, 480, GROUP_ABC, 0, 0, 0, 0, 0, 0, YELLOW},
     {AFTER_BURNER_CLIMAX_SBLR_REVA, "After Burner Climax Rev A", "abc-rev-a", "DVP-0009A", "SBLR", "2006", "640x480", WORKING, SEGA_TYPE_1, FLYING, 640, 480, GROUP_ABC, 0, 0, 0, 0, 0, 0, YELLOW},
     {AFTER_BURNER_CLIMAX_SBLR_REVB, "After Burner Climax Rev B", "abc-rev-b", "DVP-0009B", "SBLR", "2006", "640x480", WORKING, SEGA_TYPE_1, FLYING, 640, 480, GROUP_ABC, 0, 0, 0, 0, 0, 0, YELLOW},

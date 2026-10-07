@@ -1128,6 +1128,105 @@ static const RtIoInput abIoInputs[] = {
     {RT_IO_END, 0, 0, 0},
 };
 
+// ---------------------------------------------------------------------------
+// MotoGP (g6 engine, 2016), a sit-on bike: Angry Birds Arcade's engine and io
+// layer, SDL 1.2 linked in, but a normally linked binary (TeknoParrot's
+// "game0"; its "game" only adds a dlopen of its own sss.so on MMS_Init's
+// failure path). Its HASP calls go through a shim that dlopens
+// libhasp_linux.so and forwards to it: the shim's seven entry points are
+// answered, so the library is never looked for.
+
+static const RtSymbol mgpSymbols[] = {
+    {"hasp_login", 0x08587720},
+    {"hasp_logout", 0x085877c0},
+    {"hasp_encrypt", 0x085878ac},
+    {"hasp_decrypt", 0x08587998},
+    {"hasp_get_sessioninfo", 0x085882a0},
+    {"hasp_read", 0x08588518},
+    {"hasp_write", 0x085885e4},
+    // The game's layer over them, Angry Birds' code.
+    {"DongleEncrypt", 0x083e2fd0},
+    {"DongleDecrypt", 0x083e3150},
+    {"TracerGuard", 0x084884fa},
+    // gCLArgs at 0x93c9280: width, height (1360x768 by default), then the
+    // aspect at +0x10; "-f<w>x<h>" sets the size and fullscreen (+0x1c).
+    {"ParseCommandLineArgs", 0x08090980},
+    // Linked-in SDL 1.2, called by io_sdl's create_window (0x83d9903).
+    {"SDL_SetVideoMode", 0x08403e80},
+    // The io layer, Angry Birds' functions.
+    {"io_new_data_present", 0x083d4d11},
+    {"io_input_analog_update", 0x083d4d90},
+    {"io_set_input_raw_range", 0x083d4fb6},
+    {"io_get_input_digital", 0x083d51e4},
+    {"io_get_input_analog", 0x083d562f},
+    {"io_rio_loop", 0x083d9c17},
+    // The engine's input map, hooked to add the desktop numpad.
+    {"GameInputMaps", 0x08092950},
+    {"InputAddMap", 0x080b93c0},
+    {NULL, 0},
+};
+
+// Its input map, as GameInputMaps (0x8092950) registers it: Angry Birds'
+// cabinet switches, START on 0x154, and the bike's three analog channels of
+// the RIO board. The lean is calibrated at three points (-1..1), the
+// throttle and brake at two (0..1); a command line flag (0x93c92c6) would
+// read the brake from switch 0x155 instead.
+enum
+{
+    MGP_IO_COIN0 = 0x14c,    // -> 0x17b
+    MGP_IO_COIN1 = 0x14d,    // -> 0x17c
+    MGP_IO_DIAG = 0x150,     // -> 0x17a, 0x181
+    MGP_IO_SERVICE = 0x151,  // -> 0x179, 0x182
+    MGP_IO_VOL_UP = 0x152,   // -> 0x177, 0x17f (also menu up)
+    MGP_IO_VOL_DOWN = 0x153, // -> 0x178, 0x180 (also menu down)
+    MGP_IO_START = 0x154,    // -> 0x173, 0x181 (also menu select)
+    MGP_IO_LEAN = 0x15f,     // -> 0x19f
+    MGP_IO_THROTTLE = 0x160, // -> 0x1a0
+    MGP_IO_BRAKE = 0x162,    // -> 0x1a1
+};
+
+// The cabinet's keypad, engine ids from the switch test's table of {id,
+// name} pairs (0x8cf1e20): keys 0..9, then * and #, fed by the keypad's I/O
+// slots (0x163 on). The desktop numpad is mapped to them, with # on its
+// Enter and on its '.' (for keypads without Enter).
+enum
+{
+    MGP_NUMPAD0 = 0x18a,
+    MGP_NUMPAD_STAR = 0x194,
+    MGP_NUMPAD_HASH = 0x195,
+};
+
+static const RtMap mgpExtraMaps[] = {
+    {KEY_KP0 + 0, MGP_NUMPAD0 + 0}, {KEY_KP0 + 1, MGP_NUMPAD0 + 1}, {KEY_KP0 + 2, MGP_NUMPAD0 + 2},
+    {KEY_KP0 + 3, MGP_NUMPAD0 + 3}, {KEY_KP0 + 4, MGP_NUMPAD0 + 4}, {KEY_KP0 + 5, MGP_NUMPAD0 + 5},
+    {KEY_KP0 + 6, MGP_NUMPAD0 + 6}, {KEY_KP0 + 7, MGP_NUMPAD0 + 7}, {KEY_KP0 + 8, MGP_NUMPAD0 + 8},
+    {KEY_KP0 + 9, MGP_NUMPAD0 + 9}, {KEY_KP_MULTIPLY, MGP_NUMPAD_STAR}, {KEY_KP_ENTER, MGP_NUMPAD_HASH},
+    {KEY_KP_PERIOD, MGP_NUMPAD_HASH},
+    {0, 0},
+};
+
+// With evdev input ANALOGUE_1 leans, ANALOGUE_2 is the throttle and
+// ANALOGUE_3 the brake (a gamepad's left stick, right and left triggers); the
+// arrows lean (left/right), accelerate (up) and brake (down), alone on the
+// desktop, over the controller's axes while held with evdev. Page Up/Down
+// (BUTTON_7/8) are the volume buttons, the menus' up and down.
+static const RtIoInput mgpIoInputs[] = {
+    {RT_IO_ANALOG, 0, MGP_IO_LEAN, ANALOGUE_1},
+    {RT_IO_ANALOG, 0, MGP_IO_THROTTLE, ANALOGUE_2},
+    {RT_IO_ANALOG, 0, MGP_IO_BRAKE, ANALOGUE_3},
+    {RT_IO_SWITCH_ANALOG, PLAYER_1, MGP_IO_LEAN, RT_KEYS_ANALOG(BUTTON_LEFT, BUTTON_RIGHT)},
+    {RT_IO_SWITCH_ANALOG, PLAYER_1, MGP_IO_THROTTLE, RT_KEYS_ANALOG(0, BUTTON_UP)},
+    {RT_IO_SWITCH_ANALOG, PLAYER_1, MGP_IO_BRAKE, RT_KEYS_ANALOG(0, BUTTON_DOWN)},
+    {RT_IO_SWITCH, PLAYER_1, MGP_IO_START, BUTTON_START},
+    {RT_IO_SWITCH, PLAYER_1, MGP_IO_SERVICE, BUTTON_SERVICE},
+    {RT_IO_SWITCH, SYSTEM, MGP_IO_DIAG, BUTTON_TEST},
+    {RT_IO_SWITCH, PLAYER_1, MGP_IO_VOL_UP, BUTTON_7},
+    {RT_IO_SWITCH, PLAYER_1, MGP_IO_VOL_DOWN, BUTTON_8},
+    {RT_IO_COIN, 0, MGP_IO_COIN0, 0},
+    {RT_IO_COIN, 1, MGP_IO_COIN1, 0},
+    {RT_IO_END, 0, 0, 0},
+};
+
 // Pac-Man Chomp Mania (statically linked SDL 1.2), v1.28C: Galaga Assault's
 // RIO layer and switch numbers, one player.
 
@@ -1497,6 +1596,45 @@ static const RtGame rtGames[] = {
         .ioDesktop = 1,
         .install = rtAbInstall,
         .ioFrame = rtAbIoFrame,
+    },
+    {
+        .crc32 = MOTOGP_RT,
+        // libcsv by absolute path: a patched copy. The untouched file, or
+        // TeknoParrot's copy (MMS_Init's failure path patched).
+        .fileCrc32 = 0xd6b7fa6f,
+        .altFileCrc32 = 0xb9c7802c,
+        .envelopeSelfSlot = -1,
+        .symbols = mgpSymbols,
+        // hasp_login at 0x83e21e0 with 0xffff0000 as a literal, the memory
+        // reads at 0x83e2845 and the writes at 0x83e2ad1 with 0xfff2.
+        .haspFeature = 0xffff0000,
+        .haspMemoryFileId = 0xfff2,
+        .haspAnswers = "hasp",
+        // Its network threads at 64 MB of stack each fill its address space
+        // as Aliens Armageddon's: pthread_create fails, unchecked, and the
+        // join of the thread never made crashes.
+        .threadStackSize = 8 << 20,
+        .rootPath = "/pm",
+        .stubs = bbhdStubs,
+        .resolution = 0x093c9280,
+        .aspect = 0x093c9290,
+        .fullscreenFlag = 0x093c929c,
+        // "push %ebp; push %edi; push %esi; push %ebx; sub $0x7c,%esp"
+        .videoModeSymbol = "SDL_SetVideoMode",
+        .videoModePrologue = 7,
+        // "push %edi; push %esi; push %ebx; mov $0x1,%ebx"
+        .parseArgsPrologue = 8,
+        // "sub $0x2c,%esp; movl $0x173,0x4(%esp)"
+        .gameInputMapsPrologue = 11,
+        .extraMaps = mgpExtraMaps,
+        // "push %ebp; mov %esp,%ebp; sub $0x38,%esp"
+        .ioLoopSymbol = "io_rio_loop",
+        .ioLoopPrologue = 6,
+        .ioInputs = mgpIoInputs,
+        // The bike's calibration (pmuser) is reapplied over the range, the lean
+        // with its own centre: the range is set every frame.
+        .ioRawRange = 2,
+        .ioDesktop = 1,
     },
     {
         .crc32 = WALKING_DEAD_RT,

@@ -463,6 +463,9 @@ void rtDondIoFrame(struct JVSIO *io) __attribute__((weak));
 int rtDondDesktopKey(int key, int special, int held) __attribute__((weak));
 void rtDondFrameDraw(int x, int y, int width, int height) __attribute__((weak));
 
+// MotoGP's wheel force feedback (rtMgpFfb.c), the same way.
+void rtMgpFfbInstall(void) __attribute__((weak));
+
 const RtGame *rtGetGame(uint32_t crc32);
 const RtGame *rtGetGameByFileCrc(uint32_t fileCrc32);
 
