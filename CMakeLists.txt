@@ -60,6 +60,7 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux" AND NOT MINGW AND NOT CMAKE_C_COMPILER MATC
         src/loader/namco/namcoN2Games.c
         src/loader/namco/namcoN2Launch.c
         src/loader/teamplay/teamplayGames.c
+        src/loader/globalvr/gvrGames.c
         src/loader/hostLinker.c)
 
     set_target_properties(linuxloader_exe PROPERTIES LINK_FLAGS "-m32")
@@ -81,6 +82,13 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux" AND NOT MINGW AND NOT CMAKE_C_COMPILER MATC
     target_link_libraries(posixtime ${SHARED_LINKER_FLAGS})
     target_compile_options(posixtime PRIVATE ${LIBS_C_FLAGS})
     add_custom_command(TARGET posixtime POST_BUILD COMMAND ln -s -f libposixtime.so ${CMAKE_BINARY_DIR}/libposixtime.so.1 COMMAND ln -s -f libposixtime.so ${CMAKE_BINARY_DIR}/libposixtime.so.2.4)
+
+    # libGLEW.so.1.3 (Global VR games)
+    add_library(glew_gvr SHARED src/loader/extraLibs/globalvr/libglew/libglew.c)
+    set_target_properties(glew_gvr PROPERTIES OUTPUT_NAME "GLEW")
+    target_link_libraries(glew_gvr ${SHARED_LINKER_FLAGS} dl)
+    target_compile_options(glew_gvr PRIVATE ${LIBS_C_FLAGS})
+    add_custom_command(TARGET glew_gvr POST_BUILD COMMAND ln -s -f libGLEW.so ${CMAKE_BINARY_DIR}/libGLEW.so.1.3)
 
     # libsegaapi.so
     add_library(segaapi SHARED src/loader/audio/lindbergh/libsegaapi/libsegaapi.c)
@@ -110,6 +118,7 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux" AND NOT MINGW AND NOT CMAKE_C_COMPILER MATC
         src/loader/rawthrills/*.c
         src/loader/namco/*.c
         src/loader/teamplay/*.c
+        src/loader/globalvr/*.c
         src/loader/graphics/shaderWork/*.c
         src/glad/src/gl.c)
 

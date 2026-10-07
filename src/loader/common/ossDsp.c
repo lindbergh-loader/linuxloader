@@ -1,11 +1,14 @@
 // OSS /dev/dsp emulation on top of SDL3 audio, for the PC-based arcade
 // systems: the Raw Thrills g5 engine's JPS sound engine, the OSS backend of
-// the OpenAL the Namco ES1 games ship, the Teamplay games.
+// the OpenAL the Namco ES1 games ship, the Teamplay and Global VR games.
 // The games only use the basic OSS API: format/channels/rate setup, fragment
 // setup, GETOSPACE, mixer volume ioctls and blocking writes.
 
 #include <dlfcn.h>
+#include <errno.h>
 #include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/soundcard.h>
 #include <unistd.h>
@@ -16,6 +19,7 @@
 #include "../rawthrills/rawthrills.h"
 #include "../namco/namcoEs1.h"
 #include "../teamplay/teamplay.h"
+#include "../globalvr/gvr.h"
 #include "../log/log.h"
 
 #define DSP_FRAGMENTS 4
@@ -72,7 +76,7 @@ static int fragmentSize = DSP_FRAGMENT_SIZE;
 
 int ossDspIsPath(const char *path)
 {
-    return (isRawThrillsGame() || isNamcoEs1Game() || isTeamplayGame()) && path && strcmp(path, "/dev/dsp") == 0;
+    return (isRawThrillsGame() || isNamcoEs1Game() || isTeamplayGame() || isGvrGame()) && path && strcmp(path, "/dev/dsp") == 0;
 }
 
 int ossDspIsFd(int fd)
@@ -112,8 +116,13 @@ static void dspStop(void)
     }
 }
 
-int ossDspOpen(void)
+int ossDspOpen(int flags)
 {
+    if ((flags & O_ACCMODE) == O_RDONLY)
+    {
+        errno = ENODEV;
+        return -1;
+    }
     if (dspFd >= 0)
         return dspFd;
     // A real descriptor the game can keep; all I/O on it is intercepted.
@@ -151,7 +160,13 @@ ssize_t ossDspWrite(const void *buf, size_t count)
 
 int ossDspIoctl(unsigned long request, void *arg)
 {
+    static int trace = -1;
     int *value = arg;
+
+    if (trace < 0)
+        trace = getenv("OSS_DSP_TRACE") != NULL;
+    if (trace && request != SNDCTL_DSP_GETOSPACE && request != SNDCTL_DSP_GETODELAY)
+        fprintf(stderr, "OSS dsp: ioctl %08lx %d\n", request, value ? *value : 0);
 
     switch (request)
     {

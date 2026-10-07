@@ -11,6 +11,7 @@
 #include "namco/namcoEs1Game.h"
 #include "namco/namcoN2.h"
 #include "hostLinker.h"
+#include "globalvr/gvrGame.h"
 #endif
 #include <ctype.h>
 #include <libgen.h>
@@ -530,6 +531,32 @@ int pathsDiffer(const char *p1, const char *p2)
     return strcmp(real1, real2) != 0;
 }
 
+// Global VR games keeping their own SDL 1.2 window (America's Army) load the
+// SDL 1.2 next to them first (their RPATH is "."): the one in the library
+// path (sdl12-compat, which scales the game's fullscreen to the screen's
+// size) is preloaded instead, when there is one.
+static void preloadHostSdl12(const char *libraryPath)
+{
+    const GvrGame *g = gvrGetGameByFileCrc(elfCrc);
+    char *paths, *dir, *save, cwd[PATH_MAX], lib[PATH_MAX], real[PATH_MAX], preload[MAX_PATH_LENGTH * 2];
+
+    if (!g || !g->ownWindow || !getcwd(cwd, sizeof(cwd)) || !(paths = strdup(libraryPath)))
+        return;
+    for (dir = strtok_r(paths, ":", &save); dir; dir = strtok_r(NULL, ":", &save))
+    {
+        if (dir[0] != '/')
+            continue;
+        snprintf(lib, sizeof(lib), "%s/libSDL-1.2.so.0", dir);
+        if (!realpath(lib, real) || !strncmp(real, cwd, strlen(cwd)))
+            continue;
+        snprintf(preload, sizeof(preload), "%s %s", getenv("LD_PRELOAD") ? getenv("LD_PRELOAD") : "", real);
+        setenv("LD_PRELOAD", preload, 1);
+        printf("SDL 1.2: %s\n", real);
+        break;
+    }
+    free(paths);
+}
+
 void setEnvironmentVariables(const char *ldLibPath, const char *originalDir, const char *gameDir, int zink, int nvidia,
                              const char *libraryPath, const char *confFilePath, const char *contFilePath,
                              const char *contDbFilePath, char *libOpenal)
@@ -635,6 +662,7 @@ void setEnvironmentVariables(const char *ldLibPath, const char *originalDir, con
     }
 
     setenv("LD_LIBRARY_PATH", newLdLibPath, 1);
+    preloadHostSdl12(newLdLibPath);
 
     if (strlen(confFilePath) > 0)
     {
@@ -1227,7 +1255,7 @@ int parseArgs(int argc, char *argv[], char *command, char *originalDir, char *ga
     namcoEs1PrepareCommand(command, MAX_PATH_LENGTH, elfCrc);
     // Namco N2 games with a cabinet command line append it (see namco/namcoN2Launch.c).
     namcoN2PrepareCommand(command, MAX_PATH_LENGTH, elfCrc);
-    // Teamplay dumps may have lost their executable mode (see hostLinker.c).
+    // Teamplay and Global VR dumps may have lost their executable mode (see hostLinker.c).
     hostLinkerPrepareCommand(command, MAX_PATH_LENGTH, elfCrc);
 #endif
 

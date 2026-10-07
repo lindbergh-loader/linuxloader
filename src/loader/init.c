@@ -22,6 +22,8 @@
 #include "namco/namcoEs1.h"
 #include "namco/namcoN2.h"
 #include "teamplay/teamplay.h"
+#include "globalvr/gvr.h"
+#include "common/desktopInput.h"
 #endif
 
 #if defined(__linux__)
@@ -130,6 +132,30 @@ void initMain(char *configPath, char *controlsPath)
         printf("\n");
         return;
     }
+
+    // Global VR games keeping their own (SDL) window, America's Army: none
+    // of the Lindbergh hardware; their I/O daemon is the loader's (see
+    // globalvr/gvrLink.c), fed from evdev or the desktop.
+    if (isGvrGame() && gvrCurrentGame()->ownWindow)
+    {
+        printf("\nLinux Loader\nBy the Linux Loader Development Team 2026\n\n");
+        printf("  GAME:        %s\n", getGameName());
+        printf("  GAME ID:     %s\n", getGameId());
+        initJVS();
+        if (getConfig()->inputMode == 2)
+        {
+            if (initEvdevControllers(&controllers) != 0)
+                exit(1);
+            for (int i = 0; i < controllers.count; i++)
+                if (controllers.controller[i].inUse)
+                    printf("  CONTROLLER:  %s\n", controllers.controller[i].name);
+        }
+        desktopStartQuitWatch();
+        if (gvrInit() != 0)
+            exit(1);
+        printf("\n");
+        return;
+    }
 #endif
 
 
@@ -163,6 +189,9 @@ void initMain(char *configPath, char *controlsPath)
     // checks are hooked here, before the hooks are enabled (see
     // teamplay/teamplay.c).
     if (isTeamplayGame() && teamplayInit() != 0)
+        exit(1);
+    // Global VR games too (see globalvr/gvr.c).
+    if (isGvrGame() && gvrInit() != 0)
         exit(1);
 #endif
 

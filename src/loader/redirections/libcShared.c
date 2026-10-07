@@ -11,6 +11,7 @@
 #include "../namco/namcoEs1.h"
 #include "../namco/namcoN2.h"
 #include "../teamplay/teamplay.h"
+#include "../globalvr/gvr.h"
 #endif
 #include "../config/config.h"
 #include "loader/elfLoader/symbolResolver.hpp"
@@ -420,12 +421,23 @@ int iopl(int level)
     return 0;
 }
 
-// Teamplay games lock their memory, which as root (Batocera)
+// America's Army reaches its cabinet's I/O daemon over TCP: the loader's.
+int connect(int fd, const struct sockaddr *addr, socklen_t length)
+{
+    static int (*_connect)(int, const struct sockaddr *, socklen_t) = NULL;
+    if (_connect == NULL)
+        _connect = REAL_FUNC(connect);
+    if (isGvrGame())
+        return gvrLinkConnect(fd, addr, length, _connect);
+    return _connect(fd, addr, length);
+}
+
+// Teamplay and Global VR games lock their memory, which as root (Batocera)
 // would pin the whole process in RAM: SDL's and the GPU driver's mappings too.
 int mlockall(int flags)
 {
     static int (*_mlockall)(int) = NULL;
-    if (isTeamplayGame())
+    if (isTeamplayGame() || isGvrGame())
         return 0;
     if (_mlockall == NULL)
         _mlockall = REAL_FUNC(mlockall);
