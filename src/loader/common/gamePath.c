@@ -1,5 +1,5 @@
-// Cabinet paths of the PC-based arcade systems (Raw Thrills), mapped to
-// the host by the running game's system:
+// Cabinet paths of the PC-based arcade systems (Raw Thrills, Namco
+// ES1), mapped to the host by the running game's system:
 // the loader's file interposers (redirections/filesystemShared.c) and the
 // libc path calls below.
 
@@ -11,6 +11,7 @@
 #include "gamePath.h"
 #include "ossDsp.h"
 #include "../rawthrills/rawthrills.h"
+#include "../namco/namcoEs1.h"
 
 const char *gameRedirectPath(const char *path, char *buf, size_t size)
 {
@@ -18,6 +19,8 @@ const char *gameRedirectPath(const char *path, char *buf, size_t size)
         return path;
     if (isRawThrillsGame())
         return rtRedirectPath(path, buf, size);
+    if (isNamcoEs1Game())
+        return namcoEs1RedirectPath(path, buf, size);
     return path;
 }
 

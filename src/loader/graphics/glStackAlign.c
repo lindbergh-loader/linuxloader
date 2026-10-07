@@ -339,15 +339,6 @@ REALIGN void glColorPointer(GLint size, GLenum type, GLsizei stride, const GLvoi
         real(size, type, stride, ptr);
 }
 
-REALIGN void glCompileShaderARB(GLhandleARB shaderObj)
-{
-    static void (*real)(GLhandleARB) = NULL;
-    if (real == NULL)
-        real = resolveNext("glCompileShaderARB");
-    if (real)
-        real(shaderObj);
-}
-
 REALIGN void glCompressedTexImage2DARB(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const void * data)
 {
     static void (*real)(GLenum, GLint, GLenum, GLsizei, GLsizei, GLint, GLsizei, const void *) = NULL;
@@ -926,15 +917,6 @@ REALIGN void glLineWidth(GLfloat width)
         real(width);
 }
 
-REALIGN void glLinkProgramARB(GLhandleARB programObj)
-{
-    static void (*real)(GLhandleARB) = NULL;
-    if (real == NULL)
-        real = resolveNext("glLinkProgramARB");
-    if (real)
-        real(programObj);
-}
-
 REALIGN void glListBase(GLuint base)
 {
     static void (*real)(GLuint) = NULL;
@@ -1186,15 +1168,6 @@ REALIGN void glProgramParameters4fvNV(GLenum target, GLuint index, GLsizei count
         real(target, index, count, v);
 }
 
-REALIGN void glProgramStringARB(GLenum target, GLenum format, GLsizei len, const void * string)
-{
-    static void (*real)(GLenum, GLenum, GLsizei, const void *) = NULL;
-    if (real == NULL)
-        real = resolveNext("glProgramStringARB");
-    if (real)
-        real(target, format, len, string);
-}
-
 REALIGN void glPushAttrib(GLbitfield mask)
 {
     static void (*real)(GLbitfield) = NULL;
@@ -1292,15 +1265,6 @@ REALIGN void glShadeModel(GLenum mode)
         real = resolveNext("glShadeModel");
     if (real)
         real(mode);
-}
-
-REALIGN void glShaderSourceARB(GLhandleARB shaderObj, GLsizei count, const GLcharARB * string, const GLint * length)
-{
-    static void (*real)(GLhandleARB, GLsizei, const GLcharARB *, const GLint *) = NULL;
-    if (real == NULL)
-        real = resolveNext("glShaderSourceARB");
-    if (real)
-        real(shaderObj, count, string, length);
 }
 
 REALIGN void glStencilFunc(GLenum func, GLint ref, GLuint mask)

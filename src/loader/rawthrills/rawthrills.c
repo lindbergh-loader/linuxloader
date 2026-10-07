@@ -15,6 +15,7 @@
 #include "../common/desktopInput.h"
 #include "../config/config.h"
 #include "../log/log.h"
+#include "../namco/namcoEs1.h"
 
 extern uint32_t gId;
 
@@ -158,6 +159,22 @@ FILE *popen(const char *command, const char *type)
 
     if (!real)
         real = dlsym(RTLD_NEXT, "popen");
+    // The Namco ES1 games' root commands (WMMT4: sudo date, hwclock, reboot,
+    // dhclient...) are not run: the game reads an empty output.
+    if (namcoEs1DropCommand(command))
+    {
+        // What it would have printed, through a pipe (pclose is fclose).
+        const char *output = namcoEs1CommandOutput(command);
+        int fds[2];
+        if (output && type && type[0] == 'r' && pipe(fds) == 0)
+        {
+            if (write(fds[1], output, strlen(output)) < 0)
+                log_warn("Namco: cannot answer %s", command);
+            close(fds[1]);
+            return fdopen(fds[0], "r");
+        }
+        return real("true", type);
+    }
     return real(rtRedirectCommand(command, buf, sizeof(buf)), type);
 }
 
