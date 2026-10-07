@@ -34,6 +34,7 @@
 // Raw Thrills, g6 engine; the CRC of the patched copy, for both TeknoParrot's
 // game and the untouched game0.
 #define MOTOGP_RT 0x470a9e32
+#define DOODLE_JUMP_RT 0x7ae081d8                                // ICE (Raw Thrills pm platform), v1.28
 #define AFTER_BURNER_CLIMAX_SBLR 0xa3c246e2                       // DVP-0009
 #define AFTER_BURNER_CLIMAX_SBLR_REVA 0xe657b1c0                  // DVP-0009A
 #define AFTER_BURNER_CLIMAX_SBLR_REVB 0xdb9d8396                  // DVP-0009B

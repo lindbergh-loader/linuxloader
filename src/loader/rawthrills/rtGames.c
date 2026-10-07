@@ -4,6 +4,7 @@
 #include "cruisnblast/cbImports.h"
 #include "galagaassault/gaImports.h"
 #include "pacman/pmImports.h"
+#include "doodlejump/djImports.h"
 #include "walkingdead/twdImports.h"
 #include "jurassicpark/jpImports.h"
 #include "angrybirds/abImports.h"
@@ -1243,6 +1244,31 @@ static const RtIoInput pmRioSwitches[] = {
     {RT_IO_END, 0, 0, 0},
 };
 
+// Doodle Jump (ICE, statically linked SDL 1.2 and glut), v1.28: Pac-Man's
+// framework (Game_PreInit, Main_ProcessCmdLine, OGL_resize_window_ortho)
+// and RIO switch numbers (UpdateRIO polls 0..0x12), one player. Its control
+// bar is the board's ADC 0x13 (calibrated in the operator menu).
+
+static const RtIoInput djRioSwitches[] = {
+    {RT_IO_SWITCH, PLAYER_1, GA_SW_START_FIRE, BUTTON_START},
+    {RT_IO_SWITCH, PLAYER_1, GA_SW_SERVICE, BUTTON_SERVICE},
+    {RT_IO_SWITCH, SYSTEM, GA_SW_TEST, BUTTON_TEST},
+    {RT_IO_SWITCH, PLAYER_1, GA_SW_VOL_UP, BUTTON_7},
+    {RT_IO_SWITCH, PLAYER_1, GA_SW_VOL_DOWN, BUTTON_8},
+    {RT_IO_COIN, 0, GA_SW_COIN1, 0},
+    {RT_IO_COIN, 1, GA_SW_COIN2, 0},
+    {RT_IO_END, 0, 0, 0},
+};
+
+#define DJ_ADC_BAR 0x13
+
+// The bar follows ANALOGUE_1 (the desktop mouse), and the arrows move it.
+static const RtIoInput djRioAnalogs[] = {
+    {RT_IO_ANALOG, PLAYER_1, DJ_ADC_BAR, ANALOGUE_1},
+    {RT_IO_SWITCH_ANALOG, PLAYER_1, DJ_ADC_BAR, RT_KEYS_ANALOG(BUTTON_LEFT, BUTTON_RIGHT)},
+    {RT_IO_END, 0, 0, 0},
+};
+
 // Jurassic Park's renderer: its viewports, render targets, frame grabs and
 // screen-space shaders are sized from the real screen (see layoutRealSize).
 static const char *const jpLayoutRealSize[] = {
@@ -1850,6 +1876,42 @@ static const RtGame rtGames[] = {
         // "push %ebp; mov %esp,%ebp; push %esi; push %ebx; sub $0x70,%esp"
         .jammaOpPrologue = 8,
         .jammaSwitches = dondJammaSwitches,
+    },
+    {
+        .crc32 = DOODLE_JUMP_RT,
+        .fileCrc32 = 0x3e005eff,
+        .envelopeSelfSlot = -1,
+        .gameImports = djGameImports,
+        .gameImportCount = sizeof(djGameImports) / sizeof(djGameImports[0]),
+        // dongle_check logs in with 0xffff0000 (the game's vendor code first,
+        // then the service dongle's), and reads nothing.
+        .haspFeature = 0xffff0000,
+        // Game_PreInit sets the defaults (768x1366 game, rotated), then the
+        // command line: "push %ebp; mov %esp,%ebp; sub $0x28,%esp"
+        .parseArgsSymbol = "_Z19Main_ProcessCmdLineiPPc",
+        .parseArgsPrologue = 6,
+        // screenw, screenh
+        .resolution = 0x08266800,
+        // screenv: drawn rotated for a monitor on its side
+        .rotateFlag = 0x0830ed30,
+        .fullscreenFlag = 0x0830ed24,
+        // gameh, gamew: the portrait game, 768x1366
+        .monitorSize = 0x08266808,
+        .rioSwitches = djRioSwitches,
+        .rioDesktopKeys = 1,
+        .rioAnalogs = djRioAnalogs,
+        .stubs = gaStubs,
+        // Its framebuffer functions come from glXGetProcAddressARB: the
+        // window scaling's, as its glViewport.
+        .exeGlxGetProcAddress = 1,
+        // "push %ebp; mov %esp,%ebp; sub $0x48,%esp"
+        .orthoSymbol = "OGL_resize_window_ortho",
+        .orthoPrologue = 6,
+        .rootPath = "/pm",
+        // The cabinet ran it from its data directory (/pm/dj/doodle, where
+        // its settings and audits are written by absolute path): the data
+        // files are opened relative to it.
+        .workDir = "data",
     },
 };
 
