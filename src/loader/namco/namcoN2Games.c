@@ -6,6 +6,17 @@
 #include "../config/config.h"
 
 static const NamcoN2Game games[] = {
+    {
+        // Wangan Midnight Maximum Tune 3DX+ (PROJECT V386, Mar 9 2010).
+        .crc32 = WMMT3DXPLUS_N2,
+        .fileCrc32 = 0x509a97c4,
+        .revision = "W3P",
+        .jvsDevice = "/dev/ttyM3",
+        .kickbackDevice = "/dev/ttyM1",
+        .cardDevice = "/dev/ttyM2",
+        .linkSearchMov = 0x088d848f, // movl $0x4650,0xc(%edx)
+        .ffb = {.effectsField = 0x3d, .centerOffsetField = 0x20, .springRange = 254, .viscosityRange = 254, .reflectRange = 40},
+    },
 };
 
 const NamcoN2Game *namcoN2GetGame(uint32_t crc32)
