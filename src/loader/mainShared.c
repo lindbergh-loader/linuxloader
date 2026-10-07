@@ -178,6 +178,7 @@ uint32_t cleanElfCRC32[] = {
     0x66136EE9, // Namco ES1 | Tank! Tank! Tank! n_tank_release (rev 1.03.14)
     0x84777366, // Namco ES1 | Gundam: Senjo no Kizuna n_gun_station_rel_opt_es1 (REV3.57.07)
     0xC2AFF8D4, // Teamplay  | Crossfire Maximum Paintball med_pball
+    0x210F3077, // Global VR | Puck Off game (v0710240921)
     0xFE266A17, // Namco N2  | Counter Strike NEO hlds_amd (code segment)
 };
 
