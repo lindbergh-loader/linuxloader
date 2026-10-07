@@ -492,6 +492,68 @@ static const RtStub t4Stubs[] = {{"TracerGuard", 1}, {"DiagCheckAllFiles", 0}, {
 
 static const RtPathAlias t4RootAliases[] = {{"/T4User", "T4User"}, {NULL, NULL}};
 
+// ---------------------------------------------------------------------------
+// Big Buck World (g3 engine), v1.20: built like Terminator Salvation, with
+// its HASP library's trace strings naming the API functions. Its recorded
+// dongle answers are named by the first 32 input bytes.
+
+static const RtSymbol bbwSymbols[] = {
+    {"hasp_login", 0x0839d3d0},
+    {"hasp_logout", 0x0839d470},
+    {"hasp_encrypt", 0x0839d55c},
+    {"hasp_decrypt", 0x0839d648},
+    {"hasp_free", 0x0839dc8c},
+    {"hasp_get_sessioninfo", 0x0839df50},
+    {"hasp_read", 0x0839e1c8},
+    {"hasp_write", 0x0839e294},
+    {"TracerGuard", 0x082dea6a},
+    // Checked from the main loop: the tracer parent is alive and tracing.
+    {"TracerCheck", 0x082ded09},
+    {"DiagCheckAllFiles", 0x080ff8c0},
+    // Opens the glut window: (width, height, fullscreen).
+    {"OpenWindow", 0x0807fa00},
+    // Selects the video mode table entry (as in Terminator Salvation).
+    {"SetVideoMode", 0x0808a970},
+    // Input: the JAMMA board's poll, run each frame, the board API and the
+    // input event queue (event, data).
+    {"JammaPoll", 0x080587d0},
+    {"JammaOp", 0x08209462},
+    {"PostInputEvent", 0x08058cd0},
+    // IR gun manager: gun connected, no signal, aim (as Terminator
+    // Salvation's).
+    {"GunConnected", 0x083d6333},
+    {"GunNoSignal", 0x083d861f},
+    {"GunAim", 0x083d862f},
+    // Its count of a gun's trigger pulls, read with IR guns only: the game
+    // shoots at the aim (and posts the board's events for it) when it
+    // changes. Not the cabinet type here: kept for reference.
+    {"GunTrigger", 0x083d8c58},
+    {NULL, 0},
+};
+
+// Board guns (the cabinet type the dongle selects): the board reports the
+// position (event 0x3f, the gun's number as its id) and the shot, as the
+// game's own IR gun path (0x8160d59) turns an IR shot into them: 0x12 then
+// 0x0e for the first gun, 0x14 then 0x24 for the second (the board's
+// handler, 0x80597f0, takes its shot events from 0x8529e18: 0x0e, 0x10,
+// 0x24, 0x26). Nothing on the trigger's release: 0x0f is the first gun's
+// reload.
+static const RtJammaGun bbwGuns[] = {
+    {PLAYER_1, ANALOGUE_1, ANALOGUE_2, 0x0e, 0x12, 0},
+    {PLAYER_2, ANALOGUE_3, ANALOGUE_4, 0x24, 0x14, 0},
+};
+
+static const RtStub bbwStubs[] = {
+    {"TracerGuard", 1},
+    {"TracerCheck", 0},
+    {"DiagCheckAllFiles", 0},
+    {"GunConnected", 1},
+    {"GunNoSignal", 0},
+    {NULL, 0},
+};
+
+static const RtPathAlias bbwRootAliases[] = {{"/bbwuser", "bbwuser"}, {NULL, NULL}};
+
 // Pac-Man Chomp Mania (statically linked SDL 1.2), v1.28C: Galaga Assault's
 // RIO layer and switch numbers, one player.
 
@@ -734,6 +796,47 @@ static const RtGame rtGames[] = {
         .gunButtonSymbol = "GunButton",
         .gunButtonPresses = {[3] = BUTTON_3},
         .gunButtonReleases = {[4] = BUTTON_3},
+    },
+    {
+        .crc32 = BIG_BUCK_WORLD_RT,
+        .envelopeSelfSlot = -1,
+        .symbols = bbwSymbols,
+        .haspFeature = 0xffff0000,
+        .haspMemoryFileId = 0xfff2,
+        .haspAnswers = "hasp",
+        .haspAnswerKeySize = 32,
+        .stubs = bbwStubs,
+        .rootPath = "/g3",
+        .rootAliases = bbwRootAliases,
+        // "push %ebp; mov %esp,%ebp; sub $0x8,%esp"
+        .setModeSymbol = "SetVideoMode",
+        .setModePrologue = 6,
+        .modePointer = 0x08bbcccc,
+        // "push %ebp; mov %esp,%ebp; push %edi; push %esi; push %ebx"
+        .windowOpenSymbol = "OpenWindow",
+        .windowOpenPrologue = 6,
+        .jammaPollSymbol = "JammaPoll",
+        // "push %ebp; mov %esp,%ebp; push %edi; push %esi; push %ebx; mov $0x8baba40,%edi"
+        .jammaPollPrologue = 11,
+        .jammaOpSymbol = "JammaOp",
+        // "push %ebp; mov %esp,%ebp; push %esi; push %ebx; sub $0x70,%esp"
+        .jammaOpPrologue = 8,
+        .jammaSwitches = jammaSwitches,
+        .postEventSymbol = "PostInputEvent",
+        .jammaGuns = bbwGuns,
+        .jammaGunCount = sizeof(bbwGuns) / sizeof(bbwGuns[0]),
+        .gunPositionEvent = 0x3f,
+        .gunWidth = 640,
+        .gunHeight = 480,
+        // The calibration's requests (0x8108b8e), with its targets at 0x8b56560.
+        .jammaGunCalibrateOp = 0x16,
+        .jammaGunCalibrationModeOp = 0x19,
+        .gunAimSymbol = "GunAim",
+        .gunAimWidth = 800,
+        .gunAimHeight = 600,
+        .offScreenButton = 1,
+        // A 4:3 game: with black bars on a wide screen (see RtGame).
+        .frameAspect = {4, 3},
     },
 };
 

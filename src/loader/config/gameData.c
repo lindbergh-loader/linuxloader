@@ -7,6 +7,7 @@ static const GameData gameData[] = {
     {GALAGA_ASSAULT_RT, "Galaga Assault", "galaga-assault", "Raw Thrills", "RT-GA", "2017", "1920x1080", WORKING, NO_JVS_IO, SHOOTING, 1920, 1080, -1, 0, 0, 0, 0, 0, 0, RED},
     {WALKING_DEAD_RT, "The Walking Dead", "walking-dead", "Raw Thrills", "RT-TWD", "2017", "1920x1080", WORKING, NO_JVS_IO, SHOOTING, 1920, 1080, -1, 0, 0, 0, 0, 0, 0, RED},
     {TERMINATOR_SALVATION_RT, "Terminator Salvation", "terminator-salvation", "Raw Thrills", "RT-T4", "2010", "1360x768", WORKING, NO_JVS_IO, SHOOTING, 1360, 768, -1, 0, 0, 0, 0, 0, 0, RED},
+    {BIG_BUCK_WORLD_RT, "Big Buck World", "big-buck-world", "Raw Thrills", "RT-BBW", "2011", "640x480", WORKING, NO_JVS_IO, SHOOTING, 640, 480, -1, 0, 0, 0, 0, 0, 0, RED},
     {PACMAN_CHOMP_MANIA_RT, "Pac-Man Chomp Mania", "pacman-chomp-mania", "Raw Thrills", "RT-PM", "2019", "1920x1080", WORKING, NO_JVS_IO, DIGITAL, 1920, 1080, -1, 0, 0, 0, 0, 0, 0, RED},
     {AFTER_BURNER_CLIMAX_SBLR, "After Burner Climax", "abc", "DVP-0009", "SBLR", "2006", "640x480", WORKING, SEGA_TYPE_1, FLYING, 640, 480, GROUP_ABC, 0, 0, 0, 0, 0, 0, YELLOW},
     {AFTER_BURNER_CLIMAX_SBLR_REVA, "After Burner Climax Rev A", "abc-rev-a", "DVP-0009A", "SBLR", "2006", "640x480", WORKING, SEGA_TYPE_1, FLYING, 640, 480, GROUP_ABC, 0, 0, 0, 0, 0, 0, YELLOW},
