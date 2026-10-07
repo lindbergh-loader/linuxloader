@@ -12,7 +12,7 @@
 // - a Unity game: its dumps carry the Windows player, so the game runs under
 //   Unity's Linux player of the version it was built with (or the dump's
 //   own, when it is the cabinet's Linux build), from a tree
-//   made under /tmp at each start: the player, the
+//   made under /tmp at each start (see docs/nerf-arcade.md): the player, the
 //   game's <name>_Data linked file by file, the player's Mono, the library
 //   under the names of the cabinet plugins it stands in for, and the rest
 //   of the game's directory (LocalData, its state) linked.
@@ -398,7 +398,14 @@ static void runUnity(const char *gameDir, const Game64 *g)
 
     // [Display]: the size (else a 1280x720 window), FULLSCREEN, or a
     // borderless window of the size given (the screen's, from the
-    // generator), as the other games have.
+    // generator), as the other games have. Nerf Arcade only renders at its
+    // cabinet's 1920x1080: its shots go through the reticle's canvas
+    // position taken as screen pixels.
+    if (!strcmp(g->name, "Nerf"))
+    {
+        w = 1920;
+        h = 1080;
+    }
     snprintf(width, sizeof(width), "%d", w > 0 ? w : 1280);
     snprintf(height, sizeof(height), "%d", h > 0 ? h : 720);
     snprintf(fullscreen, sizeof(fullscreen), "%d", fs ? 1 : 0);
