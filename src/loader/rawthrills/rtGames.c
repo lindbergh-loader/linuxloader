@@ -4,6 +4,7 @@
 #include "cruisnblast/cbImports.h"
 #include "galagaassault/gaImports.h"
 #include "pacman/pmImports.h"
+#include "walkingdead/twdImports.h"
 #include "jurassicpark/jpImports.h"
 
 // SDL 1.2 key codes (engine input ids of the keyboard).
@@ -301,6 +302,69 @@ static const RtIoInput gaRioSwitches[] = {
 // The RIO board is reported connected.
 static const RtStub gaStubs[] = {{"RIO_Connected", 0}, {NULL, 0}};
 
+// ---------------------------------------------------------------------------
+// The Walking Dead (g6 engine; the dump exports no game function), v1.05.
+// Found from the HASP library's trace strings, by matching the dongle and
+// RIO layers against the g5 games and Galaga Assault, and from the engine's
+// I/O backends. Its dongle secrets (four calls at startup) are recorded in
+// its "hasp" folder; the RIO board's switches arrive as the engine's switch
+// reports, and the mounted crossbows through its UMC board backend.
+
+static const RtSymbol twdSymbols[] = {
+    {"hasp_login", 0x0837bbc0},
+    {"hasp_logout", 0x0837bc60},
+    {"hasp_read", 0x0837c9b8},
+    {"hasp_write", 0x0837ca84},
+    {"hasp_get_sessioninfo", 0x0837c740},
+    {"hasp_encrypt", 0x0837bd4c},
+    {"hasp_decrypt", 0x0837be38},
+    {"DongleEncrypt", 0x081d7200},
+    {"DongleDecrypt", 0x081d7380},
+    // The RIO API, matched against Galaga Assault's (19 switches).
+    {"RIO_Connected", 0x081cf02e},
+    {"RIO_SW_State", 0x081cf3a9},
+    {"RIO_SW_Count", 0x081cf428},
+    // The engine's board backend: its loop, and its switch report handler.
+    {"io_rio_loop", 0x081ca37d},
+    {"io_rio_switch_report", 0x081ca608},
+    // The engine's UMC backend (mounted crossbows): connection check (0:
+    // connected) and report read.
+    {"umc_check_connection", 0x081cb73b},
+    {"umc_device_status", 0x081cb78f},
+    {"umc_read_report", 0x081cb7ef},
+    // Linked-in SDL 1.2.
+    {"SDL_SetVideoMode", 0x081f80b0},
+    // The g5 engine's command line parser (gCLArgs: 1360x768 by default).
+    {"ParseCommandLineArgs", 0x0807d8c0},
+    {NULL, 0},
+};
+
+static const RtHeapPointer twdStaleHeapPointers[] = {{0x0900efcc, 64}, {0, 0}};
+
+// Crossbows: P1 on ANALOGUE_1/2, P2 on ANALOGUE_3/4. The game's input maps
+// for the mounted guns: UMC pots 4/5 P1 x/y, 6/7 P2, 2/3 the reload levers,
+// switches 4/6 the triggers.
+static const RtUmcGun twdGuns[] = {
+    {PLAYER_1, ANALOGUE_1, ANALOGUE_2, 4, 5, 2, 4},
+    {PLAYER_2, ANALOGUE_3, ANALOGUE_4, 6, 7, 3, 6},
+};
+
+// The file check hashes the executable too: the original, not the dump.
+static const RtPathAlias twdPathAliases[] = {{"game", "game_ori"}, {NULL, NULL}};
+
+// Galaga Assault's switch numbers, and player 2's start after player 1's.
+static const RtIoInput twdRioSwitches[] = {
+    {RT_IO_SWITCH, PLAYER_1, GA_SW_START_FIRE, BUTTON_START},
+    {RT_IO_SWITCH, PLAYER_2, GA_SW_START_FIRE + 1, BUTTON_START},
+    {RT_IO_SWITCH, PLAYER_1, GA_SW_SERVICE, BUTTON_SERVICE},
+    {RT_IO_SWITCH, SYSTEM, GA_SW_TEST, BUTTON_TEST},
+    {RT_IO_SWITCH, PLAYER_1, GA_SW_VOL_UP, BUTTON_UP},
+    {RT_IO_SWITCH, PLAYER_1, GA_SW_VOL_DOWN, BUTTON_DOWN},
+    {RT_IO_COIN, 0, GA_SW_COIN1, 0},
+    {RT_IO_COIN, 1, GA_SW_COIN2, 0},
+    {RT_IO_END, 0, 0, 0},
+};
+
 // Pac-Man Chomp Mania (statically linked SDL 1.2), v1.28C: Galaga Assault's
 // RIO layer and switch numbers, one player.
 
@@ -469,6 +533,46 @@ static const RtGame rtGames[] = {
         .orthoSymbol = "OGL_resize_window_ortho",
         .orthoPrologue = 6,
         .rootPath = "/pm",
+    },
+    {
+        .crc32 = WALKING_DEAD_RT,
+        .fileCrc32 = 0x3fcf1642,
+        .envelopeGot = TWD_ENVELOPE_GOT,
+        .envelopeImports = twdEnvelopeImports,
+        .envelopeImportCount = sizeof(twdEnvelopeImports) / sizeof(twdEnvelopeImports[0]),
+        .envelopeSelfSlot = -1,
+        .gameImports = twdGameImports,
+        .gameImportCount = sizeof(twdGameImports) / sizeof(twdGameImports[0]),
+        .symbols = twdSymbols,
+        // Heap pointers of the cabinet's run left in the dump: Bullet's
+        // profile clock data (its start time, a struct timeval).
+        .staleHeapPointers = twdStaleHeapPointers,
+        .haspFeature = 0xffff0000,
+        .haspMemoryFileId = 0xfff2,
+        // Recorded answers of its four dongle calls at startup: the secrets
+        // its file keys derive from, and the efilemaps' AES key and IV.
+        .haspAnswers = "hasp",
+        .rioSwitches = twdRioSwitches,
+        .rioDesktopKeys = 1,
+        // "push %ebp; mov %esp,%ebp; sub $0x38,%esp"
+        .ioLoopSymbol = "io_rio_loop",
+        .ioLoopPrologue = 6,
+        .rioEventSymbol = "io_rio_switch_report",
+        .umcConnectedSymbol = "umc_check_connection",
+        .umcStatusSymbol = "umc_device_status",
+        .umcReadSymbol = "umc_read_report",
+        .umcGuns = twdGuns,
+        .umcGunCount = 2,
+        // "push %ebp; push %edi; push %esi; push %ebx; sub $0x7c,%esp"
+        .videoModeSymbol = "SDL_SetVideoMode",
+        .videoModePrologue = 7,
+        .resolution = 0x08ac0400,
+        .aspect = 0x08ac0408,
+        // "push %ebp; push %edi; push %esi; push %ebx; mov $0x1,%ebx"
+        .parseArgsPrologue = 9,
+        .stubs = gaStubs,
+        .rootPath = "/pm",
+        .pathAliases = twdPathAliases,
     },
 };
 
