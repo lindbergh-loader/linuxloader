@@ -22,6 +22,7 @@ static const GameData gameData[] = {
     {DOODLE_JUMP_RT, "Doodle Jump", "doodle-jump", "ICE", "ICE-DJ", "2012", "1366x768", WORKING, NO_JVS_IO, DIGITAL, 1366, 768, -1, 0, 0, 0, 0, 0, 0, RED},
     {TIPPIN_BLOKS_RT, "Tippin' Bloks", "tippin-bloks", "ICE", "ICE-TB", "2018", "1366x768", WORKING, NO_JVS_IO, DIGITAL, 1366, 768, -1, 0, 0, 0, 0, 0, 0, RED},
     {NIRIN_ES1, "Nirin", "nirin", "Namco ES1", "NRN100", "2009", "1360x768", WORKING, NAMCO_NA_JV, DRIVING, 1360, 768, -1, 0, 0, 0, 0, 0, 0, RED},
+    {DEADHEAT_ES1, "Dead Heat", "deadheat", "Namco ES1", "USDRIVE", "2011", "1360x768", WORKING, NAMCO_NA_JV, DRIVING, 1360, 768, -1, 0, 0, 0, 0, 0, 0, RED},
     {DHRIDERS_ES1, "Dead Heat Riders", "dhriders", "Namco ES1", "DHR100", "2013", "1360x768", WORKING, NAMCO_NA_JV, DRIVING, 1360, 768, -1, 0, 0, 0, 0, 0, 0, RED},
     {AFTER_BURNER_CLIMAX_SBLR, "After Burner Climax", "abc", "DVP-0009", "SBLR", "2006", "640x480", WORKING, SEGA_TYPE_1, FLYING, 640, 480, GROUP_ABC, 0, 0, 0, 0, 0, 0, YELLOW},
     {AFTER_BURNER_CLIMAX_SBLR_REVA, "After Burner Climax Rev A", "abc-rev-a", "DVP-0009A", "SBLR", "2006", "640x480", WORKING, SEGA_TYPE_1, FLYING, 640, 480, GROUP_ABC, 0, 0, 0, 0, 0, 0, YELLOW},
