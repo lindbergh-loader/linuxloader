@@ -1,6 +1,6 @@
 // OSS /dev/dsp emulation on top of SDL3 audio, for the PC-based arcade
 // systems: the Raw Thrills g5 engine's JPS sound engine, the OSS backend of
-// the OpenAL the Namco ES1 games ship.
+// the OpenAL the Namco ES1 games ship, the Teamplay games.
 // The games only use the basic OSS API: format/channels/rate setup, fragment
 // setup, GETOSPACE, mixer volume ioctls and blocking writes.
 
@@ -15,6 +15,7 @@
 #include "ossDsp.h"
 #include "../rawthrills/rawthrills.h"
 #include "../namco/namcoEs1.h"
+#include "../teamplay/teamplay.h"
 #include "../log/log.h"
 
 #define DSP_FRAGMENTS 4
@@ -71,7 +72,7 @@ static int fragmentSize = DSP_FRAGMENT_SIZE;
 
 int ossDspIsPath(const char *path)
 {
-    return (isRawThrillsGame() || isNamcoEs1Game()) && path && strcmp(path, "/dev/dsp") == 0;
+    return (isRawThrillsGame() || isNamcoEs1Game() || isTeamplayGame()) && path && strcmp(path, "/dev/dsp") == 0;
 }
 
 int ossDspIsFd(int fd)

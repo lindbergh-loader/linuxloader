@@ -10,6 +10,7 @@
 #include "rawthrills/rtGame.h"
 #include "namco/namcoEs1Game.h"
 #include "namco/namcoN2.h"
+#include "hostLinker.h"
 #endif
 #include <ctype.h>
 #include <libgen.h>
@@ -1226,6 +1227,8 @@ int parseArgs(int argc, char *argv[], char *command, char *originalDir, char *ga
     namcoEs1PrepareCommand(command, MAX_PATH_LENGTH, elfCrc);
     // Namco N2 games with a cabinet command line append it (see namco/namcoN2Launch.c).
     namcoN2PrepareCommand(command, MAX_PATH_LENGTH, elfCrc);
+    // Teamplay dumps may have lost their executable mode (see hostLinker.c).
+    hostLinkerPrepareCommand(command, MAX_PATH_LENGTH, elfCrc);
 #endif
 
 #ifdef __linux__

@@ -21,6 +21,7 @@
 #include "rawthrills/rawthrills.h"
 #include "namco/namcoEs1.h"
 #include "namco/namcoN2.h"
+#include "teamplay/teamplay.h"
 #endif
 
 #if defined(__linux__)
@@ -156,6 +157,14 @@ void initMain(char *configPath, char *controlsPath)
     if (initResolutionPatches() != 0)
         exit(1);
     log_info("Resolution patches initialized");
+
+#ifdef __linux__
+    // Teamplay games run as the Lindbergh glut games do; their cabinet's
+    // checks are hooked here, before the hooks are enabled (see
+    // teamplay/teamplay.c).
+    if (isTeamplayGame() && teamplayInit() != 0)
+        exit(1);
+#endif
 
     if (MH_EnableHook(MH_ALL_HOOKS) != MH_OK)
     {

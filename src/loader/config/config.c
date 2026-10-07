@@ -9,6 +9,9 @@
 #include "../log/log.h"
 #include "iniParser.h"
 #include "../mainShared.h"
+#ifdef __linux__
+#include "../teamplay/teamplayGame.h"
+#endif
 
 EmulatorConfig config = {0};
 
@@ -512,7 +515,12 @@ int initConfig(const char *configFilePath)
     setDefaultValues(&config);
 
     config.crc32 = partialElfCrc;
-    if (detectGame(config.crc32) != 0)
+    if (detectGame(config.crc32) != 0
+#ifdef __linux__
+        // A game's helper process, not a game (see teamplayGame.h).
+        && !teamplayGetGameBySoundDaemonCrc(partialElfCrc)
+#endif
+    )
     {
         log_error("Unsure what game with CRC 0x%X is. Please submit this new game to the GitHub repository: "
                  "https://github.com/lindbergh-loader/lindbergh-loader/issues/"

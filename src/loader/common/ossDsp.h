@@ -5,7 +5,7 @@
 #include <sys/types.h>
 
 // OSS /dev/dsp emulation on top of SDL3 audio (ossDsp.c), for the Raw
-// Thrills and Namco ES1 games.
+// Thrills, Namco ES1 and Teamplay games.
 int ossDspIsPath(const char *path);
 int ossDspOpen(void);
 int ossDspIsFd(int fd);

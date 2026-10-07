@@ -10,6 +10,7 @@
 #include "../rawthrills/rawthrills.h"
 #include "../namco/namcoEs1.h"
 #include "../namco/namcoN2.h"
+#include "../teamplay/teamplay.h"
 #endif
 #include "../config/config.h"
 #include "loader/elfLoader/symbolResolver.hpp"
@@ -286,7 +287,7 @@ int system(const char *command)
 #ifdef __linux__
     char rtCommand[PATH_MAX * 2];
     command = rtRedirectCommand(command, rtCommand, sizeof(rtCommand));
-    if (namcoEs1DropCommand(command))
+    if (namcoEs1DropCommand(command) || teamplayDropCommand(command))
         return 0;
     int n2Status;
     if (namcoN2Command(command, &n2Status))
@@ -417,5 +418,17 @@ float powf(float base, float exponent)
 int iopl(int level)
 {
     return 0;
+}
+
+// Teamplay games lock their memory, which as root (Batocera)
+// would pin the whole process in RAM: SDL's and the GPU driver's mappings too.
+int mlockall(int flags)
+{
+    static int (*_mlockall)(int) = NULL;
+    if (isTeamplayGame())
+        return 0;
+    if (_mlockall == NULL)
+        _mlockall = REAL_FUNC(mlockall);
+    return _mlockall(flags);
 }
 #endif

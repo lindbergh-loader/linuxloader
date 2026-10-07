@@ -16,6 +16,7 @@
 #include "../config/config.h"
 #include "../log/log.h"
 #include "../namco/namcoEs1.h"
+#include "../teamplay/teamplay.h"
 
 extern uint32_t gId;
 
@@ -175,6 +176,7 @@ FILE *popen(const char *command, const char *type)
         }
         return real("true", type);
     }
+    command = teamplayRedirectCommand(command, buf, sizeof(buf));
     return real(rtRedirectCommand(command, buf, sizeof(buf)), type);
 }
 

@@ -21,6 +21,9 @@
 #include "overlayMsgs.h"
 #include "../graphics/sdlCalls.h"
 #include "../hardware/lindbergh/touchScreen.h"
+#ifdef __linux__
+#include "../teamplay/teamplay.h"
+#endif
 
 extern uint32_t gId;
 extern int gGrp;
@@ -92,6 +95,11 @@ void bridgeGlutSwapBuffers(void)
 
     if ((p1CrossHairInitialized || p2CrossHairInitialized) || (gId == GHOST_SQUAD_EVOLUTION_SBNJ && config->borderEnabled))
         renderCrosshairs();
+
+#ifdef __linux__
+    // Into the Teamplay games' frame, before it is scaled.
+    teamplayDrawCrosshairs(blitWidth, blitHeight);
+#endif
 
     blitStretch();
 
