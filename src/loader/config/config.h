@@ -13,6 +13,12 @@
 #define WALKING_DEAD_RT 0xf6330a20                               // Raw Thrills (patched copy: libcsv path shortened)
 #define TERMINATOR_SALVATION_RT 0xa999339e                       // Raw Thrills, v01.25.00
 #define BIG_BUCK_WORLD_RT 0x17633eb3                             // Raw Thrills, v1.20
+// Raw Thrills, g5 engine.  This is the CRC of the *patched* copy the loader
+// runs: the game links libcsv by absolute path, and shortening that DT_NEEDED
+// string falls inside the 0x4000 bytes the id is taken over (0x56adc4aa is
+// the untouched file).
+#define BIG_BUCK_HD_WILD_RT 0xc814b556                           // v08.29
+#define BIG_BUCK_HD_WILD_840_RT 0xbf99bb07                       // v08.40, patched copy (0x2120cafb untouched)
 #define PACMAN_CHOMP_MANIA_RT 0xf841f9e7                         // Raw Thrills, v1.28C
 #define AFTER_BURNER_CLIMAX_SBLR 0xa3c246e2                       // DVP-0009
 #define AFTER_BURNER_CLIMAX_SBLR_REVA 0xe657b1c0                  // DVP-0009A

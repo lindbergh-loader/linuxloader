@@ -554,6 +554,179 @@ static const RtStub bbwStubs[] = {
 
 static const RtPathAlias bbwRootAliases[] = {{"/bbwuser", "bbwuser"}, {NULL, NULL}};
 
+// ---------------------------------------------------------------------------
+// Big Buck HD Wild (g5 engine): like Terminator Salvation a stripped but
+// normally linked binary, not a dump, so its imports need no rebuilding.
+// The HASP HL library is linked in statically and sits at a constant offset
+// from The Walking Dead's copy of it (+0x1b4300): each function below was
+// checked by the trace string it pushes ("enter hasp_login" and friends), so
+// the addresses are matched, not guessed.
+//
+// It draws and reads its inputs through the same g5 io layer as Jurassic
+// Park, not through glut: the binary carries io_sdl, io_rio, io_irtrack and
+// the rest (their error strings name them), and SDL 1.2 is linked in
+// statically -- io_sdl:create_window() at 0x825ad8b asks SDL_SetVideoMode
+// for a window (SDL_HWSURFACE|SDL_OPENGL) of the size two engine getters
+// return.  Its input map, the RIO board and the IR guns are still to be
+// found.
+
+static const RtSymbol bbhdSymbols[] = {
+    {"hasp_login", 0x0852fec0},
+    {"hasp_logout", 0x0852ff60},
+    {"hasp_encrypt", 0x0853004c},
+    {"hasp_decrypt", 0x08530138},
+    {"hasp_get_sessioninfo", 0x08530a40},
+    {"hasp_read", 0x08530cb8},
+    {"hasp_write", 0x08530d84},
+    // The game's own layer over them: each calls the hasp_decrypt or
+    // hasp_encrypt above and leaves its status in the dongle object at
+    // +0x10, which is where the loader's stand-in writes its success.
+    {"DongleDecrypt", 0x08266c40},
+    {"DongleEncrypt", 0x08266cb0},
+    // The anti-debug guard, the first thing main (0x811e830) calls: it
+    // forks, the child PTRACE_TRACEMEs itself and returns 1 to carry on as
+    // the game while the parent watches it and kills it if anything else
+    // attaches.  Stubbed to 1 the fork never happens.
+    {"TracerGuard", 0x084338e6},
+    {"SDL_SetVideoMode", 0x08288c60},
+    // The g5 io layer (io.c), in its source order: found by the constants
+    // of their Jurassic Park counterparts (whose dump exports them), such as
+    // the accessors' id ranges (digital: <= 0x142, then 0x146 on; analog:
+    // 0x144 on).  Its digital slots are 0x2c bytes, Jurassic Park's 0x20:
+    // the first 0x20 are laid out the same.
+    {"io_new_data_present", 0x0825618f},
+    {"io_input_analog_update", 0x08256210},
+    {"io_set_input_raw_range", 0x082565c3},
+    {"io_get_input_digital", 0x08256804},
+    {"io_get_input_analog", 0x08256cb8},
+    // The backends' loops are called by io_loop (0x8255f80) from a table at
+    // 0x8c57340 ({mask, init, quit, loop, state}, 0x54 bytes each): entry 4
+    // is io_sdl, whose create_window() follows it.
+    {"io_sdl_loop", 0x0825a4eb},
+    // Caps the map at 0x400 entries, InputMap at 0x8cc6234, count at
+    // 0x8cc8234; main (0x811e830) calls it itself, 69 times.
+    {"InputAddMap", 0x0815a1d0},
+    // The camera manager, as io_irtrack's loop (0x8259b23) calls it for each
+    // gun: whether the gun is active, then its position (0x85cda1a: -1 off
+    // the screen). Inactive, the loop flags the gun's slots offscreen
+    // (0x10000 in their first word) every frame, and attract mode says "gun
+    // not connected". The position is the camera's raw coordinates, filtered
+    // (0x85cd0f9) or not (0x85cd081, which the calibration reads), mapped
+    // through the gun's calibration: the raw ones are answered, so that the
+    // calibration and everything built on it work as on the cabinet.
+    {"IrGunActive", 0x085cc328},
+    {"IrGunRaw", 0x085cd081},
+    {"IrGunRawFiltered", 0x085cd0f9},
+    {"IrGunAim", 0x085cda1a},
+    // Its buttons (gun, button): a count of transitions, odd while held,
+    // which the loop turns into presses of the gun's trigger (button 0) and
+    // pump (1) slots.
+    {"IrGunButton", 0x085cd35e},
+    {NULL, 0},
+};
+
+// Big Buck HD Wild v08.40 (2018, from the cabinet's restore discs): the
+// same code with new content, each entry above found in it by its bytes
+// (addresses masked).  The HASP library and the camera manager moved by
+// +0xd8a0, the dongle layer and SDL by +0xd710, the io layer by +0xd530.
+// main's 69 InputAddMap calls are unchanged, so are the slot ids below.
+static const RtSymbol bbhd840Symbols[] = {
+    {"hasp_login", 0x0853d760},
+    {"hasp_logout", 0x0853d800},
+    {"hasp_encrypt", 0x0853d8ec},
+    {"hasp_decrypt", 0x0853d9d8},
+    {"hasp_get_sessioninfo", 0x0853e2e0},
+    {"hasp_read", 0x0853e558},
+    {"hasp_write", 0x0853e624},
+    {"DongleDecrypt", 0x08274350},
+    {"DongleEncrypt", 0x082743c0},
+    // main (0x8123540)'s first call, as in v08.29.
+    {"TracerGuard", 0x08441126},
+    {"SDL_SetVideoMode", 0x08296370},
+    {"io_new_data_present", 0x082636bf},
+    {"io_input_analog_update", 0x08263740},
+    {"io_set_input_raw_range", 0x08263af3},
+    {"io_get_input_digital", 0x08263d34},
+    {"io_get_input_analog", 0x082641e8},
+    {"io_sdl_loop", 0x08267a1b},
+    {"InputAddMap", 0x08166130},
+    {"IrGunActive", 0x085d9bc8},
+    {"IrGunRaw", 0x085da921},
+    {"IrGunRawFiltered", 0x085da999},
+    {"IrGunAim", 0x085db2ba},
+    {"IrGunButton", 0x085dabfe},
+    {NULL, 0},
+};
+
+// Its input map, as main registers it: engine input ids (the game's) fed
+// by I/O slot ids (where the cabinet's boards write).  main maps either the
+// cabinet guns (IR tracking) or a developer mouse map, on a developer flag
+// (0x80ae610) the release build keeps at 0: the cabinet map is used, and
+// the loader writes the cabinet's own slots, from evdev or from the desktop.
+enum
+{
+    BBHD_IO_COIN0 = 0x14c,    // -> 0x17f
+    BBHD_IO_COIN1 = 0x14d,    // -> 0x180
+    BBHD_IO_DIAG = 0x150,     // -> 0x17e
+    BBHD_IO_SERVICE = 0x151,  // -> 0x17d (a service credit)
+    BBHD_IO_VOL_UP = 0x152,   // -> 0x17b, 0x183 (also menu up)
+    BBHD_IO_VOL_DOWN = 0x153, // -> 0x17c, 0x184 (also menu down)
+    BBHD_IO_START0 = 0x154,   // -> 0x177
+    BBHD_IO_START1 = 0x155,   // -> 0x178
+    BBHD_IO_GUN0_TRIGGER = 0x17b, // -> 0x14e, and the P1 menu select 0x18b
+    BBHD_IO_GUN0_PUMP = 0x17c,    // -> 0x14f
+    BBHD_IO_GUN1_TRIGGER = 0x17e, // -> 0x159, and the P2 menu select 0x18c
+    BBHD_IO_GUN1_PUMP = 0x17f,    // -> 0x15a
+    BBHD_IO_GUN0_X = 0x181,   // -> 0x14b, and the P1 menu pointer 0x187
+    BBHD_IO_GUN0_Y = 0x182,   // -> 0x14c, 0x188
+    BBHD_IO_GUN1_X = 0x183,   // -> 0x156, 0x189
+    BBHD_IO_GUN1_Y = 0x184,   // -> 0x157, 0x18a
+};
+
+// The cabinet's keypad, engine ids from the switch test's table of {id,
+// name} pairs (SwitchTestNumpad0 at 0x8c57270): keys 0..9, then * and #.  main feeds them
+// from the keypad's I/O slots (0x163 on, and again 0x16f on); the desktop
+// numpad is mapped to them as well (SDL 1.2 key codes: KP0 is 256), with
+// # on the numpad's Enter, the keypad's confirm key.
+enum
+{
+    BBHD_NUMPAD0 = 0x18e,
+    BBHD_NUMPAD_STAR = 0x198,
+    BBHD_NUMPAD_HASH = 0x199,
+};
+
+static const RtMap bbhdExtraMaps[] = {
+    {KEY_KP0 + 0, BBHD_NUMPAD0 + 0}, {KEY_KP0 + 1, BBHD_NUMPAD0 + 1}, {KEY_KP0 + 2, BBHD_NUMPAD0 + 2},
+    {KEY_KP0 + 3, BBHD_NUMPAD0 + 3}, {KEY_KP0 + 4, BBHD_NUMPAD0 + 4}, {KEY_KP0 + 5, BBHD_NUMPAD0 + 5},
+    {KEY_KP0 + 6, BBHD_NUMPAD0 + 6}, {KEY_KP0 + 7, BBHD_NUMPAD0 + 7}, {KEY_KP0 + 8, BBHD_NUMPAD0 + 8},
+    {KEY_KP0 + 9, BBHD_NUMPAD0 + 9}, {KEY_KP_MULTIPLY, BBHD_NUMPAD_STAR}, {KEY_KP_ENTER, BBHD_NUMPAD_HASH},
+    {0, 0},
+};
+
+// ANALOGUE_1/2 and 3/4 are the P1/P2 guns, PLAYER_n_BUTTON_1 their
+// trigger and BUTTON_2 the pump, PLAYER_1_BUTTON_UP/DOWN the volume (the
+// menus' up and down); from the desktop, the mouse is P1's gun (left button
+// the trigger, right the pump), and the keys are rtIo.c's desktop keys.
+// The guns reach the game through the camera manager's answers (IrGun*),
+// which its calibration and io_irtrack's loop turn into the gun slots.
+static const RtIoInput bbhdIoInputs[] = {
+    {RT_IO_SWITCH, PLAYER_1, BBHD_IO_START0, BUTTON_START},
+    {RT_IO_SWITCH, PLAYER_2, BBHD_IO_START1, BUTTON_START},
+    {RT_IO_SWITCH, PLAYER_1, BBHD_IO_SERVICE, BUTTON_SERVICE},
+    {RT_IO_SWITCH, PLAYER_2, BBHD_IO_SERVICE, BUTTON_SERVICE},
+    {RT_IO_SWITCH, SYSTEM, BBHD_IO_DIAG, BUTTON_TEST},
+    {RT_IO_SWITCH, PLAYER_1, BBHD_IO_VOL_UP, BUTTON_UP},
+    {RT_IO_SWITCH, PLAYER_1, BBHD_IO_VOL_DOWN, BUTTON_DOWN},
+    {RT_IO_COIN, 0, BBHD_IO_COIN0, 0},
+    {RT_IO_COIN, 1, BBHD_IO_COIN1, 0},
+    {RT_IO_END, 0, 0, 0},
+};
+
+static const RtStub bbhdStubs[] = {
+    {"TracerGuard", 1},
+    {NULL, 0},
+};
+
 // Pac-Man Chomp Mania (statically linked SDL 1.2), v1.28C: Galaga Assault's
 // RIO layer and switch numbers, one player.
 
@@ -691,6 +864,97 @@ static const RtGame rtGames[] = {
         .orthoSymbol = "set_ortho",
         .orthoPrologue = 6,
         .rootPath = "/pm",
+    },
+    {
+        .crc32 = BIG_BUCK_HD_WILD_RT,
+        // The game links libcsv by absolute path (/usr/lib/libcsv.so), which
+        // no library path can redirect, so it runs from a patched copy.
+        .fileCrc32 = 0xa982eef0,
+        .envelopeSelfSlot = -1,
+        .symbols = bbhdSymbols,
+        // Both read off the binary.  hasp_login is called at 0x8267ad8 with
+        // 0xffff0000 as a literal, the legacy program-number feature every
+        // other Raw Thrills game uses (a second login at 0x8267b75 asks for
+        // the default feature 0).  The memory reads at 0x826757e and
+        // 0x826762e pass 0xfff2 as a literal.
+        .haspFeature = 0xffff0000,
+        .haspMemoryFileId = 0xfff2,
+        // Recorded answers of its four dongle calls at startup: the secrets
+        // its file keys derive from, and the efilemaps' AES key and IV.
+        .haspAnswers = "hasp",
+        // The cabinet mounts the game at /pm (utils/go.sh, and the data paths
+        // under /pm/g5/bbhd).
+        .rootPath = "/pm",
+        .stubs = bbhdStubs,
+        // "push %ebp; mov %esp,%ebp; push %edi; push %esi; push %ebx"
+        .videoModeSymbol = "SDL_SetVideoMode",
+        .videoModePrologue = 6,
+        // main keeps its render size in locals, 1360x768 unless its
+        // command line says otherwise: "-f<w>x<h>" (sscanf "%dx%d", which
+        // also asks for fullscreen, left to [Display] FULLSCREEN).
+        .sizeArgument = "-f%dx%d",
+        // "push %ebp; mov %esp,%ebp; sub $0x18,%esp"
+        .inputAddMapPrologue = 6,
+        // "push %ebp; mov %esp,%ebp; push %ebx; sub $0x6584,%esp"
+        .ioLoopPrologue = 10,
+        .extraMaps = bbhdExtraMaps,
+        .ioInputs = bbhdIoInputs,
+        .ioDesktop = 1,
+        .irGunActiveSymbol = "IrGunActive",
+        .irGunRawSymbols = {"IrGunRaw", "IrGunRawFiltered"},
+        .irGunButtonSymbol = "IrGunButton",
+        .irGunAimSymbol = "IrGunAim",
+        .irGunSlots = 0x08d200e4,
+        .irGunSlotStride = 0xec,
+        .irGunButtonSlot = 0x68,
+    },
+    {
+        // v08.40, run as v08.29 above (same dongle answers, prologues and
+        // input map).
+        .crc32 = BIG_BUCK_HD_WILD_840_RT,
+        .fileCrc32 = 0x41e3ddb1,
+        .envelopeSelfSlot = -1,
+        .symbols = bbhd840Symbols,
+        .haspFeature = 0xffff0000,
+        .haspMemoryFileId = 0xfff2,
+        .haspAnswers = "hasp",
+        // FactorySetupProc (0x80a3391) writes 1 at 0x39 (0x8274b70) only
+        // after registering the cabinet online, which offline never
+        // succeeds; the attract mode reads it (0x8274ee0) and says "factory
+        // setup incomplete" while it is 0.
+        .haspFactorySetupOffset = 0x39,
+        // v08.40 always runs as an online cabinet: unregistered, it opens a
+        // registration wizard at boot with a 30-day grace of limited play.
+        // At 1 (or 2) byte 4 (read at 0x80b9cc0) makes it an offline one:
+        // no wizard, no grace period, the permission check (0x80e2750)
+        // passes basic play without the server.  The DLCs are unlocked by
+        // the gameOptions buyouts (zombieBuyout, ...) in pmuser, but for
+        // the two Monster Island upgrades, which read 0 from there: owned
+        // by the dongle (bytes 6..0xd, one per upgrade, 0x80b9400 on).  Its
+        // "Animal" one (0xc, owned bit 0x40) is the Buckzilla adventure in
+        // Big Buck HD; its "Mini-Game" (0xd) is left out, as it takes Duck
+        // Dynasty's place on the game select for a second Zombies card.
+        .haspSetOffsets = {0x04, 0x0c},
+        .rootPath = "/pm",
+        .stubs = bbhdStubs,
+        .videoModeSymbol = "SDL_SetVideoMode",
+        .videoModePrologue = 6,
+        .sizeArgument = "-f%dx%d",
+        .inputAddMapPrologue = 6,
+        .ioLoopPrologue = 10,
+        .extraMaps = bbhdExtraMaps,
+        .ioInputs = bbhdIoInputs,
+        .ioDesktop = 1,
+        .irGunActiveSymbol = "IrGunActive",
+        .irGunRawSymbols = {"IrGunRaw", "IrGunRawFiltered"},
+        .irGunButtonSymbol = "IrGunButton",
+        .irGunAimSymbol = "IrGunAim",
+        // io_irtrack's slot table (0x8266e1e stores it: base + 0x1850).
+        .irGunSlots = 0x08d398e4,
+        .irGunSlotStride = 0xec,
+        .irGunButtonSlot = 0x68,
+        // [CrossHairs] ENABLE_CROSSHAIRS (rtCrosshair.c).
+        .frameDraw = rtCrosshairFrameDraw,
     },
     {
         .crc32 = PACMAN_CHOMP_MANIA_RT,
