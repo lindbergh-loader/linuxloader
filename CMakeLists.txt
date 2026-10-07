@@ -148,8 +148,8 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux" AND NOT MINGW AND NOT CMAKE_C_COMPILER MATC
     # linuxloader hands to linuxloader64: it starts them with
     # linuxloader64.so, their library, preloaded.  The library shares the
     # loader's ini parser and gun border, and reads the same linuxloader.ini.
-    # g7_rt.so, its name when it was the g7 games' alone,
-    # links to it.
+    # g7_rt.so and halo_rt.so, its names when it was the g7 games' alone,
+    # link to it.
     add_executable(linuxloader64
         src/loader/loader64/linuxloader64.c
         src/loader/loader64/game64.c
@@ -173,7 +173,8 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux" AND NOT MINGW AND NOT CMAKE_C_COMPILER MATC
     target_link_options(loader64 PRIVATE -m64)
     target_link_libraries(loader64 PRIVATE dl pthread)
     add_custom_command(TARGET loader64 POST_BUILD
-        COMMAND ln -s -f linuxloader64.so ${CMAKE_BINARY_DIR}/g7_rt.so)
+        COMMAND ln -s -f linuxloader64.so ${CMAKE_BINARY_DIR}/g7_rt.so
+        COMMAND ln -s -f linuxloader64.so ${CMAKE_BINARY_DIR}/halo_rt.so)
 
 elseif(WIN32 OR MINGW OR CMAKE_C_COMPILER MATCHES "mingw")
 
