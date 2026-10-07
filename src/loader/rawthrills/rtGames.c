@@ -6,6 +6,7 @@
 #include "pacman/pmImports.h"
 #include "walkingdead/twdImports.h"
 #include "jurassicpark/jpImports.h"
+#include "angrybirds/abImports.h"
 
 // SDL 1.2 key codes (engine input ids of the keyboard).
 enum
@@ -982,6 +983,84 @@ static const RtIoInput aaIoInputs[] = {
     {RT_IO_END, 0, 0, 0},
 };
 
+// ---------------------------------------------------------------------------
+// Angry Birds Arcade (g6 engine), a ticket redemption game on a portrait
+// monitor: a slingshot fires balls at the screen, whose hits a touch frame
+// reports (see rtAb.c). Like The Walking Dead a HASP Envelope dump (see
+// abImports.h), with Pink Panther Jewel Heist's io layer and SDL 1.2 linked
+// in. Its HASP HL library is Pink Panther's at +0x14dd0, each function
+// checked by the trace string it pushes; its four dongle answers come from
+// TeknoParrot's recording, as Pink Panther's.
+
+static const RtSymbol abSymbols[] = {
+    {"hasp_login", 0x0831fc40},
+    {"hasp_logout", 0x0831fce0},
+    {"hasp_encrypt", 0x0831fdcc},
+    {"hasp_decrypt", 0x0831feb8},
+    {"hasp_get_sessioninfo", 0x083207c0},
+    {"hasp_read", 0x08320a38},
+    {"hasp_write", 0x08320b04},
+    // The game's own layer over them, Pink Panther's at +0x9310.
+    {"DongleEncrypt", 0x081a80b0},
+    {"DongleDecrypt", 0x081a8230},
+    // The anti-debug guard (getpid, fork, then ptrace), Pink Panther's
+    // code; nothing seems to call it in this build either.
+    {"TracerGuard", 0x08222a91},
+    // gCLArgs at 0x8d4d240: width, height (1280x720 by default), aspect;
+    // "-f<w>x<h>" sets the size and fullscreen (+0x1c).
+    {"ParseCommandLineArgs", 0x08076080},
+    // Linked-in SDL 1.2, called by io_sdl's create_window (0x819ade7).
+    {"SDL_SetVideoMode", 0x081c8f60},
+    // The io layer (io.c), Big Buck HD Wild's functions in the same order.
+    // As in Pink Panther, the engine keeps its own copy of the slots and
+    // copies io.c's (0x2c byte slots from 0x8a6f900 + 0x1a28) over it after
+    // io_loop: io.c's slots are written, after the loop of io_rio.
+    {"io_new_data_present", 0x08195f22},
+    {"io_input_analog_update", 0x08195fa1},
+    {"io_set_input_raw_range", 0x0819632b},
+    {"io_get_input_digital", 0x08196559},
+    {"io_get_input_analog", 0x08196a0c},
+    {"io_rio_loop", 0x0819b22e},
+    {NULL, 0},
+};
+
+// Its input map, as GameInputMaps (0x80775b0) registers it: Pink Panther's
+// cabinet switches, the slingshot's two analog channels of the RIO board
+// (0x15f, 0x160 -> 0x187, 0x188, and 0x14b, 0x14c) and five extra switches
+// (0x154, 0x155, 0x15a..0x15c -> 0x19c..0x1a0).
+enum
+{
+    AB_IO_COIN0 = 0x14c,    // -> 0x17f
+    AB_IO_COIN1 = 0x14d,    // -> 0x180
+    AB_IO_DIAG = 0x150,     // -> 0x17e, 0x185
+    AB_IO_SERVICE = 0x151,  // -> 0x17d, 0x186
+    AB_IO_VOL_UP = 0x152,   // -> 0x17b, 0x183 (also menu up)
+    AB_IO_VOL_DOWN = 0x153, // -> 0x17c, 0x184 (also menu down)
+    AB_IO_EXT0 = 0x154,     // -> 0x19c
+    AB_IO_EXT1 = 0x155,     // -> 0x19d
+    AB_IO_EXT2 = 0x15a,     // -> 0x19e
+    AB_IO_EXT3 = 0x15b,     // -> 0x19f
+    AB_IO_EXT4 = 0x15c,     // -> 0x1a0
+    AB_IO_SLING_X = 0x15f,  // -> 0x187, 0x14b
+    AB_IO_SLING_Y = 0x160,  // -> 0x188, 0x14c
+};
+
+// The slingshot's position follows P1's gun (ANALOGUE_1/2, from the desktop
+// the mouse), its Y reversed as TeknoParrot has it; the shots are the gun's
+// trigger, as the touch frame's hits (see rtAb.c).
+static const RtIoInput abIoInputs[] = {
+    {RT_IO_ANALOG, 0, AB_IO_SLING_X, ANALOGUE_1},
+    {RT_IO_ANALOG_INVERTED, 0, AB_IO_SLING_Y, ANALOGUE_2},
+    {RT_IO_SWITCH, PLAYER_1, AB_IO_EXT0, BUTTON_START},
+    {RT_IO_SWITCH, PLAYER_1, AB_IO_SERVICE, BUTTON_SERVICE},
+    {RT_IO_SWITCH, SYSTEM, AB_IO_DIAG, BUTTON_TEST},
+    {RT_IO_SWITCH, PLAYER_1, AB_IO_VOL_UP, BUTTON_UP},
+    {RT_IO_SWITCH, PLAYER_1, AB_IO_VOL_DOWN, BUTTON_DOWN},
+    {RT_IO_COIN, 0, AB_IO_COIN0, 0},
+    {RT_IO_COIN, 1, AB_IO_COIN1, 0},
+    {RT_IO_END, 0, 0, 0},
+};
+
 // Pac-Man Chomp Mania (statically linked SDL 1.2), v1.28C: Galaga Assault's
 // RIO layer and switch numbers, one player.
 
@@ -1313,6 +1392,44 @@ static const RtGame rtGames[] = {
         .irGunSlots = 0x08945ca4,
         .irGunSlotStride = 0xdc,
         .irGunButtonSlot = 0x58,
+    },
+    {
+        .crc32 = ANGRY_BIRDS_RT,
+        // libcsv by absolute path: a patched copy.
+        .fileCrc32 = 0x28501d5e,
+        .envelopeGot = AB_ENVELOPE_GOT,
+        .envelopeImports = abEnvelopeImports,
+        .envelopeImportCount = sizeof(abEnvelopeImports) / sizeof(abEnvelopeImports[0]),
+        .envelopeSelfSlot = -1,
+        .gameImports = abGameImports,
+        .gameImportCount = sizeof(abGameImports) / sizeof(abGameImports[0]),
+        .symbols = abSymbols,
+        // hasp_login at 0x81a72c0 with 0xffff0000 as a literal, the memory
+        // reads at 0x81a7925 and the writes at 0x81a7bb1 with 0xfff2.
+        .haspFeature = 0xffff0000,
+        .haspMemoryFileId = 0xfff2,
+        .haspAnswers = "hasp",
+        .rootPath = "/pm",
+        .stubs = bbhdStubs,
+        .resolution = 0x08d4d240,
+        .aspect = 0x08d4d248,
+        .fullscreenFlag = 0x08d4d25c,
+        // "push %ebp; push %edi; push %esi; push %ebx; sub $0x7c,%esp": the
+        // window at [Display] WIDTH/HEIGHT, the game at the bezel's hole
+        // with one.
+        .videoModeSymbol = "SDL_SetVideoMode",
+        .videoModePrologue = 7,
+        .bezelFrame = 1,
+        // "push %edi; push %esi; push %ebx; mov $0x1,%ebx"
+        .parseArgsPrologue = 8,
+        // "push %ebp; mov %esp,%ebp; sub $0x38,%esp"
+        .ioLoopSymbol = "io_rio_loop",
+        .ioLoopPrologue = 6,
+        .ioInputs = abIoInputs,
+        .ioRawRange = 1,
+        .ioDesktop = 1,
+        .install = rtAbInstall,
+        .ioFrame = rtAbIoFrame,
     },
     {
         .crc32 = WALKING_DEAD_RT,

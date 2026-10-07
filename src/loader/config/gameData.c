@@ -14,6 +14,7 @@ static const GameData gameData[] = {
     {PINK_PANTHER_RT, "Pink Panther Jewel Heist", "pink-panther", "Raw Thrills", "RT-PP", "2020", "768x1360", WORKING, NO_JVS_IO, DIGITAL, 768, 1360, -1, 0, 0, 0, 0, 0, 0, RED},
     {WHEEL_OF_FORTUNE_RT, "Wheel of Fortune", "wheel-of-fortune", "Raw Thrills", "RT-WOF", "2019", "1366x768", WORKING, NO_JVS_IO, SHOOTING, 1366, 768, -1, 0, 0, 0, 0, 0, 0, RED},
     {ALIENS_ARMAGEDDON_RT, "Aliens Armageddon", "aliens-armageddon", "Raw Thrills", "RT-AA", "2014", "1360x768", WORKING, NO_JVS_IO, SHOOTING, 1360, 768, -1, 0, 0, 0, 0, 0, 0, RED},
+    {ANGRY_BIRDS_RT, "Angry Birds Arcade", "angry-birds", "Raw Thrills", "RT-AB", "2016", "768x1360", WORKING, NO_JVS_IO, SHOOTING, 768, 1360, -1, 0, 0, 0, 0, 0, 0, RED},
     {AFTER_BURNER_CLIMAX_SBLR, "After Burner Climax", "abc", "DVP-0009", "SBLR", "2006", "640x480", WORKING, SEGA_TYPE_1, FLYING, 640, 480, GROUP_ABC, 0, 0, 0, 0, 0, 0, YELLOW},
     {AFTER_BURNER_CLIMAX_SBLR_REVA, "After Burner Climax Rev A", "abc-rev-a", "DVP-0009A", "SBLR", "2006", "640x480", WORKING, SEGA_TYPE_1, FLYING, 640, 480, GROUP_ABC, 0, 0, 0, 0, 0, 0, YELLOW},
     {AFTER_BURNER_CLIMAX_SBLR_REVB, "After Burner Climax Rev B", "abc-rev-b", "DVP-0009B", "SBLR", "2006", "640x480", WORKING, SEGA_TYPE_1, FLYING, 640, 480, GROUP_ABC, 0, 0, 0, 0, 0, 0, YELLOW},
