@@ -78,6 +78,7 @@ char *games[] = {"a.elf",
                  "vt3",
                  "game", // Raw Thrills (Jurassic Park)
                  "vt3_Lindbergh",
+                 "n_tank_release", // Namco ES1 (Tank! Tank! Tank!)
                  "main",           // Namco N2 (Wangan Midnight Maximum Tune 3)
                  "END"};
 
@@ -167,6 +168,7 @@ uint32_t cleanElfCRC32[] = {
     0x6D238B08, // Namco ES1 | Nirin a.elf (NRN100-4-NA-DAT0-A37)
     0xDA52FA88, // Namco ES1 | Dead Heat Riders a.elf (DH RIDERS rev 1247)
     0x7A18BEB3, // Namco ES1 | Dead Heat a.elf (US DRIVE rev 6273)
+    0x66136EE9, // Namco ES1 | Tank! Tank! Tank! n_tank_release (rev 1.03.14)
 };
 
 int cleanElfCRC32Count = sizeof(cleanElfCRC32) / sizeof(uint32_t);
