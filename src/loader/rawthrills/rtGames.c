@@ -555,6 +555,95 @@ static const RtStub bbwStubs[] = {
 static const RtPathAlias bbwRootAliases[] = {{"/bbwuser", "bbwuser"}, {NULL, NULL}};
 
 // ---------------------------------------------------------------------------
+// Wheel of Fortune (g3 engine): like Big Buck World, a stripped but normally
+// linked binary, so its imports need no rebuilding. Its data is plaintext
+// (no hasp answers). Its cabinet has two USB devices: the RIO board (0c70:
+// 0780, the switches) and the spinner (1241:1111, the wheel, see rtWof.c).
+// The RIO API was found by matching Galaga Assault's: the game registers a
+// callback per switch (RIO_Uses), fed by RIO_ProcessCallbacks each frame.
+
+static const RtSymbol wofSymbols[] = {
+    {"hasp_login", 0x08206800},
+    {"hasp_logout", 0x082068a0},
+    {"hasp_encrypt", 0x0820698c},
+    {"hasp_decrypt", 0x08206a78},
+    {"hasp_read", 0x082075f8},            // after the previous function's nop pad
+    {"hasp_write", 0x082076c4},
+    {"hasp_get_sessioninfo", 0x08207380}, // (as hasp_read: its calls go here)
+    {"DongleEncrypt", 0x082056b0},
+    {"DongleDecrypt", 0x08205640},
+    // The dongle memory read its boot reads a record with, and the
+    // record's checksum (see rtWof.c).
+    {"DongleMemRead", 0x08206270},
+    {"DongleChecksum", 0x081e9fa4},
+    // Forks a tracer: the game runs as a child the parent ptraces, so that
+    // no debugger can attach. Returns 1 in that child.
+    {"TracerGuard", 0x081e3ef8},
+    // Input: the event queue's ingress (event, data).
+    {"PostInputEvent", 0x080500a0},
+    // The RIO API (matched against Galaga Assault's), and the game's switch
+    // callback (switch, 3, transition count, time), the same for every
+    // switch.
+    {"RIO_Connect", 0x083235a3},
+    {"RIO_ConnectEx", 0x083236b4},
+    {"RIO_Connected", 0x0832384a},
+    {"RIO_SendReport", 0x08323864},
+    {"RIO_SampleInput", 0x08323972},
+    {"RIO_ProcessCallbacks", 0x08323a00},
+    {"RIO_SW_State", 0x08323ba6},
+    {"RIO_SW_Count", 0x08323c2e},
+    {"wof_switch_event", 0x08074b50},
+    // The spinner: its open (0: connected), close, and its libusb-0.1
+    // usb_interrupt_read (the spinner's only user).
+    {"SpinnerOpen", 0x0811f500},
+    {"SpinnerClose", 0x0811f410},
+    {"SpinnerUsbRead", 0x0812eec0},
+    {NULL, 0},
+};
+
+// The RIO board is connected (RIO_Connected: 0), and needs no transport.
+static const RtStub wofStubs[] = {
+    {"TracerGuard", 1},
+    {"RIO_Connect", 0},
+    {"RIO_ConnectEx", 0},
+    {"RIO_Connected", 0},
+    {"RIO_SendReport", 0},
+    {NULL, 0},
+};
+
+// RIO switch numbers (the game's switch table at 0x83cb480; names from the
+// switch test).
+enum
+{
+    WOF_SW_COIN1 = 0x00,
+    WOF_SW_COIN2 = 0x01,
+    WOF_SW_BILL = 0x02,
+    WOF_SW_TEST = 0x03,
+    WOF_SW_SERVICE = 0x04,
+    WOF_SW_VOL_UP = 0x05,
+    WOF_SW_VOL_DOWN = 0x06,
+    WOF_SW_PUSH = 0x07,
+};
+
+// The "PUSH" button starts and plays: START or BUTTON_1.
+static const RtIoInput wofRioSwitches[] = {
+    {RT_IO_SWITCH, PLAYER_1, WOF_SW_PUSH, BUTTON_START},
+    {RT_IO_SWITCH, PLAYER_1, WOF_SW_PUSH, BUTTON_1},
+    {RT_IO_SWITCH, PLAYER_1, WOF_SW_SERVICE, BUTTON_SERVICE},
+    {RT_IO_SWITCH, SYSTEM, WOF_SW_TEST, BUTTON_TEST},
+    {RT_IO_SWITCH, PLAYER_1, WOF_SW_VOL_UP, BUTTON_UP},
+    {RT_IO_SWITCH, PLAYER_1, WOF_SW_VOL_DOWN, BUTTON_DOWN},
+    {RT_IO_COIN, 0, WOF_SW_COIN1, 0},
+    {RT_IO_COIN, 1, WOF_SW_COIN2, 0},
+    {RT_IO_END, 0, 0, 0},
+};
+
+// The cabinet's writable directories: its settings (/wofuser) and the online
+// module's downloads, query cache and messages (/wofvuser, made at boot: the
+// game takes its shutdown path when it cannot make it).
+static const RtPathAlias wofRootAliases[] = {{"/wofuser", "wofuser"}, {"/wofvuser", "wofvuser"}, {NULL, NULL}};
+
+// ---------------------------------------------------------------------------
 // Big Buck HD Wild (g5 engine): like Terminator Salvation a stripped but
 // normally linked binary, not a dump, so its imports need no rebuilding.
 // The HASP HL library is linked in statically and sits at a constant offset
@@ -1339,6 +1428,25 @@ static const RtGame rtGames[] = {
         .offScreenButton = 1,
         // A 4:3 game: with black bars on a wide screen (see RtGame).
         .frameAspect = {4, 3},
+    },
+    {
+        .crc32 = WHEEL_OF_FORTUNE_RT,
+        .envelopeSelfSlot = -1,
+        .symbols = wofSymbols,
+        .haspFeature = 0xffff0000,
+        .haspMemoryFileId = 0xfff2,
+        .stubs = wofStubs,
+        .install = rtWofInstall,
+        .glutGameModeWindow = 1,
+        .rioSwitches = wofRioSwitches,
+        .rioDesktopKeys = 1,
+        .rioEventSymbol = "wof_switch_event",
+        .ioLoopSymbol = "RIO_ProcessCallbacks",
+        .ioLoopPrologue = 6,
+        .rootPath = "/g3",
+        .rootAliases = wofRootAliases,
+        // Its default (1366x768) otherwise, parsed from its command line.
+        .sizeArgument = "-r%dx%d",
     },
 };
 
