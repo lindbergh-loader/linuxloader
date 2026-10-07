@@ -21,6 +21,13 @@ int namcoN2Init(void);
 // Returns 1 when the command was changed.
 int namcoN2PrepareCommand(char *command, size_t size, uint32_t crc32);
 
+// Counter Strike NEO's cabinet free disk (namcoN2Csneo.c): the engine's raw
+// openat(AT_FDCWD, ...) opens of /freespace/... (its setting.ini, CloseTime.
+// ini, the player data) are remapped onto the dump's TeknoParrot/ copy by
+// the loader's openat funnel. 1 when the path is a freespace one (the caller
+// opens buf instead), 0 otherwise.
+int namcoN2Openat(int dirfd, const char *path, int flags, char *buf, size_t size);
+
 // The cabinet's shell commands (system()), none of which runs: the ones the
 // game needs are answered here (namcoN2Command.c). Returns 1 when handled,
 // with the command's exit status in *status.

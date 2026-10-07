@@ -6,6 +6,7 @@
 #include "../config/config.h"
 #ifdef __linux__
 #include "../teamplay/teamplay.h"
+#include "../namco/namcoN2.h"
 #endif
 
 #include <stdlib.h>
@@ -565,7 +566,9 @@ Display *XOpenDisplay(const char *display_name)
 {
     Display *(*_XOpenDisplay)(const char *display_name) = dlsym(RTLD_NEXT, "XOpenDisplay");
 
-    if (gettingGPUVendor || creatingWindow)
+    // Counter Strike NEO opens its window with SDL 1.2's own X11 driver: it
+    // needs the real X server connection, not the loader's.
+    if (gettingGPUVendor || creatingWindow || (isNamcoN2Game() && namcoN2CurrentGame()->crc32 == CSNEO_N2))
     {
         return _XOpenDisplay(display_name);
     }

@@ -28,6 +28,18 @@ static const NamcoN2Game games[] = {
         .linkSearchMov = 0x088d848f, // movl $0x4650,0xc(%edx)
         .ffb = {.effectsField = 0x3d, .centerOffsetField = 0x20, .springRange = 254, .viscosityRange = 254, .reflectRange = 40},
     },
+    {
+        // Counter Strike NEO (csneo2): unlike the Wangan titles (a Namco
+        // clSystemN2 app), this is a Valve GoldSrc HLDS (hlds_i486 launcher
+        // dlopening engine_i486.so, the czero mod) on the N2 board. The
+        // Wangan hooks (clSystemN2, adm*, gRomInfo, Alchemy) are absent, so
+        // only the GoldSrc/HASP-specific install applies (namcoN2Csneo.c).
+        .crc32 = CSNEO_N2,
+        .fileCrc32 = 0x0,
+        .revision = "",
+        .arguments = "-game czero -console -norestart",
+        .workDir = "csneo2/linux",
+    },
 };
 
 const NamcoN2Game *namcoN2GetGame(uint32_t crc32)

@@ -19,6 +19,21 @@
 #include "../hardware/lindbergh/jvs.h"
 #include "../log/log.h"
 
+// Counter Strike NEO (namcoN2Csneo.c).
+void namcoN2CsneoInstall(void);
+int csneoOpenatRemap(int dirfd, const char *path, int flags, char *buf, size_t size);
+const char *csneoRedirectPath(const char *path, char *buf, size_t size);
+
+// The openat funnel (filesystemShared.c): the engine's raw openat(AT_FDCWD,
+// ...) calls the loader's open(2) interposition never sees; only CS Neo
+// remaps (its cabinet free disk), the other N2 games pass through.
+int namcoN2Openat(int dirfd, const char *path, int flags, char *buf, size_t size)
+{
+    return isNamcoN2Game() && namcoN2CurrentGame()->crc32 == CSNEO_N2
+               ? csneoOpenatRemap(dirfd, path, flags, buf, size)
+               : 0;
+}
+
 extern uint32_t gId;
 
 static char gameDir[PATH_MAX];
@@ -49,6 +64,9 @@ const char *namcoN2GameDir(void)
 // /tmp/... -> <game>/tmp/... (but /tmp/.X11-unix and such, the host's).
 const char *namcoN2RedirectPath(const char *path, char *buf, size_t size)
 {
+    // Counter Strike NEO: its cabinet free disk instead (namcoN2Csneo.c).
+    if (isNamcoN2Game() && namcoN2CurrentGame()->crc32 == CSNEO_N2)
+        return csneoRedirectPath(path, buf, size);
     // The game's NVIDIA nForce OpenAL (linked in) drives the cabinet's APU
     // through /dev/dsp: where a PC has one (Batocera's OSS emulation), its
     // register mapping fails and the game crashes. Without it, that back end
@@ -176,6 +194,15 @@ int namcoN2Init(void)
         gameDir[0] = '\0';
     snprintf(tmp, sizeof(tmp), "%s/tmp", gameDir);
     mkdir(tmp, 0755);
+
+    // Counter Strike NEO is a GoldSrc HLDS, not a Namco clSystemN2 app: the
+    // Wangan hooks (clSystemN2, adm*, gRomInfo, Alchemy) do not exist, so it
+    // takes its own install (see namcoN2Csneo.c).
+    if (g->crc32 == CSNEO_N2)
+    {
+        namcoN2CsneoInstall();
+        return 0;
+    }
 
     // gRomInfo: name, region, release type, date, time (32 bytes each), a
     // revision number, then its name.
