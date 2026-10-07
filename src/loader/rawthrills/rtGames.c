@@ -727,6 +727,85 @@ static const RtStub bbhdStubs[] = {
     {NULL, 0},
 };
 
+// ---------------------------------------------------------------------------
+// Pink Panther Jewel Heist (g6 engine), a ticket redemption game on a
+// portrait monitor. Like Big Buck HD Wild a stripped but normally linked
+// binary, except that SDL 1.2 is the system's. Its HASP HL library is Big
+// Buck HD Wild's at -0x225050, each function checked by the trace string it
+// pushes; its four dongle answers come from TeknoParrot's recording.
+
+static const RtSymbol ppSymbols[] = {
+    {"hasp_login", 0x0830ae70},
+    {"hasp_logout", 0x0830af10},
+    {"hasp_encrypt", 0x0830affc},
+    {"hasp_decrypt", 0x0830b0e8},
+    {"hasp_get_sessioninfo", 0x0830b9f0},
+    {"hasp_read", 0x0830bc68},
+    {"hasp_write", 0x0830bd34},
+    // The game's own layer over them, as in Big Buck HD Wild.
+    {"DongleEncrypt", 0x0819eda0},
+    {"DongleDecrypt", 0x0819ef20},
+    // Big Buck HD Wild's anti-debug guard, the same code (nothing seems to
+    // call it in this build).
+    {"TracerGuard", 0x081e4dbb},
+    // gCLArgs at 0x8d2cc00: width, height (1280x720 by default), aspect;
+    // "-f<w>x<h>" sets the size and fullscreen (+0x1c).
+    {"ParseCommandLineArgs", 0x08066c50},
+    // Its PLT entry: SDL 1.2 is the system's.
+    {"SDL_SetVideoMode", 0x08050c90},
+    // The I/O layer (io.c, 0x81855e2 on). Unlike Big Buck HD Wild's, the
+    // engine keeps its own copy of the slots (0x8a128ac, accessor
+    // 0x80aaec0): its input update (0x80ab1c0) runs io_loop (0x81857b0),
+    // then copies io.c's slots over it. So io.c's slots are written: its
+    // accessor (<= 0x142, then 0x146 on through a table; 0x2c byte slots
+    // from 0x8a72f60 + 0x1a28), the getter of the flag io_loop sets, and
+    // the loop of io_rio (entry 0x2 of the backends' table at 0x89e6060),
+    // the last backend to run.
+    {"io_get_input_digital", 0x0818604f},
+    {"io_new_data_present", 0x08185a18},
+    {"io_rio_loop", 0x08184e83},
+    {NULL, 0},
+};
+
+// Its input map, as GameInputMaps (0x8068000) registers it: Big Buck HD
+// Wild's cabinet switches, and six extra switches (ExtSwitch0..5 of the
+// switch test, 0x19c..0x1a1). The game plays with a single button: the
+// input it reads (0x185) is fed by any of the extra switches, the starts
+// and the test switch alike.
+enum
+{
+    PP_IO_COIN0 = 0x14c,    // -> 0x17f
+    PP_IO_COIN1 = 0x14d,    // -> 0x180
+    PP_IO_DIAG = 0x150,     // -> 0x17e, 0x185
+    PP_IO_SERVICE = 0x151,  // -> 0x17d, 0x186
+    PP_IO_VOL_UP = 0x152,   // -> 0x17b, 0x183 (also menu up)
+    PP_IO_VOL_DOWN = 0x153, // -> 0x17c, 0x184 (also menu down)
+    PP_IO_START0 = 0x154,   // -> 0x177, 0x185: the left button
+    PP_IO_START1 = 0x155,   // -> 0x178, 0x185: the right button
+    PP_IO_EXT0 = 0x15b,     // -> 0x19c, 0x185
+    PP_IO_EXT1 = 0x15a,     // -> 0x19d, 0x185
+};
+
+// The two start switches are the cabinet's left and right buttons, which
+// move the Panther: fed by P1's left and right too (the arrow keys, a pad's
+// d-pad). BUTTON_1 is the play button (from the desktop, the left mouse
+// button).
+static const RtIoInput ppIoInputs[] = {
+    {RT_IO_SWITCH, PLAYER_1, PP_IO_START0, BUTTON_START},
+    {RT_IO_SWITCH, PLAYER_1, PP_IO_START0, BUTTON_LEFT},
+    {RT_IO_SWITCH, PLAYER_2, PP_IO_START1, BUTTON_START},
+    {RT_IO_SWITCH, PLAYER_1, PP_IO_START1, BUTTON_RIGHT},
+    {RT_IO_SWITCH, PLAYER_1, PP_IO_EXT0, BUTTON_1},
+    {RT_IO_SWITCH, PLAYER_2, PP_IO_EXT1, BUTTON_1},
+    {RT_IO_SWITCH, PLAYER_1, PP_IO_SERVICE, BUTTON_SERVICE},
+    {RT_IO_SWITCH, SYSTEM, PP_IO_DIAG, BUTTON_TEST},
+    {RT_IO_SWITCH, PLAYER_1, PP_IO_VOL_UP, BUTTON_UP},
+    {RT_IO_SWITCH, PLAYER_1, PP_IO_VOL_DOWN, BUTTON_DOWN},
+    {RT_IO_COIN, 0, PP_IO_COIN0, 0},
+    {RT_IO_COIN, 1, PP_IO_COIN1, 0},
+    {RT_IO_END, 0, 0, 0},
+};
+
 // Pac-Man Chomp Mania (statically linked SDL 1.2), v1.28C: Galaga Assault's
 // RIO layer and switch numbers, one player.
 
@@ -986,6 +1065,36 @@ static const RtGame rtGames[] = {
         .orthoSymbol = "OGL_resize_window_ortho",
         .orthoPrologue = 6,
         .rootPath = "/pm",
+    },
+    {
+        .crc32 = PINK_PANTHER_RT,
+        // libcsv by absolute path, as Big Buck HD Wild: a patched copy.
+        .fileCrc32 = 0xd394437b,
+        .envelopeSelfSlot = -1,
+        .symbols = ppSymbols,
+        // hasp_login at 0x819dfb0 with 0xffff0000 as a literal, the memory
+        // reads at 0x819e615 and 0x819e705 with 0xfff2.
+        .haspFeature = 0xffff0000,
+        .haspMemoryFileId = 0xfff2,
+        .haspAnswers = "hasp",
+        .rootPath = "/pm",
+        .stubs = bbhdStubs,
+        .resolution = 0x08d2cc00,
+        .aspect = 0x08d2cc08,
+        .fullscreenFlag = 0x08d2cc1c,
+        // "jmp *0x89ac324", the PLT entry: the window at [Display]
+        // WIDTH/HEIGHT, the game at the bezel's hole with one.
+        .videoModeSymbol = "SDL_SetVideoMode",
+        .videoModePrologue = 6,
+        .bezelFrame = 1,
+        .exeGlxGetProcAddress = 1,
+        // "push %edi; push %esi; push %ebx; mov $0x1,%ebx"
+        .parseArgsPrologue = 8,
+        // "push %ebp; mov %esp,%ebp; sub $0x38,%esp"
+        .ioLoopSymbol = "io_rio_loop",
+        .ioLoopPrologue = 6,
+        .ioInputs = ppIoInputs,
+        .ioDesktop = 1,
     },
     {
         .crc32 = WALKING_DEAD_RT,

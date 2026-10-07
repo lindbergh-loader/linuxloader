@@ -20,6 +20,9 @@
 #define BIG_BUCK_HD_WILD_RT 0xc814b556                           // v08.29
 #define BIG_BUCK_HD_WILD_840_RT 0xbf99bb07                       // v08.40, patched copy (0x2120cafb untouched)
 #define PACMAN_CHOMP_MANIA_RT 0xf841f9e7                         // Raw Thrills, v1.28C
+// Raw Thrills, g6 engine; like Big Buck HD Wild, the CRC of the patched copy
+// (0xd394437b is the untouched file).
+#define PINK_PANTHER_RT 0x2a0ca1ef
 #define AFTER_BURNER_CLIMAX_SBLR 0xa3c246e2                       // DVP-0009
 #define AFTER_BURNER_CLIMAX_SBLR_REVA 0xe657b1c0                  // DVP-0009A
 #define AFTER_BURNER_CLIMAX_SBLR_REVB 0xdb9d8396                  // DVP-0009B
