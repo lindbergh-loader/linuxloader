@@ -365,6 +365,133 @@ static const RtIoInput twdRioSwitches[] = {
     {RT_IO_END, 0, 0, 0},
 };
 
+// ---------------------------------------------------------------------------
+// Terminator Salvation (g3 engine), v01.25.00. Not a dump: a stripped but
+// normally linked binary, with the HASP HL library linked in statically.
+// Functions found from the game's call sites and the HASP API's argument
+// checks. The data files are encrypted with keys the dongle encrypts: its
+// answers are read from TeknoParrot's recording ("hasp" folder).
+
+static const RtSymbol t4Symbols[] = {
+    {"hasp_login", 0x083bbe60},
+    {"hasp_logout", 0x083bbe00},
+    {"hasp_read", 0x083bac80},
+    {"hasp_write", 0x083bad30},
+    {"hasp_get_sessioninfo", 0x083bae80},
+    {"hasp_free", 0x083baab0},
+    {"hasp_encrypt", 0x083bbd60},
+    {"hasp_decrypt", 0x083bbce0},
+    // Thread keeping the dongle busy with random encryptions.
+    {"DongleNoise", 0x080ac230},
+    // Forks a tracer: the game runs as a child the parent ptraces, so that
+    // no debugger can attach. Returns 1 in that child.
+    {"TracerGuard", 0x082f2eda},
+    // Boot-time check of the data files against their stored checksums.
+    // Game copies ship a re-encrypted, fixed eshaders/include/frag_shadmap.gls
+    // (the original does not compile on current drivers), which fails it
+    // and stops the game on "Game file errors detected".
+    {"DiagCheckAllFiles", 0x08190960},
+    // Online licensing: sets a record's lockout reason (offline too long,
+    // clock error, account delinquent, on too long without connection, not
+    // registered) from the operator and unit registration the network
+    // provides (op.aud, GameUnit.aud); a lockout stops the game on "Please
+    // stand by". Returns 1 when the record has none.
+    {"LicenseLockout", 0x081adad0},
+    // Whether a player's light gun is connected (the IR gun manager found
+    // it on a USB serial port): players join only then.
+    {"GunConnected", 0x08159f00},
+    // The IR gun manager's aim of a player's gun (reticle, ...), and whether
+    // it lost the gun's signal (the aim is then off the screen).
+    {"GunAim", 0x0842e488},
+    {"GunNoSignal", 0x0842e476},
+    // Its count of a gun's own button (gun, button 0..4), read each frame
+    // by the gun input (0x815b0b0), which posts an event when one changes
+    // (gun 0: 0x12 to 0x15 for buttons 1 to 4, gun 1: 0x2a to 0x2d).
+    {"GunButton", 0x0843a180},
+    // Input: the JAMMA board's poll, run each frame, the board API
+    // (request, ...) and the input event queue (event, data).
+    {"JammaPoll", 0x08063630},
+    {"JammaOp", 0x081d70a3},
+    {"PostInputEvent", 0x08062320},
+    // Video: select the mode table entry, open the glut window.
+    {"SetVideoMode", 0x080c6fc0},
+    {"OpenWindow", 0x080c48b0},
+    {NULL, 0},
+};
+
+// JAMMA board switches, numbered as in the games' switch table (which maps
+// them to input events; the same in Big Buck World), and gun events.
+enum
+{
+    T4_GUN0_TRIGGER = 1,
+    T4_GUN1_TRIGGER = 2,
+    T4_GUN0_RELOAD = 3,
+    T4_GUN1_RELOAD = 4,
+    T4_START0 = 5,
+    T4_START1 = 6,
+    T4_COIN0 = 7,
+    T4_COIN1 = 8,
+    T4_SERVICE = 10,
+    T4_TEST = 11,
+    T4_VOLUME_UP = 12, // also moves in the test menus
+    T4_VOLUME_DOWN = 13,
+    // Light gun board messages: a shot.
+    T4_GUN0_SHOT = 0x10,
+    T4_GUN1_SHOT = 0x28,
+};
+
+static const RtIoInput jammaSwitches[] = {
+    {RT_IO_SWITCH, PLAYER_1, T4_GUN0_TRIGGER, BUTTON_1},
+    {RT_IO_SWITCH, PLAYER_1, T4_GUN0_TRIGGER, BUTTON_3}, // a shot off the screen
+    {RT_IO_SWITCH, PLAYER_1, T4_GUN0_RELOAD, BUTTON_2},
+    {RT_IO_SWITCH, PLAYER_2, T4_GUN1_TRIGGER, BUTTON_1},
+    {RT_IO_SWITCH, PLAYER_2, T4_GUN1_TRIGGER, BUTTON_3},
+    {RT_IO_SWITCH, PLAYER_2, T4_GUN1_RELOAD, BUTTON_2},
+    {RT_IO_SWITCH, PLAYER_1, T4_START0, BUTTON_START},
+    {RT_IO_SWITCH, PLAYER_2, T4_START1, BUTTON_START},
+    {RT_IO_SWITCH, PLAYER_1, T4_SERVICE, BUTTON_SERVICE},
+    {RT_IO_SWITCH, PLAYER_2, T4_SERVICE, BUTTON_SERVICE},
+    {RT_IO_SWITCH, SYSTEM, T4_TEST, BUTTON_TEST},
+    {RT_IO_SWITCH, PLAYER_1, T4_VOLUME_UP, BUTTON_UP},
+    {RT_IO_SWITCH, PLAYER_1, T4_VOLUME_DOWN, BUTTON_DOWN},
+    {RT_IO_COIN, 0, T4_COIN0, 0},
+    {RT_IO_COIN, 1, T4_COIN1, 0},
+    {RT_IO_END, 0, 0, 0},
+};
+
+// Terminator Salvation's guns have a third button of their own, the
+// grenade, which the board does not carry: the IR gun manager counts the
+// guns' buttons (GunButton), a count each for a button's presses and its
+// releases, and the game posts an event when one changes: buttons 1 and 2
+// the pump's press and release (events 0x12 and 0x13, as the board's pump
+// switch), 3 and 4 the grenade's (0x14, 0x15). So BUTTON_3 is the grenade
+// here, not a shot off the screen.
+static const RtIoInput t4Switches[] = {
+    {RT_IO_SWITCH, PLAYER_1, T4_GUN0_TRIGGER, BUTTON_1},
+    {RT_IO_SWITCH, PLAYER_1, T4_GUN0_RELOAD, BUTTON_2},
+    {RT_IO_SWITCH, PLAYER_2, T4_GUN1_TRIGGER, BUTTON_1},
+    {RT_IO_SWITCH, PLAYER_2, T4_GUN1_RELOAD, BUTTON_2},
+    {RT_IO_SWITCH, PLAYER_1, T4_START0, BUTTON_START},
+    {RT_IO_SWITCH, PLAYER_2, T4_START1, BUTTON_START},
+    {RT_IO_SWITCH, PLAYER_1, T4_SERVICE, BUTTON_SERVICE},
+    {RT_IO_SWITCH, PLAYER_2, T4_SERVICE, BUTTON_SERVICE},
+    {RT_IO_SWITCH, SYSTEM, T4_TEST, BUTTON_TEST},
+    {RT_IO_SWITCH, PLAYER_1, T4_VOLUME_UP, BUTTON_UP},
+    {RT_IO_SWITCH, PLAYER_1, T4_VOLUME_DOWN, BUTTON_DOWN},
+    {RT_IO_COIN, 0, T4_COIN0, 0},
+    {RT_IO_COIN, 1, T4_COIN1, 0},
+    {RT_IO_END, 0, 0, 0},
+};
+
+static const RtJammaGun t4Guns[] = {
+    {PLAYER_1, ANALOGUE_1, ANALOGUE_2, T4_GUN0_SHOT, 0, T4_GUN0_SHOT + 1},
+    {PLAYER_2, ANALOGUE_3, ANALOGUE_4, T4_GUN1_SHOT, 0, T4_GUN1_SHOT + 1},
+};
+
+static const RtStub t4Stubs[] = {{"TracerGuard", 1}, {"DiagCheckAllFiles", 0}, {"LicenseLockout", 1}, {"GunConnected", 1}, {"GunNoSignal", 0}, {NULL, 0}};
+
+static const RtPathAlias t4RootAliases[] = {{"/T4User", "T4User"}, {NULL, NULL}};
+
 // Pac-Man Chomp Mania (statically linked SDL 1.2), v1.28C: Galaga Assault's
 // RIO layer and switch numbers, one player.
 
@@ -573,6 +700,40 @@ static const RtGame rtGames[] = {
         .stubs = gaStubs,
         .rootPath = "/pm",
         .pathAliases = twdPathAliases,
+    },
+    {
+        .crc32 = TERMINATOR_SALVATION_RT,
+        .envelopeSelfSlot = -1,
+        .symbols = t4Symbols,
+        .haspFeature = 0xffff0000,
+        .haspMemoryFileId = 0xfff2,
+        .haspAnswers = "hasp",
+        .stubs = t4Stubs,
+        .rootPath = "/g3",
+        .rootAliases = t4RootAliases,
+        // Both "push %ebp; mov %esp,%ebp; sub $imm8,%esp"
+        .setModeSymbol = "SetVideoMode",
+        .setModePrologue = 6,
+        .modePointer = 0x088b5e70,
+        .windowOpenSymbol = "OpenWindow",
+        .windowOpenPrologue = 6,
+        .glutWindowOnly = 1,
+        .jammaPollSymbol = "JammaPoll",
+        // "push %ebp; mov %esp,%ebp; push %edi; push %esi; push %ebx; xor %ebx,%ebx"
+        .jammaPollPrologue = 8,
+        .jammaOpSymbol = "JammaOp",
+        // "push %ebp; mov %esp,%ebp; push %ebx; sub $0x74,%esp"
+        .jammaOpPrologue = 7,
+        .postEventSymbol = "PostInputEvent",
+        .jammaSwitches = t4Switches,
+        .jammaGuns = t4Guns,
+        .jammaGunCount = sizeof(t4Guns) / sizeof(t4Guns[0]),
+        .gunAimSymbol = "GunAim",
+        .gunAimWidth = 800,
+        .gunAimHeight = 600,
+        .gunButtonSymbol = "GunButton",
+        .gunButtonPresses = {[3] = BUTTON_3},
+        .gunButtonReleases = {[4] = BUTTON_3},
     },
 };
 
