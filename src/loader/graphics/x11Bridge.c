@@ -13,6 +13,9 @@
 // Windows API
 #ifdef   __linux__
 #include <X11/Xlib.h>
+#include <X11/Xatom.h>
+#include <string.h>
+#include <unistd.h>
 #include <GL/glx.h>
 #include <dlfcn.h>
 #include <X11/extensions/xf86vmode.h> 
@@ -542,6 +545,8 @@ extern Display *x11Display;
 extern Window x11Window;
 extern bool gettingGPUVendor;
 extern bool creatingWindow;
+extern int gWidth;
+extern int gHeight;
 
 Window window;
 
@@ -576,7 +581,19 @@ Window XCreateWindow(Display *display, Window parent, int x, int y, unsigned int
                              XSetWindowAttributes *attributes) = dlsym(RTLD_NEXT, "XCreateWindow");
 
     if ((gettingGPUVendor || creatingWindow))
+    {
         window = _XCreateWindow(display, parent, x, y, width, height, border_width, depth, class, visual, valueMask, attributes);
+        // The window is this process's (_NET_WM_PID), as SDL marks its own:
+        // the quit watch (Esc, Alt+F4) only acts on a window so marked, and
+        // the games making their own X11 window (Dead Heat Riders, Maximum
+        // Heat 3D, Tank! Tank! Tank!) did not mark theirs.
+        if (window)
+        {
+            long pid = getpid();
+            XChangeProperty(display, window, XInternAtom(display, "_NET_WM_PID", False), XA_CARDINAL, 32,
+                            PropModeReplace, (unsigned char *)&pid, 1);
+        }
+    }
     else
         window = x11Window;
 
@@ -590,14 +607,91 @@ void XSetWMProperties(Display *display, Window w, XTextProperty *window_name, XT
     return;
 }
 
+// The calls below are kept from the game while the loader's SDL window stands
+// in for its own. A game the loader gives no SDL window (the Namco ES1 games
+// with their own X11/GLX window: gettingGPUVendor stays set, see init.c) gets
+// the real ones, as XOpenDisplay and XCreateWindow above.
+static bool ownXWindow(void)
+{
+    return gettingGPUVendor || creatingWindow;
+}
+
 int XMapWindow(Display *display, Window window)
 {
+    if (ownXWindow())
+    {
+        int (*_XMapWindow)(Display *, Window) = dlsym(RTLD_NEXT, "XMapWindow");
+        return _XMapWindow(display, window);
+    }
     return 0;
+}
+
+// The events a window just mapped gets, as the SDL window standing in for
+// the game's would have sent them (it was mapped before the game asked).
+static const int mapEventTypes[] = {MapNotify, Expose, ConfigureNotify, VisibilityNotify};
+#define MAP_EVENT_COUNT ((int)(sizeof(mapEventTypes) / sizeof(mapEventTypes[0])))
+
+// The size they give is the frame the game draws into (blitStretching.c):
+// the window's, unless the game draws at a size of its own (Police Trainer
+// 2's 640x480), which its reshape on ConfigureNotify must get, not the
+// window's.
+extern int blitWidth, blitHeight;
+
+static void mapEvent(Display *display, int type, XEvent *event)
+{
+    int width = blitWidth > 0 ? blitWidth : gWidth, height = blitHeight > 0 ? blitHeight : gHeight;
+
+    memset(event, 0, sizeof(*event));
+    event->type = type;
+    event->xany.display = display;
+    event->xany.window = x11Window;
+    // xany.window is the event's window for Expose, but the parent
+    // ("event") for the structure events: theirs is set too.
+    if (type == MapNotify)
+        event->xmap.window = x11Window;
+    else if (type == Expose)
+    {
+        event->xexpose.width = width;
+        event->xexpose.height = height;
+    }
+    else if (type == ConfigureNotify)
+    {
+        event->xconfigure.window = x11Window;
+        event->xconfigure.width = width;
+        event->xconfigure.height = height;
+    }
 }
 
 int XPending(Display *display)
 {
+    if (ownXWindow())
+    {
+        int (*_XPending)(Display *) = dlsym(RTLD_NEXT, "XPending");
+        return _XPending(display);
+    }
     return 0;
+}
+
+// Games waiting for an event of their window after mapping it (Puck Off:
+// XMapWindow, then XIfEvent until its MapNotify): the SDL window standing in
+// for theirs is already mapped, and sends them nothing. They get the events
+// a window just mapped would: the first one their predicate takes.
+int XIfEvent(Display *display, XEvent *event, Bool (*predicate)(Display *, XEvent *, XPointer), XPointer arg)
+{
+    int (*_XIfEvent)(Display *, XEvent *, Bool (*)(Display *, XEvent *, XPointer), XPointer) =
+        dlsym(RTLD_NEXT, "XIfEvent");
+
+    if (!ownXWindow())
+    {
+        for (int i = 0; i < MAP_EVENT_COUNT; i++)
+        {
+            mapEvent(display, mapEventTypes[i], event);
+            if (predicate(display, event, arg))
+                return 0;
+        }
+        log_warn("XIfEvent: the game waits for an event the loader's window does not send");
+    }
+    return _XIfEvent(display, event, predicate, arg);
 }
 
 int XGrabPointer(Display *display, Window grab_window, Bool owner_events, unsigned int event_mask, int pointer_mode, int keyboard_mode,
@@ -622,6 +716,24 @@ int XMoveWindow(Display * display, Window w, int x, int y)
     return 0;
 }
 
+// The window's size is the loader's (FULLSCREEN, WIDTH, HEIGHT): a game
+// resizing the SDL window standing in for its own (Police Trainer 2 makes
+// it the screen's size, its fullscreen) would leave SDL with the old size,
+// and the frame drawn unscaled in a corner. Its own window keeps the calls.
+int XResizeWindow(Display *display, Window w, unsigned int width, unsigned int height)
+{
+    int (*_XResizeWindow)(Display *, Window, unsigned int, unsigned int) = dlsym(RTLD_NEXT, "XResizeWindow");
+
+    return ownXWindow() ? _XResizeWindow(display, w, width, height) : 0;
+}
+
+int XConfigureWindow(Display *display, Window w, unsigned int valueMask, XWindowChanges *values)
+{
+    int (*_XConfigureWindow)(Display *, Window, unsigned int, XWindowChanges *) = dlsym(RTLD_NEXT, "XConfigureWindow");
+
+    return ownXWindow() ? _XConfigureWindow(display, w, valueMask, values) : 0;
+}
+
 Bool XF86VidModeSwitchToMode(Display *display, int screen, XF86VidModeModeInfo *modesinfo)
 {
     return 0;
@@ -632,8 +744,16 @@ Bool XF86VidModeGetViewPort(Display *display, int screen, int *x_return, int *y_
     return 0;
 }
 
+// A game with its own window (Tank! Tank! Tank!) paces its frames on the
+// refresh rate it reads from the mode line: the real one.
 Bool XF86VidModeGetModeLine(Display *display, int screen, int *dotclock_return, XF86VidModeModeLine *modeline)
 {
+    if (ownXWindow())
+    {
+        Bool (*real)(Display *, int, int *, XF86VidModeModeLine *) = dlsym(RTLD_NEXT, "XF86VidModeGetModeLine");
+        if (real && real(display, screen, dotclock_return, modeline))
+            return 1;
+    }
     return 0;
 }
 

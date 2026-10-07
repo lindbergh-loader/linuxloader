@@ -56,6 +56,23 @@ static void handleSegfault(int signal, siginfo_t *info, void *ptr)
     greg_t eip_value = ctx->uc_mcontext.gregs[REG_EIP];
     uint8_t *code = (uint8_t *)(size_t)eip_value; // Use uintptr_t to ensure proper alignment
 
+    // A call through a bad function pointer: there is no code to read at
+    // EIP, and reading it here would fault again and kill the game without
+    // a word. Say where it came from (the return address on the stack) and
+    // let the fault kill it.
+    if ((uintptr_t)info->si_addr == (uintptr_t)eip_value)
+    {
+        uintptr_t from = *(uintptr_t *)(size_t)ctx->uc_mcontext.gregs[REG_ESP];
+        Dl_info where = {0};
+        dladdr((void *)from, &where);
+        fprintf(stderr, "linuxloader: jump to bad address 0x%08x from 0x%08x (%s+0x%x %s)\n", (uint32_t)eip_value,
+                (uint32_t)from, where.dli_fname ? where.dli_fname : "?",
+                (uint32_t)(from - (uintptr_t)where.dli_fbase), where.dli_sname ? where.dli_sname : "");
+        struct sigaction dfl = {.sa_handler = SIG_DFL};
+        sigaction(SIGSEGV, &dfl, NULL);
+        return;
+    }
+
     switch (*code)
     {
         case 0xED: // IN
@@ -262,6 +279,9 @@ bool checkOS_ID()
 void __attribute__((constructor)) hook_init()
 {
     logSetMinLevel(LOG_ERROR);
+    // Launched from a frontend, stdout is a pipe: line-buffer it, or what the
+    // game printed before a crash is lost with it.
+    setvbuf(stdout, NULL, _IOLBF, 0);
     // We force x11 for SDL so the window do not scale in wayland.
     setenv("SDL_VIDEODRIVER", "x11", 1);
 

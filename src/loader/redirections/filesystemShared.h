@@ -8,9 +8,12 @@
 #include <dirent.h>
 #include <stdio.h>
 #include <sys/stat.h>
+// hooks[] holds the emulated devices' fds, NO_DEVICE when not opened: no
+// valid fd. (At 0, sharedSelect() took a select() on stdin for one on the
+// unopened baseboard: Police Trainer 2's sound daemon reads its pipe so.)
 typedef enum
 {
-    NO_DEVICE = 0,
+    NO_DEVICE = -1,
     BASEBOARD = 1,
     EEPROM = 2,
     SERIAL0 = 3,

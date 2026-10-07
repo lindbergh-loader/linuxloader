@@ -291,6 +291,10 @@ void bridgeglEnable(GLenum cap)
     {
         cap = GL_FRAGMENT_PROGRAM_ARB;
     }
+    // Before the game's context is current (WMMT4's first glEnable): nothing
+    // to enable, as without a context.
+    if (!glad_glEnable)
+        return;
     glad_glEnable(cap);
 }
 
@@ -311,6 +315,10 @@ void bridgeglDisable(GLenum cap)
     {
         cap = GL_FRAGMENT_PROGRAM_ARB;
     }
+    // Before the game's context is current (WMMT4's first glEnable): nothing
+    // to enable, as without a context.
+    if (!glad_glDisable)
+        return;
     glad_glDisable(cap);
 }
 
@@ -500,10 +508,20 @@ void srtvElfShaderPatcher()
  * some empty shaders.So we cache a good shader and then feed that shader to the
  * game instead of an empty one.
  */
+const char *(*cgCompiledProgramFilter)(const char *program);
+
 #ifdef __linux__
 char *cgGetProgramString(char *program, int e)
 {
     char *(*_cgGetProgramString)(char *program, int e) = dlsym(RTLD_NEXT, "cgGetProgramString");
+
+    // (the compiled program: assembly, its header "!!")
+    if (cgCompiledProgramFilter)
+    {
+        char *compiled = _cgGetProgramString(program, e);
+        return compiled && compiled[0] == '!' && compiled[1] == '!' ? (char *)cgCompiledProgramFilter(compiled)
+                                                                      : compiled;
+    }
 #else
 void *real_cgGetProgramString = NULL;
 

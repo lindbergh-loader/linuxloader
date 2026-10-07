@@ -329,6 +329,19 @@ int setenv(const char *name, const char *value, int overwrite)
     return sharedSetenv(name, value, overwrite);
 }
 
+// As setenv: the game's display is the loader's (Star Trek: Voyager puts
+// "DISPLAY=:0.0").
+int putenv(char *string)
+{
+    static int (*_putenv)(char *string) = NULL;
+    if (_putenv == NULL)
+        _putenv = (int (*)(char *))dlsym(RTLD_NEXT, "putenv");
+
+    if (strncmp(string, "DISPLAY=", 8) == 0)
+        return 0;
+    return _putenv(string);
+}
+
 char *getenv(const char *name)
 {
     return sharedGetenv(name);

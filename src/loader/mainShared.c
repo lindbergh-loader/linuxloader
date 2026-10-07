@@ -222,15 +222,21 @@ int calculateCRC32inChunks(const char *filename, uint32_t *crc)
         return EXIT_FAILURE;
     }
 
+    // A byte at a time from a table: the games' files run to hundreds of MB.
+    static uint32_t table[256];
+    if (table[1] == 0)
+        for (uint32_t i = 0; i < 256; i++)
+            table[i] = calcCrc32(i, 0);
+
     *crc = 0xFFFFFFFF;
-    uint8_t buffer[4096];
+    static uint8_t buffer[1 << 16];
     size_t bytesRead;
 
     while ((bytesRead = fread(buffer, 1, sizeof(buffer), file)) > 0)
     {
         for (size_t i = 0; i < bytesRead; i++)
         {
-            *crc = calcCrc32(*crc, buffer[i]);
+            *crc = (*crc >> 8) ^ table[(*crc ^ buffer[i]) & 0xFF];
         }
     }
     fclose(file);

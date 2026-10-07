@@ -27,6 +27,9 @@
 #include "../mainShared.h"
 #include "../graphics/overlayMsgs.h"
 #include "wiimoteEvdev.h"
+#ifdef __linux__
+#include "evdevInput.h"
+#endif
 
 // --- GLOBAL STATE AND MAPPINGS ---
 ActionState gActionStates[MAX_ENTITIES][NUM_LOGICAL_ACTIONS];
@@ -205,16 +208,15 @@ void saveGuidsToIni();
  */
 int initSdlInput(const char *controlsPath)
 {
-    if (getConfig()->inputMode == 2)
-        return 0;
+    bool evdevMode = getConfig()->inputMode == 2;
 
     // Initialize GameController subsystem
-    if (!SDL_Init(SDL_INIT_GAMEPAD))
+    if (!evdevMode && !SDL_Init(SDL_INIT_GAMEPAD))
         log_warn("Could not initialize SDL_GameController: %s\n", SDL_GetError());
 
     // Load official and community-sourced controller mappings from a database file.
     char *envDbPath = getenv("LINUX_LOADER_CONTROLS_DB_PATH");
-    if (envDbPath)
+    if (!evdevMode && envDbPath)
     {
         if (SDL_AddGamepadMappingsFromFile(envDbPath) > 0)
             printf("%s loaded as a controller database.\n", myBasename(envDbPath));
@@ -286,6 +288,14 @@ int initSdlInput(const char *controlsPath)
     if (!isProfileLoaded)
     {
         setDefaultMappings();
+    }
+
+    if (evdevMode)
+    {
+        detectCombinedAxes();
+        remapPerGame();
+        sdlInputInitialized = true;
+        return 0;
     }
 
     // --- NEW GUID-BASED CONTROLLER MAPPING ---
@@ -497,6 +507,9 @@ void initJvsMappings()
             gJvsMap[p][LA_Button1] = (JVSActionMapping){JVS_CALL_SWITCH, BUTTON_1};
             gJvsMap[p][LA_Button2] = (JVSActionMapping){JVS_CALL_SWITCH, BUTTON_2};
             gJvsMap[p][LA_Button3] = (JVSActionMapping){JVS_CALL_SWITCH, BUTTON_3};
+            gJvsMap[p][LA_Button4] = (JVSActionMapping){JVS_CALL_SWITCH, BUTTON_4};
+            gJvsMap[p][LA_Button5] = (JVSActionMapping){JVS_CALL_SWITCH, BUTTON_5};
+            gJvsMap[p][LA_Button6] = (JVSActionMapping){JVS_CALL_SWITCH, BUTTON_6};
         }
         else if (gameType == SHOOTING)
         {
@@ -1532,6 +1545,9 @@ void updateBindingState(ControlBinding *binding, bool isActive, float analogValu
  */
 void processSdlEvent(const SDL_Event *e)
 {
+    if (getConfig()->inputMode == 2 && e->type != SDL_EVENT_KEY_DOWN && e->type != SDL_EVENT_KEY_UP)
+        return;
+
 #ifdef __linux__
     // Make sure to use the variable, not the macro name
     if (e->type == SDL_WIIMOTION_EVENT)
@@ -2164,7 +2180,12 @@ void processChangedActions()
 
                     overlayShowMessage(msg, 3000, pos);
                 }
-                setSwitch(player, map->jvsInput, state->isActive);
+#ifdef __linux__
+                if (getConfig()->inputMode == 2)
+                    setSdlKeyboardSwitch(player, map->jvsInput, state->isActive);
+                else
+#endif
+                    setSwitch(player, map->jvsInput, state->isActive);
                 break;
             case JVS_CALL_ANALOGUE:
                 // Special handling for digital actions that control an analog JVS input

@@ -155,6 +155,9 @@ typedef struct
     int analogueChannel[JVS_MAX_STATE_SIZE];
     int gunChannel[JVS_MAX_STATE_SIZE];
     int rotaryChannel[JVS_MAX_STATE_SIZE];
+    // Presses of each switch (bit) of a player (SYSTEM, PLAYER_1..4): for
+    // readers polling once a frame, a press shorter than that is still seen.
+    unsigned int switchPresses[5][32];
 } JVSState;
 
 typedef struct
@@ -239,3 +242,7 @@ JVSIO* getJVSIO();
 int setSwitch(JVSPlayer player, JVSInput switchNumber, int value);
 int incrementCoin(JVSPlayer player, int amount);
 int setAnalogue(JVSInput channel, int value);
+
+// Told of each general output byte the game writes (index, value).
+typedef void (*JVSGpoHandler)(unsigned char index, unsigned char data);
+void setJVSGpoHandler(JVSGpoHandler handler);

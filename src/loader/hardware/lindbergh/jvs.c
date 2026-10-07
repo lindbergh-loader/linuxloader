@@ -18,6 +18,15 @@ pthread_mutex_t jvsMutex = PTHREAD_MUTEX_INITIALIZER;
 
 JVSIO io = {0};
 
+// What the cabinet wires to the general outputs, if the game needs it seen
+// (Maximum Heat 3D: GOUT0 powers the steering board): told of each byte.
+static JVSGpoHandler gpoHandler;
+
+void setJVSGpoHandler(JVSGpoHandler handler)
+{
+    gpoHandler = handler;
+}
+
 /**
  * Initialise the JVS emulation
  *
@@ -409,6 +418,8 @@ JVSStatus processPacket(int *packetSize)
             {
                 // setGeneralPurposeOutputByte(i, inputPacket.data[index + 2 + i]);
                 processGPOpacket(inputPacket.data[index + 2 + i]);
+                if (gpoHandler)
+                    gpoHandler((unsigned char)i, inputPacket.data[index + 2 + i]);
             }
             outputPacket.data[outputPacket.length] = REPORT_SUCCESS;
             outputPacket.length += 1;
@@ -666,6 +677,10 @@ int setSwitch(JVSPlayer player, JVSInput switchNumber, int value)
 
     if (value)
     {
+        // The switches going down: their presses (see JVSState).
+        for (unsigned int down = player <= PLAYER_4 ? switchNumber & ~io.state.inputSwitch[player] : 0; down;
+             down &= down - 1)
+            io.state.switchPresses[player][__builtin_ctz(down)]++;
         io.state.inputSwitch[player] |= switchNumber;
     }
     else

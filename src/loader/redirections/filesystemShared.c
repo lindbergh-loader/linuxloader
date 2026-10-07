@@ -33,7 +33,9 @@
 
 #ifdef __linux__
 #include <dlfcn.h>
+#include <fcntl.h>
 #include <net/if.h>
+#include <stdarg.h>
 #include <sys/ioctl.h>
 #define REAL_FUNC(name) dlsym(RTLD_NEXT, #name)
 #else
@@ -204,6 +206,16 @@ int sharedOpen(const char *pathname, int flags, ...)
     va_start(args, flags);
     int mode = va_arg(args, int);
     va_end(args);
+
+#ifdef __linux__
+    // X11 socket and Xauthority: never redirect. A game's own libX11 opens
+    // them to reach the X server; the loader's path redirection must not
+    // touch these.
+    if (pathname && (strncmp(pathname, "/tmp/.X11-unix/", 16) == 0 ||
+                     strstr(pathname, "Xauthority") != NULL ||
+                     strncmp(pathname, "/run/user/", 9) == 0))
+        return _open(pathname, flags, mode);
+#endif
 
     if (strcmp(pathname, "/dev/lbb") == 0)
     {
@@ -378,10 +390,12 @@ FILE *sharedFopen(const char *restrict pathname, const char *restrict mode)
         }
     }
 
+    // Its lines come from sharedFgets; the stream itself is empty, so that a
+    // reader looping on feof() (Namco N2's Alchemy) sees the end after them.
     if (strcmp(pathname, "/proc/cpuinfo") == 0)
     {
         fileRead[CPUINFO] = 0;
-        fileHooks[CPUINFO] = _fopen(HOOK_FILE_NAME, mode);
+        fileHooks[CPUINFO] = _fopen("/dev/null", mode);
         return fileHooks[CPUINFO];
     }
 
@@ -712,7 +726,7 @@ char *sharedFgets(char *str, int n, FILE *stream)
             strcpy(contents[3], "model name	: Intel(R) Celeron(R) CPU 2.80GHz");
 
         if (fileRead[CPUINFO] == 4)
-            return NULL;
+            return _fgets(str, n, stream); // NULL, and the stream at its end
 
         strcpy(str, contents[fileRead[CPUINFO]++]);
         return str;
@@ -727,6 +741,7 @@ ssize_t sharedRead(int fd, void *buf, size_t count)
     static ssize_t (*_read)(int fd, void *buf, size_t count) = NULL;
     if (_read == NULL)
         _read = REAL_FUNC(read);
+
 #endif
 
     if (fd == (int)hooks[BASEBOARD])
@@ -1084,6 +1099,12 @@ int __xstat64(int ver, const char *path, struct stat64 *stat_buf)
 {
     if (___xstat64 == NULL)
         ___xstat64 = REAL_FUNC(__xstat64);
+#ifdef __linux__
+    // X11 socket: never redirect (see sharedOpen above).
+    if (path && (strncmp(path, "/tmp/.X11-unix/", 16) == 0 ||
+                 strncmp(path, "/run/user/", 9) == 0))
+        return ___xstat64(ver, path, stat_buf);
+#endif
 
     if (strcmp("/var/tmp/warning", path) == 0)
     {
@@ -1125,9 +1146,17 @@ int fclose(FILE *stream)
     return sharedFclose(stream);
 }
 
-static int (*_openat)(int dirfd, const char *pathname, int flags) = NULL;
-int openat(int dirfd, const char *pathname, int flags)
+static int (*_openat)(int dirfd, const char *pathname, int flags, mode_t mode) = NULL;
+int openat(int dirfd, const char *pathname, int flags, ...)
 {
+    mode_t mode = 0;
+    va_list ap;
+    if (flags & O_CREAT)
+    {
+        va_start(ap, flags);
+        mode = (mode_t)va_arg(ap, int);
+        va_end(ap);
+    }
     if (_openat == NULL)
         _openat = REAL_FUNC(openat);
 
@@ -1137,7 +1166,7 @@ int openat(int dirfd, const char *pathname, int flags)
         return sharedOpen(pathname, flags);
     }
 
-    return _openat(dirfd, pathname, flags);
+    return _openat(dirfd, pathname, flags, mode);
 }
 
 int close(int fd)
