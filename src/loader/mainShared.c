@@ -164,6 +164,7 @@ uint32_t cleanElfCRC32[] = {
     0xFCB9D941, // DVP-5019A | vf5
     0xAB70901C, // DVP-5020  | vf5
     0x6BAA510D, // DVP-5020  | vf5 | Ver 6.000
+    0x6D238B08, // Namco ES1 | Nirin a.elf (NRN100-4-NA-DAT0-A37)
 };
 
 int cleanElfCRC32Count = sizeof(cleanElfCRC32) / sizeof(uint32_t);
