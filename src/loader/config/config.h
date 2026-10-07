@@ -40,6 +40,7 @@
 #define DHRIDERS_ES1 0x5d3df1cd                                  // Namco ES1, DH RIDERS (rev 1247)
 #define DEADHEAT_ES1 0x7a3a5554                                  // Namco ES1, US DRIVE (rev 6273)
 #define MAXIMUMHEAT3D_ES1 0xf932e88e                             // Namco ES1, US DRIVE (rev 8807)
+#define WMMT3DXPLUS_N2 0x85a0e7ab                                // Namco N2, W3P100-1-NA-DAT0-B02
 #define TANKTANKTANK_ES1 0xd7270b7d                              // Namco ES1, tank_us_100226_rev1.03.14
 #define GUNDAM_KIZUNA_ES1 0xb647d490                             // Namco ES1, Senjo no Kizuna REV3.57.07
 #define AFTER_BURNER_CLIMAX_SBLR 0xa3c246e2                       // DVP-0009
