@@ -86,6 +86,49 @@ static const NamcoEs1Game games[] = {
         .ffb = {.instance = 0x09035980, .effectsField = 0x48, .centerOffsetField = 0x2c, .springRange = 254, .viscosityRange = 254, .reflectRange = 63},
     },
     {
+        // Maximum Heat 3D (US DRIVE, rev 8807): Dead Heat's later build, with
+        // DHR's X11/GLX window instead of SDL, and still the linked HASP HL
+        // and Intel's compiler.
+        .crc32 = MAXIMUMHEAT3D_ES1,
+        .fileCrc32 = 0x6e2be119,
+        .jvsDevice = "/dev/ttyS2",
+        .kickbackDevice = "/dev/ttyS1",
+        .kickbackReportsUnprompted = 1,
+        .kickbackPowerGpo = 0x80,     // GOUT0 STR PCB POWER
+        .ffb = {.instance = 0x0917a6c0, .effectsField = 0x48, .centerOffsetField = 0x2c, .springRange = 254, .viscosityRange = 254, .reflectRange = 63},
+        .networkCommands = 1,
+        .linkSearchMov = 0x082bf531,  // mov $0xe10,%edx (3600 frames)
+        .testModeCall = {0x08055d89, 0x0837f8a4}, // main, clTestMode::clTestMode (C2)
+        .testModeClock = 0x4d8,
+        .selfCheckCall = {0x082c1cce, 0x082c4147}, // clSeqBootSteerDeviceThread
+        .systemIsError = 0x080afc30,  // clSystemN2::isError()
+        .systemIsErrorConnectionCheck = 0x080afc20, // clSystemN2::isErrorConnectionCheck()
+        .haspLogin = 0x08592bf0,
+        .haspLogout = 0x08592c90,
+        .haspRead = 0x085939e8,
+        .haspDecrypt = 0x08592e68,
+        .haspFeature = 0xffff0000, // clHASP::Check()
+        .dongleSerial = "880700000001",
+        .jammaCalibration = 0x0891e120, // clInputDeviceJamma::sm_handle_center
+        .jammaCalibrationStride = 4,
+        .jammaForce = 0x080afc4d,     // movzbl 0x8(%esp),%eax
+        .brakeSwitch = BUTTON_3,      // STR_BRAKE_DIGITAL: P1 button 3
+        .lanSessionStart = 0x08120900, // clLanBasicSessionControler::start()
+        .testModeStopNet = 0x0836a850, // clSeqTestModeThread::StopNet()
+        .camIsError = 0x0808ee00,     // clCameraDeviceManager::IsError()
+        .camIsDevice = 0x0808e460,    // clCameraDeviceManager::IsDevice()
+        .camInitProgress = 0x080c4f90, // nmUVCCameraInitProgress()
+        .camInitState = 0x0925b920,
+        .cameraWebcam = 1,
+        .cameraBufferCheck = 0x080c527f, // cmp $0x96000; jbe
+        .screenReal = 0x0891d708,     // SCREEN_REAL_W (SCREEN_REAL_H after)
+        .initXSystemCall = 0x08054f0e, // main: call InitializeXSystem
+        .intelCpuIndicator = 0x09444d2c,
+        .alignStack = 1,
+        .soundEmulation = 1,
+        .windowX11 = 1,
+    },
+    {
         // Dead Heat Riders (DH RIDERS, rev 1247). No SDL: the game makes its
         // own X11/GLX window, and the HASP_OLD dongle is verified by
         // clHASP::Check (a USB presence check) instead of the linked hasp_*.
