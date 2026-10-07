@@ -343,14 +343,6 @@ REALIGN int XMissingExtension(Display *a0, const char *a1)
     return real ? real(a0, a1) : 0;
 }
 
-REALIGN int XNextEvent(Display *a0, XEvent *a1)
-{
-    static int (*real)(Display *, XEvent *) = NULL;
-    if (real == NULL)
-        real = resolveNext("XNextEvent");
-    return real ? real(a0, a1) : 0;
-}
-
 REALIGN int XParseColor(Display *a0, Colormap a1, const char *a2, XColor *a3)
 {
     static int (*real)(Display *, Colormap, const char *, XColor *) = NULL;

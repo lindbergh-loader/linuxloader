@@ -35,6 +35,7 @@
 #include "../common/webcam.h"
 #include "../namco/namcoEs1.h"
 #include "../namco/namcoN2.h"
+#include "../teamplay/teamplay.h"
 #endif
 #include "../resources/font.h"
 #include "../resources/lindberghLogo.h"
@@ -248,6 +249,9 @@ int sharedOpen(const char *pathname, int flags, ...)
         return namcoEs1KickbackOpen(_open);
     if (namcoN2KickbackIsPath(pathname))
         return namcoN2KickbackOpen(_open);
+    // Teamplay: the MegaJamma board.
+    if (teamplayMjIsPath(pathname))
+        return teamplayMjOpen(_open);
     if (webcamIsPath(pathname))
         return webcamOpen(pathname, flags, mode, _open);
     char pathBuf[PATH_MAX];
@@ -741,6 +745,8 @@ int sharedClose(int fd)
         namcoEs1KickbackClose();
     if (namcoN2KickbackIsFd(fd))
         namcoN2KickbackClose();
+    if (teamplayMjIsFd(fd))
+        teamplayMjClose();
 #endif
 
 
@@ -804,6 +810,8 @@ ssize_t sharedRead(int fd, void *buf, size_t count)
         return namcoEs1KickbackRead(buf, count);
     if (namcoN2KickbackIsFd(fd))
         return namcoN2KickbackRead(buf, count);
+    if (teamplayMjIsFd(fd))
+        return teamplayMjRead(buf, count);
 #endif
 
     if (fd < 0)
@@ -1115,6 +1123,8 @@ int sharedIoctl(int fd, unsigned long int request, ...)
         return namcoEs1KickbackIoctl(request, argp);
     if (namcoN2KickbackIsFd(fd))
         return namcoN2KickbackIoctl(request, argp);
+    if (teamplayMjIsFd(fd))
+        return teamplayMjIoctl(request, argp);
     if (request == SIOCGIFHWADDR && isNamcoEs1Game())
         return namcoEs1HwAddr(fd, argp, _ioctl);
     if (request == SIOCGIFCONF && isNamcoEs1Game())

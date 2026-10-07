@@ -58,7 +58,9 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux" AND NOT MINGW AND NOT CMAKE_C_COMPILER MATC
         src/loader/namco/namcoEs1Games.c
         src/loader/namco/namcoEs1Launch.c
         src/loader/namco/namcoN2Games.c
-        src/loader/namco/namcoN2Launch.c)
+        src/loader/namco/namcoN2Launch.c
+        src/loader/teamplay/teamplayGames.c
+        src/loader/hostLinker.c)
 
     set_target_properties(linuxloader_exe PROPERTIES LINK_FLAGS "-m32")
     target_link_libraries(linuxloader_exe PRIVATE m SDL3)
@@ -96,6 +98,7 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux" AND NOT MINGW AND NOT CMAKE_C_COMPILER MATC
         src/loader/init.c
         src/loader/mainL.c
         src/loader/mainShared.c
+        src/loader/hostLinker.c
         src/loader/config/*.c
         src/loader/graphics/*.c
         src/loader/hardware/lindbergh/*.c
@@ -106,6 +109,7 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux" AND NOT MINGW AND NOT CMAKE_C_COMPILER MATC
         src/loader/common/*.c
         src/loader/rawthrills/*.c
         src/loader/namco/*.c
+        src/loader/teamplay/*.c
         src/loader/graphics/shaderWork/*.c
         src/glad/src/gl.c)
 

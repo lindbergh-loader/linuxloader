@@ -4,6 +4,9 @@
 #include "x11Bridge.h"
 #include "../log/log.h"
 #include "../config/config.h"
+#ifdef __linux__
+#include "../teamplay/teamplay.h"
+#endif
 
 #include <stdlib.h>
 #include <SDL3/SDL.h>
@@ -662,6 +665,25 @@ static void mapEvent(Display *display, int type, XEvent *event)
     }
 }
 
+// Games that draw only once their window says it is mapped (Police Trainer
+// 2's main loop waits for an X event while it has nothing to draw) get the
+// map events once, through XPending and XNextEvent. The Teamplay games only:
+// the others never had them.
+static int mapEventsSent = MAP_EVENT_COUNT;
+
+static bool sendsMapEvents(void)
+{
+    static bool init;
+
+    if (!init)
+    {
+        init = true;
+        if (isTeamplayGame())
+            mapEventsSent = 0;
+    }
+    return mapEventsSent < MAP_EVENT_COUNT;
+}
+
 int XPending(Display *display)
 {
     if (ownXWindow())
@@ -669,7 +691,19 @@ int XPending(Display *display)
         int (*_XPending)(Display *) = dlsym(RTLD_NEXT, "XPending");
         return _XPending(display);
     }
-    return 0;
+    return sendsMapEvents() ? MAP_EVENT_COUNT - mapEventsSent : 0;
+}
+
+int XNextEvent(Display *display, XEvent *event)
+{
+    int (*_XNextEvent)(Display *, XEvent *) = dlsym(RTLD_NEXT, "XNextEvent");
+
+    if (!ownXWindow() && sendsMapEvents())
+    {
+        mapEvent(display, mapEventTypes[mapEventsSent++], event);
+        return 0;
+    }
+    return _XNextEvent(display, event);
 }
 
 // Games waiting for an event of their window after mapping it (Puck Off:
