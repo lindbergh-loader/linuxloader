@@ -3,8 +3,8 @@
 // Copies of a cabinet's disk may have lost the executables' mode (a dump
 // made on another system): the kernel cannot start them. Those are run
 // through the host's 32-bit dynamic linker ("/lib/ld-linux.so.2
-// ./med_pball"), which LD_PRELOAD still applies to. For the Teamplay
-// games, whose dumps come that way.
+// ./med_pball"), which LD_PRELOAD still applies to. For the Teamplay and
+// Global VR games, whose dumps come that way.
 
 #include <limits.h>
 #include <stdio.h>
@@ -12,6 +12,7 @@
 #include <unistd.h>
 
 #include "hostLinker.h"
+#include "globalvr/gvrGame.h"
 #include "log/log.h"
 #include "teamplay/teamplayGame.h"
 
@@ -36,7 +37,7 @@ void hostLinkerPrepareCommand(char *command, size_t size, uint32_t fileCrc32)
     char elfPath[PATH_MAX], copy[PATH_MAX * 2];
     const char *space;
 
-    if (!teamplayGetGameByFileCrc(fileCrc32))
+    if (!teamplayGetGameByFileCrc(fileCrc32) && !gvrGetGameByFileCrc(fileCrc32))
         return;
 
     snprintf(elfPath, sizeof(elfPath), "%s", command);

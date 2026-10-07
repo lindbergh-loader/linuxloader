@@ -36,6 +36,7 @@
 #include "../namco/namcoEs1.h"
 #include "../namco/namcoN2.h"
 #include "../teamplay/teamplay.h"
+#include "../globalvr/gvr.h"
 #endif
 #include "../resources/font.h"
 #include "../resources/lindberghLogo.h"
@@ -241,7 +242,7 @@ int sharedOpen(const char *pathname, int flags, ...)
 
     // Raw Thrills: OSS sound device and cabinet paths.
     if (ossDspIsPath(pathname))
-        return ossDspOpen();
+        return ossDspOpen(flags);
     // Namco: the JVS I/O board's serial port.
     if (namcoEs1JvsIsPath(pathname))
         return namcoEs1JvsOpen(_open);
@@ -252,6 +253,9 @@ int sharedOpen(const char *pathname, int flags, ...)
     // Teamplay: the MegaJamma board.
     if (teamplayMjIsPath(pathname))
         return teamplayMjOpen(_open);
+    // Global VR: the GFXIO board.
+    if (gvrGfxioIsPath(pathname))
+        return gvrGfxioOpen(_open);
     if (webcamIsPath(pathname))
         return webcamOpen(pathname, flags, mode, _open);
     char pathBuf[PATH_MAX];
@@ -747,6 +751,8 @@ int sharedClose(int fd)
         namcoN2KickbackClose();
     if (teamplayMjIsFd(fd))
         teamplayMjClose();
+    if (gvrGfxioIsFd(fd))
+        gvrGfxioClose();
 #endif
 
 
@@ -812,6 +818,8 @@ ssize_t sharedRead(int fd, void *buf, size_t count)
         return namcoN2KickbackRead(buf, count);
     if (teamplayMjIsFd(fd))
         return teamplayMjRead(buf, count);
+    if (gvrGfxioIsFd(fd))
+        return gvrGfxioRead(buf, count);
 #endif
 
     if (fd < 0)
@@ -1125,6 +1133,8 @@ int sharedIoctl(int fd, unsigned long int request, ...)
         return namcoN2KickbackIoctl(request, argp);
     if (teamplayMjIsFd(fd))
         return teamplayMjIoctl(request, argp);
+    if (gvrGfxioIsFd(fd))
+        return gvrGfxioIoctl(request, argp);
     if (request == SIOCGIFHWADDR && isNamcoEs1Game())
         return namcoEs1HwAddr(fd, argp, _ioctl);
     if (request == SIOCGIFCONF && isNamcoEs1Game())
