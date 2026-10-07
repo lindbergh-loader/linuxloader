@@ -202,6 +202,13 @@ void blitSetWidthandHeightSize()
         blitWidth = 640;
         blitHeight = 480;
     }
+    // Crossfire Maximum Paintball draws 512x384 (its medium-resolution
+    // monitor's size), whatever its window's size.
+    else if (gId == CROSSFIRE_TEAMPLAY)
+    {
+        blitWidth = 512;
+        blitHeight = 384;
+    }
 #ifdef __linux__
     // The Gaelco games draw at their own size (640x480, Tuning Race's
     // 720x540), whatever their window's.
