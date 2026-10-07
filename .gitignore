@@ -1,5 +1,10 @@
 .cache
+build-bato/
 build-linux/
+build-ubuntu/
 build-win32/
 compile_commands.json
+tools/dongle-recording/*.o
+tools/dongle-recording/*.elf
+tools/dongle-recording/*.bin
 

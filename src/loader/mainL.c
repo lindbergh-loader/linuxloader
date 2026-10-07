@@ -7,6 +7,7 @@
 #endif
 #undef __x86_64__
 
+#include "rawthrills/rawthrills.h"
 #include <stdbool.h>
 #include <ctype.h>
 #include <link.h>
@@ -312,6 +313,13 @@ if ((info->dlpi_phnum >= 3) && (info->dlpi_phdr[2].p_type == PT_LOAD) && (info->
         size_t a = (size_t)(info->dlpi_addr + info->dlpi_phdr[2].p_vaddr + 10);
         printf("%p\n", (void *)a);
         partialElfCrc = getCrc32((void *)(size_t)(info->dlpi_addr + info->dlpi_phdr[2].p_vaddr + 10), 0x4000);
+    }
+    // Raw Thrills dumps map their code RWE; identify them over the same range.
+    else if ((info->dlpi_phnum >= 3) && (info->dlpi_phdr[2].p_type == PT_LOAD) && (info->dlpi_phdr[2].p_flags & PF_X))
+    {
+        uint32_t crc = getCrc32((void *)(size_t)(info->dlpi_addr + info->dlpi_phdr[2].p_vaddr + 10), 0x4000);
+        if (rtGetGame(crc))
+            partialElfCrc = crc;
     }
     return 1; 
 }
