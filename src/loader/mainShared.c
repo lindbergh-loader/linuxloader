@@ -170,6 +170,7 @@ uint32_t cleanElfCRC32[] = {
     0xDA52FA88, // Namco ES1 | Dead Heat Riders a.elf (DH RIDERS rev 1247)
     0x7A18BEB3, // Namco ES1 | Dead Heat a.elf (US DRIVE rev 6273)
     0x6E2BE119, // Namco ES1 | Maximum Heat 3D a.elf (US DRIVE rev 8807)
+    0x41ABDA0C, // Namco N2  | WMMT3 main (WM3100-3-NA-DAT0-A70)
     0x509A97C4, // Namco N2  | WMMT3DX+ main (W3P100-1-NA-DAT0-B02)
     0x66136EE9, // Namco ES1 | Tank! Tank! Tank! n_tank_release (rev 1.03.14)
     0x84777366, // Namco ES1 | Gundam: Senjo no Kizuna n_gun_station_rel_opt_es1 (REV3.57.07)
