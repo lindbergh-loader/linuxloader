@@ -806,6 +806,93 @@ static const RtIoInput ppIoInputs[] = {
     {RT_IO_END, 0, 0, 0},
 };
 
+// ---------------------------------------------------------------------------
+// Aliens Armageddon (g6 engine, /pm/g6/aa): a light gun game like Big Buck
+// HD Wild -- stripped, normally linked, SDL 1.2 linked in and GL through
+// dlsym, IR guns seen by the cmgr camera manager -- with Pink Panther Jewel
+// Heist's io layer, whose slots the engine copies after io_loop. Its HASP
+// HL library is Big Buck World's at +0xa5fb0, each function checked by the
+// trace string it pushes; the camera manager is Big Buck HD Wild's at
+// -0xecc00. Its dongle answers come from TeknoParrot's recording, named by
+// their first 16 bytes as Terminator Salvation's.
+
+static const RtSymbol aaSymbols[] = {
+    {"hasp_login", 0x08443380},
+    {"hasp_logout", 0x08443420},
+    {"hasp_encrypt", 0x0844350c},
+    {"hasp_decrypt", 0x084435f8},
+    {"hasp_free", 0x08443c3c},
+    {"hasp_get_sessioninfo", 0x08443f00},
+    {"hasp_read", 0x08444178},
+    {"hasp_write", 0x08444244},
+    // The game's own layer over them, as in Big Buck HD Wild.
+    {"DongleDecrypt", 0x081bda90},
+    {"DongleEncrypt", 0x081bdb00},
+    // Big Buck HD Wild's anti-debug guard, the same code, main's first call.
+    {"TracerGuard", 0x08347966},
+    // gCLArgs at 0x890b540: width, height (1360x768 by default), aspect;
+    // "-f<w>x<h>" sets the size and the fullscreen byte (0x890b551).
+    {"ParseCommandLineArgs", 0x08083b40},
+    // Linked-in SDL 1.2, called by io_sdl's create_window (0x81b58bb).
+    {"SDL_SetVideoMode", 0x081dfab0},
+    // The io layer (io.c, io_init at 0x81b0df0, io_loop 0x81b0fa4). As in
+    // Pink Panther Jewel Heist, the engine keeps its own copy of the slots
+    // (accessor 0x80b9200): its input update (0x80b9920) runs io_loop, then
+    // copies io.c's slots over it. So io.c's slots are written: its accessor
+    // (<= 0x142, then 0x146 on through a table; 0x2c byte slots from
+    // 0x893caa0 + 0x19fc), the getter of the flag io_loop sets, and the loop
+    // of io_rio, the last backend enabled in the table at 0x88b1040 (after
+    // io_irtrack and io_sdl).
+    {"io_get_input_digital", 0x081b148c},
+    {"io_new_data_present", 0x081b11b3},
+    {"io_rio_loop", 0x081b5c74},
+    // The camera manager, as io_irtrack's loop (0x81b4653) calls it for each
+    // gun (see Big Buck HD Wild's): whether the gun is active, its raw
+    // coordinates (not filtered, and filtered) and its buttons. The loop
+    // reads buttons 0, 1 and 3: the trigger, the pump and the grenade.
+    {"io_get_input_analog", 0x081b18d8},
+    {"IrGunActive", 0x084df728},
+    {"IrGunRaw", 0x084e0481},
+    {"IrGunRawFiltered", 0x084e04f9},
+    {"IrGunAim", 0x084e0e1a},
+    {"IrGunButton", 0x084e075e},
+    {NULL, 0},
+};
+
+// Its input map, as GameInputMaps (0x8081180) registers it: with the IR guns
+// (the dongle's byte 0x3a is not 4, which would select other guns), Big Buck
+// HD Wild's cabinet switches and gun slots, and a third button on each gun:
+// the switch test names them trigger, pump and grenade (slots 0x17b..0x17d
+// -> 0x14d..0x14f for gun 1, 0x17e..0x180 -> 0x157..0x159 for gun 2).
+enum
+{
+    AA_IO_COIN0 = 0x14c,    // -> 0x17b
+    AA_IO_COIN1 = 0x14d,    // -> 0x17c
+    AA_IO_DIAG = 0x150,     // -> 0x17a, 0x181
+    AA_IO_SERVICE = 0x151,  // -> 0x179, 0x182 (a service credit)
+    AA_IO_VOL_UP = 0x152,   // -> 0x177, 0x17f (also menu up)
+    AA_IO_VOL_DOWN = 0x153, // -> 0x178, 0x180 (also menu down)
+    AA_IO_START0 = 0x154,   // -> 0x173, 0x181
+    AA_IO_START1 = 0x155,   // -> 0x174, 0x181
+};
+
+// The guns reach the game through the camera manager's answers (IrGun*):
+// ANALOGUE_1/2 and 3/4 the P1/P2 guns, PLAYER_n_BUTTON_1 the trigger,
+// BUTTON_2 the pump and BUTTON_3 the grenade, as in Terminator Salvation
+// (from the desktop, the mouse is P1's gun: left, right and middle buttons).
+static const RtIoInput aaIoInputs[] = {
+    {RT_IO_SWITCH, PLAYER_1, AA_IO_START0, BUTTON_START},
+    {RT_IO_SWITCH, PLAYER_2, AA_IO_START1, BUTTON_START},
+    {RT_IO_SWITCH, PLAYER_1, AA_IO_SERVICE, BUTTON_SERVICE},
+    {RT_IO_SWITCH, PLAYER_2, AA_IO_SERVICE, BUTTON_SERVICE},
+    {RT_IO_SWITCH, SYSTEM, AA_IO_DIAG, BUTTON_TEST},
+    {RT_IO_SWITCH, PLAYER_1, AA_IO_VOL_UP, BUTTON_UP},
+    {RT_IO_SWITCH, PLAYER_1, AA_IO_VOL_DOWN, BUTTON_DOWN},
+    {RT_IO_COIN, 0, AA_IO_COIN0, 0},
+    {RT_IO_COIN, 1, AA_IO_COIN1, 0},
+    {RT_IO_END, 0, 0, 0},
+};
+
 // Pac-Man Chomp Mania (statically linked SDL 1.2), v1.28C: Galaga Assault's
 // RIO layer and switch numbers, one player.
 
@@ -1095,6 +1182,48 @@ static const RtGame rtGames[] = {
         .ioLoopPrologue = 6,
         .ioInputs = ppIoInputs,
         .ioDesktop = 1,
+    },
+    {
+        .crc32 = ALIENS_ARMAGEDDON_RT,
+        // libcsv by absolute path, as Big Buck HD Wild: a patched copy. The
+        // untouched file, or TeknoParrot's 1920x1080 resolution patch (only
+        // main's default size differs, which the loader sets anyway).
+        .fileCrc32 = 0xbc531e68,
+        .altFileCrc32 = 0xc6b8dfa2,
+        .envelopeSelfSlot = -1,
+        .symbols = aaSymbols,
+        // hasp_login at 0x81be928 with 0xffff0000 as a literal, the memory
+        // reads at 0x81be47e and the writes at 0x81be09b with 0xfff2.
+        .haspFeature = 0xffff0000,
+        .haspMemoryFileId = 0xfff2,
+        .haspAnswers = "hasp",
+        // Its dozen threads at 64 MB of stack each, its heap and 32-bit Mesa
+        // fill its address space: Mesa then fails to map a shader, and the
+        // GPU context is lost.
+        .threadStackSize = 8 << 20,
+        .rootPath = "/pm",
+        .stubs = bbhdStubs,
+        .resolution = 0x0890b540,
+        .aspect = 0x0890b548,
+        // Its fullscreen flag is a byte (0x890b551), next to the flag that
+        // selects the guns: fullscreen is left to SDL_SetVideoMode's hook.
+        // "push %ebp; mov %esp,%ebp; push %edi; push %esi; push %ebx"
+        .videoModeSymbol = "SDL_SetVideoMode",
+        .videoModePrologue = 6,
+        // "push %ebp; mov %esp,%ebp; push %edi; push %esi; push %ebx"
+        .parseArgsPrologue = 6,
+        // "push %ebp; mov %esp,%ebp; sub $0x38,%esp"
+        .ioLoopSymbol = "io_rio_loop",
+        .ioLoopPrologue = 6,
+        .ioInputs = aaIoInputs,
+        .ioDesktop = 1,
+        .irGunActiveSymbol = "IrGunActive",
+        .irGunRawSymbols = {"IrGunRaw", "IrGunRawFiltered"},
+        .irGunButtonSymbol = "IrGunButton",
+        .irGunAimSymbol = "IrGunAim",
+        .irGunSlots = 0x08945ca4,
+        .irGunSlotStride = 0xdc,
+        .irGunButtonSlot = 0x58,
     },
     {
         .crc32 = WALKING_DEAD_RT,
