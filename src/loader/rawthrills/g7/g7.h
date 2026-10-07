@@ -105,6 +105,10 @@ void *g7HookNear(uintptr_t at, size_t len, void *to);
 
 #define g7Log(...) fprintf(stderr, "g7_rt: " __VA_ARGS__)
 
+// Halo's hooks (g7Halo.c).
+void g7HaloInstall(const G7Game *game);
+const char *g7HaloMapPath(const char *path, char *buf);
+
 // The folder of the dongle's recorded answers (dump/), also where a game
 // keeps its other extras (Minecraft's card art in dump/binder_art).
 const char *g7DumpDir(void);
