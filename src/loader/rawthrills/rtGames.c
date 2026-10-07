@@ -1,6 +1,7 @@
 #include "rtGame.h"
 #include "../config/config.h"
 #include "../hardware/lindbergh/jvs.h"
+#include "cruisnblast/cbImports.h"
 #include "jurassicpark/jpImports.h"
 
 // SDL 1.2 key codes (engine input ids of the keyboard).
@@ -143,6 +144,124 @@ static const RtIoInput jpIoInputs[] = {
     {RT_IO_COIN, 1, JP_IO_COIN1, 0},
     {RT_IO_END, 0, 0, 0},
 };
+static const char *const cbExtraLibs[] = {"libNxCooking.so", NULL};
+
+// ---------------------------------------------------------------------------
+// Cruis'n Blast. Its core_input_enums.h adds VIEW and TUNES after START3, so
+// the cabinet ids differ from Jurassic Park's; the wheel and gas pedal are
+// the GUN0 X/Y inputs.
+
+enum
+{
+    CB_START0 = 0x173,
+    CB_VIEW = 0x177,
+    CB_TUNES = 0x178,
+    CB_VOL_UP = 0x179,
+    CB_VOL_DOWN = 0x17a,
+    CB_SERVICE = 0x17b,
+    CB_DIAG = 0x17c,
+    CB_COIN0 = 0x17d,
+    CB_COIN1 = 0x17e,
+    CB_MENU_UP = 0x19d,
+    CB_MENU_DOWN = 0x19e,
+    CB_MENU_SELECT = 0x19f,
+    CB_MENU_CANCEL = 0x1a0,
+};
+
+// The cabinet board's inputs, as routed by the game's cabinet map (the brake
+// pedal is a switch, read through START1).
+enum
+{
+    CB_IO_COIN0 = 0x14c,
+    CB_IO_COIN1 = 0x14d,
+    CB_IO_DIAG = 0x150,
+    CB_IO_SERVICE = 0x151,
+    CB_IO_VOL_UP = 0x152,   // -> 0x179, 0x19d (also menu up)
+    CB_IO_VOL_DOWN = 0x153, // -> 0x17a, 0x19e (also menu down)
+    CB_IO_START0 = 0x154,
+    CB_IO_BRAKE = 0x155,
+    CB_IO_VIEW = 0x156,
+    CB_IO_TUNES = 0x159,
+    CB_IO_WHEEL = 0x173,
+    CB_IO_GAS = 0x174,
+};
+
+// The cabinet's keypad, engine ids from the switch test's table of {id,
+// name} pairs (SwitchTestKP0 at 0x8a59e48): keys 0..9, then * and #.  The
+// game feeds them from the keypad's I/O slots (0x167 on); the desktop numpad
+// is mapped to them as for Big Buck HD Wild, with # on the numpad's Enter
+// and on its '.' (for keypads without Enter).
+enum
+{
+    CB_NUMPAD0 = 0x191,
+    CB_NUMPAD_STAR = 0x19b,
+    CB_NUMPAD_HASH = 0x19c,
+};
+
+static const RtMap cbExtraMaps[] = {
+    {'1', CB_START0},
+    {'5', CB_COIN0},
+    {'6', CB_COIN1},
+    {'v', CB_VIEW},
+    {'m', CB_TUNES},
+    {KEY_F1, CB_SERVICE},
+    {KEY_F2, CB_DIAG},
+    // The volume buttons, which also move in the menus, as the cabinet's.
+    {KEY_UP, CB_MENU_UP},
+    {KEY_UP, CB_VOL_UP},
+    {KEY_DOWN, CB_MENU_DOWN},
+    {KEY_DOWN, CB_VOL_DOWN},
+    {KEY_RETURN, CB_MENU_SELECT},
+    {KEY_BACKSPACE, CB_MENU_CANCEL},
+    {KEY_KP0 + 0, CB_NUMPAD0 + 0}, {KEY_KP0 + 1, CB_NUMPAD0 + 1}, {KEY_KP0 + 2, CB_NUMPAD0 + 2},
+    {KEY_KP0 + 3, CB_NUMPAD0 + 3}, {KEY_KP0 + 4, CB_NUMPAD0 + 4}, {KEY_KP0 + 5, CB_NUMPAD0 + 5},
+    {KEY_KP0 + 6, CB_NUMPAD0 + 6}, {KEY_KP0 + 7, CB_NUMPAD0 + 7}, {KEY_KP0 + 8, CB_NUMPAD0 + 8},
+    {KEY_KP0 + 9, CB_NUMPAD0 + 9}, {KEY_KP_MULTIPLY, CB_NUMPAD_STAR}, {KEY_KP_ENTER, CB_NUMPAD_HASH},
+    {KEY_KP_PERIOD, CB_NUMPAD_HASH},
+    {0, 0},
+};
+
+// ANALOGUE_1 steers, ANALOGUE_2 is the gas pedal and ANALOGUE_3 the brake
+// pedal (or PLAYER_1_BUTTON_1); BUTTON_2 changes the view, BUTTON_3 the music,
+// BUTTON_UP/DOWN the volume (the menus' up and down).
+static const RtIoInput cbIoInputs[] = {
+    {RT_IO_ANALOG, 0, CB_IO_WHEEL, ANALOGUE_1},
+    {RT_IO_ANALOG, 0, CB_IO_GAS, ANALOGUE_2},
+    {RT_IO_ANALOG_SWITCH, 0, CB_IO_BRAKE, ANALOGUE_3},
+    {RT_IO_SWITCH, PLAYER_1, CB_IO_BRAKE, BUTTON_1},
+    {RT_IO_SWITCH, PLAYER_1, CB_IO_VIEW, BUTTON_2},
+    {RT_IO_SWITCH, PLAYER_1, CB_IO_TUNES, BUTTON_3},
+    {RT_IO_SWITCH, PLAYER_1, CB_IO_START0, BUTTON_START},
+    {RT_IO_SWITCH, PLAYER_1, CB_IO_SERVICE, BUTTON_SERVICE},
+    {RT_IO_SWITCH, SYSTEM, CB_IO_DIAG, BUTTON_TEST},
+    {RT_IO_SWITCH, PLAYER_1, CB_IO_VOL_UP, BUTTON_UP},
+    {RT_IO_SWITCH, PLAYER_1, CB_IO_VOL_DOWN, BUTTON_DOWN},
+    {RT_IO_COIN, 0, CB_IO_COIN0, 0},
+    {RT_IO_COIN, 1, CB_IO_COIN1, 0},
+    {RT_IO_END, 0, 0, 0},
+};
+
+// On the cabinet the game's user data directory links to /pm/pmuser.
+static const RtPathAlias cbPathAliases[] = {{"g5/race/pmuser", "pmuser"}, {NULL, NULL}};
+
+// Force feedback wheel driver board on the parallel port (its motor,
+// Wheel_Set, goes to the loader's force feedback: see rtFfb.c).
+static const RtStub cbStubs[] = {
+    {"Wheel_Init", 0},       {"Wheel_EnablePWM", 0},   {"Wheel_DisablePWM", 0}, {"Wheel_Shutdown", 0},
+    {"Wheel_EnableWDT", 0},  {"Wheel_DisableWDT", 0},  {"Wheel_TwiddleWDT", 0},
+    {"Wheel_SetData", 0},    {"Wheel_SetControl", 0},  {NULL, 0},
+};
+
+// The wheel's state (g_ffwheel, 0x8babba0): the force the menus ask for,
+// and whether a race is on; and the flag turning the wheel effects on
+// (bumps, crashes, off-road), which the game only clears.
+enum
+{
+    CB_WHEEL_MENU_FORCE = 0x08babbac,
+    CB_WHEEL_IN_RACE = 0x08babbc0,
+    CB_WHEEL_EFFECTS = 0x09c28504,
+};
+
 // Jurassic Park's renderer: its viewports, render targets, frame grabs and
 // screen-space shaders are sized from the real screen (see layoutRealSize).
 static const char *const jpLayoutRealSize[] = {
@@ -193,6 +312,47 @@ static const RtGame rtGames[] = {
         // "flds 0x4(%esp); flds 0x8(%esp)"
         .dflt2DCamPrologue = 8,
         .fixedFrame = 1,
+    },
+    {
+        .crc32 = CRUISN_BLAST_RT,
+        .fileCrc32 = 0xb919dbd6,
+        .envelopeGot = CB_ENVELOPE_GOT,
+        .envelopeImports = cbEnvelopeImports,
+        .envelopeImportCount = sizeof(cbEnvelopeImports) / sizeof(cbEnvelopeImports[0]),
+        .envelopeSelfSlot = -1,
+        .gameImports = cbGameImports,
+        .gameImportCount = sizeof(cbGameImports) / sizeof(cbGameImports[0]),
+        .extraLibs = cbExtraLibs,
+        .haspFeature = 0,
+        .haspMemoryFileId = 0xfff4,
+        .haspReadPatch = 0x0804829a,
+        .haspWritePatch = 0x0804833c,
+        .haspSessionInfoPatch = 0x0804842a,
+        .stubs = cbStubs,
+        .rootPath = "/pm",
+        .encryptedScripts = "g5/race/data/programs_enc",
+        .decryptedScripts = "programs_dec",
+        .pathAliases = cbPathAliases,
+        .gameInputMapsSymbol = "_Z13GameInputMapsv",
+        .inputMap = 0x09d45ce0,
+        .inputMapCount = 0x09c28544,
+        // "push %ebx; sub $0x28,%esp; mov 0x8bdd9c8,%edx"
+        .gameInputMapsPrologue = 10,
+        // The cabinet board backend runs after the SDL one and would clear
+        // the switch edges: "push %ebp; push %edi; push %esi; push %ebx; sub $0x1c,%esp"
+        .ioLoopSymbol = "io_rio_loop",
+        .ioLoopPrologue = 7,
+        .extraMaps = cbExtraMaps,
+        .ioInputs = cbIoInputs,
+        .wheelSetSymbol = "Wheel_Set",
+        .wheelInRace = CB_WHEEL_IN_RACE,
+        .wheelMenuForce = CB_WHEEL_MENU_FORCE,
+        .wheelEffectsFlag = CB_WHEEL_EFFECTS,
+        .parseArgsSymbol = "_Z20ParseCommandLineArgsiPPc",
+        .resolution = 0x08bdd960,
+        .aspect = 0x08bdd974,
+        // "push %ebp; push %edi; push %esi; push %ebx; mov $0x1,%ebx"
+        .parseArgsPrologue = 9,
     },
 };
 
