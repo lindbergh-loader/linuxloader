@@ -2,6 +2,7 @@
 #include "../config/config.h"
 #include "../hardware/lindbergh/jvs.h"
 #include "cruisnblast/cbImports.h"
+#include "galagaassault/gaImports.h"
 #include "jurassicpark/jpImports.h"
 
 // SDL 1.2 key codes (engine input ids of the keyboard).
@@ -262,6 +263,43 @@ enum
     CB_WHEEL_EFFECTS = 0x09c28504,
 };
 
+// ---------------------------------------------------------------------------
+// Galaga Assault (statically linked SDL 2.0.3, not the g5 engine).
+
+// RIO switch numbers (from the switch test).
+enum
+{
+    GA_SW_COIN1 = 0x00,
+    GA_SW_COIN2 = 0x01,
+    GA_SW_TEST = 0x03,
+    GA_SW_SERVICE = 0x04,
+    GA_SW_VOL_UP = 0x05,
+    GA_SW_VOL_DOWN = 0x06,
+    GA_SW_START_FIRE = 0x07,
+    GA_SW_UP = 0x0d,
+    GA_SW_DOWN = 0x0e,
+    GA_SW_LEFT = 0x0f,
+    GA_SW_RIGHT = 0x10,
+};
+
+// One button starts and fires: START or BUTTON_1.
+static const RtIoInput gaRioSwitches[] = {
+    {RT_IO_SWITCH, PLAYER_1, GA_SW_START_FIRE, BUTTON_START},
+    {RT_IO_SWITCH, PLAYER_1, GA_SW_START_FIRE, BUTTON_1},
+    {RT_IO_SWITCH, PLAYER_1, GA_SW_UP, BUTTON_UP},
+    {RT_IO_SWITCH, PLAYER_1, GA_SW_DOWN, BUTTON_DOWN},
+    {RT_IO_SWITCH, PLAYER_1, GA_SW_LEFT, BUTTON_LEFT},
+    {RT_IO_SWITCH, PLAYER_1, GA_SW_RIGHT, BUTTON_RIGHT},
+    {RT_IO_SWITCH, PLAYER_1, GA_SW_SERVICE, BUTTON_SERVICE},
+    {RT_IO_SWITCH, SYSTEM, GA_SW_TEST, BUTTON_TEST},
+    {RT_IO_COIN, 0, GA_SW_COIN1, 0},
+    {RT_IO_COIN, 1, GA_SW_COIN2, 0},
+    {RT_IO_END, 0, 0, 0},
+};
+
+// The RIO board is reported connected.
+static const RtStub gaStubs[] = {{"RIO_Connected", 0}, {NULL, 0}};
+
 // Jurassic Park's renderer: its viewports, render targets, frame grabs and
 // screen-space shaders are sized from the real screen (see layoutRealSize).
 static const char *const jpLayoutRealSize[] = {
@@ -353,6 +391,36 @@ static const RtGame rtGames[] = {
         .aspect = 0x08bdd974,
         // "push %ebp; push %edi; push %esi; push %ebx; mov $0x1,%ebx"
         .parseArgsPrologue = 9,
+    },
+    {
+        .crc32 = GALAGA_ASSAULT_RT,
+        .fileCrc32 = 0xb2452857,
+        .envelopeGot = GA_ENVELOPE_GOT,
+        .envelopeImports = gaEnvelopeImports,
+        .envelopeImportCount = sizeof(gaEnvelopeImports) / sizeof(gaEnvelopeImports[0]),
+        .envelopeSelfSlot = -1,
+        .gameImports = gaGameImports,
+        .gameImportCount = sizeof(gaGameImports) / sizeof(gaGameImports[0]),
+        .haspFeature = 0xffff0000,
+        .haspMemoryFileId = 0xfff0,
+        .bssStart = 0x083484bc,
+        .bssEnd = 0x08633cfc,
+        .replacedLib = "libSDL2-2.0.so.0",
+        .replacedLibPrefix = "SDL_",
+        .workDir = "data",
+        // Game_PreInit sets the defaults (1920x1080, rotated), then the
+        // command line: "push %ebp; mov %esp,%ebp; sub $0x28,%esp"
+        .parseArgsSymbol = "_Z19Main_ProcessCmdLineiPPc",
+        .parseArgsPrologue = 6,
+        .resolution = 0x083313e0,
+        .rotateFlag = 0x085a4f74,
+        .monitorSize = 0x083313e8,
+        .rioSwitches = gaRioSwitches,
+        .stubs = gaStubs,
+        // "push %ebp; mov %esp,%ebp; sub $0x58,%esp"
+        .orthoSymbol = "set_ortho",
+        .orthoPrologue = 6,
+        .rootPath = "/pm",
     },
 };
 
