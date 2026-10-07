@@ -101,6 +101,9 @@ void *g7HookNear(uintptr_t at, size_t len, void *to);
 
 #define g7Log(...) fprintf(stderr, "g7_rt: " __VA_ARGS__)
 
+// Centipede Chaos's hooks (g7Centipede.c).
+void g7CentipedeInstall(const G7Game *game);
+
 // Halo's hooks (g7Halo.c).
 void g7HaloInstall(const G7Game *game);
 const char *g7HaloMapPath(const char *path, char *buf);
