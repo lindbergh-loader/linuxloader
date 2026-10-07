@@ -11,7 +11,7 @@
 //   lacks;
 // - a Unity game: its dumps carry the Windows player, so the game runs under
 //   Unity's Linux player of the version it was built with, from a tree
-//   made under /tmp at each start: the player, the
+//   made under /tmp at each start (see docs/nerf-arcade.md): the player, the
 //   game's <name>_Data linked file by file, the player's Mono, the library
 //   under the names of the cabinet plugins it stands in for, and the rest
 //   of the game's directory (LocalData, its state) linked.
@@ -87,6 +87,14 @@ static void prependEnv(const char *name, const char *dir)
     char buf[8192];
     snprintf(buf, sizeof(buf), "%s%s%s", dir, v && *v ? ":" : "", v && *v ? v : "");
     setenv(name, buf, 1);
+}
+
+static void appendTunable(const char *tunable)
+{
+    const char *v = getenv("GLIBC_TUNABLES");
+    char buf[1024];
+    snprintf(buf, sizeof(buf), "%s%s%s", v && *v ? v : "", v && *v ? ":" : "", tunable);
+    setenv("GLIBC_TUNABLES", buf, 1);
 }
 
 // ---------------------------------------------------------------------------
@@ -330,6 +338,14 @@ static void runUnity(const char *gameDir, const Game64 *g)
         snprintf(dst, sizeof(dst), "%s/Plugins", path);
         snprintf(ownPlugins, sizeof(ownPlugins), "%s/Data/Plugins", player);
         linkPlugins(from, dst, ownPlugins);
+        // The game's plugins find each other there (one needing another,
+        // as FMOD's studio library its core one).
+        snprintf(dst, sizeof(dst), "%s/Plugins/x86_64", path);
+        prependEnv("LD_LIBRARY_PATH", dst);
+        // Plugins built asking for an executable stack (FMOD 1.10's), which
+        // glibc 2.41 and later refuse to dlopen unless told (older ones
+        // ignore the tunable).
+        appendTunable("glibc.rtld.execstack=2");
     }
 
     // The rest of the game's directory, but the Windows player's files:
@@ -356,7 +372,14 @@ static void runUnity(const char *gameDir, const Game64 *g)
 
     // [Display]: the size (else a 1280x720 window), FULLSCREEN, or a
     // borderless window of the size given (the screen's, from the
-    // generator), as the other games have.
+    // generator), as the other games have. Nerf Arcade only renders at its
+    // cabinet's 1920x1080: its shots go through the reticle's canvas
+    // position taken as screen pixels.
+    if (!strcmp(g->name, "Nerf"))
+    {
+        w = 1920;
+        h = 1080;
+    }
     snprintf(width, sizeof(width), "%d", w > 0 ? w : 1280);
     snprintf(height, sizeof(height), "%d", h > 0 ? h : 720);
     snprintf(fullscreen, sizeof(fullscreen), "%d", fs ? 1 : 0);
@@ -377,6 +400,10 @@ static void runUnity(const char *gameDir, const Game64 *g)
         exit(EXIT_FAILURE);
     }
     setenv("LD_PRELOAD", library, 1);
+    // Mono takes its culture from the locale: the games parse their data
+    // (numbers in their text files) as on the cabinet's English system,
+    // with a decimal point.
+    setenv("LC_ALL", "C", 1);
     execv(exe, argv);
     say("cannot start %s: %s\n", exe, strerror(errno));
     exit(EXIT_FAILURE);
