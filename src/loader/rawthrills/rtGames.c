@@ -645,6 +645,73 @@ static const RtIoInput wofRioSwitches[] = {
 static const RtPathAlias wofRootAliases[] = {{"/wofuser", "wofuser"}, {"/wofvuser", "wofvuser"}, {NULL, NULL}};
 
 // ---------------------------------------------------------------------------
+// Deal or No Deal (g3 engine, PlayMechanix): a normally linked binary, not
+// stripped (US v01.07.06). Its cabinet has the JAMMA board of the other g3
+// games (start, coins, service, test, volume), the case button panel on the
+// parallel port and a Rockey dongle (see rtDond.c).
+
+static const RtSymbol dondSymbols[] = {
+    // Input: the board's poll (InpLoop, run each frame: it reads the switch
+    // counters through JammaOp and posts their events) and the board API.
+    {"InpLoop", 0x0804daf0},
+    {"JammaOp", 0x080b6013},
+    // Video: select the mode table entry, open the glut window.
+    {"FbSetMode", 0x08076750},
+    {"WndOpen", 0x0806c170},
+    // The Rockey dongle's check thread (see rtDond.c).
+    {"BankerOfferInitialize", 0x080a0520},
+    {"BankerOfferDeinitialize", 0x080a0910},
+    {NULL, 0},
+};
+
+static const RtStub dondStubs[] = {{"BankerOfferInitialize", 0}, {"BankerOfferDeinitialize", 0}, {NULL, 0}};
+
+// JAMMA board switches (the game's inpJammaSwMap: the g3 games' numbers).
+// The panel's buttons are in rtDond.c.
+static const RtIoInput dondJammaSwitches[] = {
+    {RT_IO_SWITCH, PLAYER_1, T4_START0, BUTTON_START},
+    {RT_IO_SWITCH, PLAYER_1, T4_SERVICE, BUTTON_SERVICE},
+    {RT_IO_SWITCH, SYSTEM, T4_TEST, BUTTON_TEST},
+    {RT_IO_SWITCH, PLAYER_1, T4_VOLUME_UP, BUTTON_UP},
+    {RT_IO_SWITCH, PLAYER_1, T4_VOLUME_DOWN, BUTTON_DOWN},
+    {RT_IO_COIN, 0, T4_COIN0, 0},
+    {RT_IO_COIN, 1, T4_COIN1, 0},
+    {RT_IO_END, 0, 0, 0},
+};
+
+static const RtPathAlias dondRootAliases[] = {{"/donduser", "donduser"}, {NULL, NULL}};
+
+// The UK build, v01.06.06 (stripped): the US one's functions, matched by
+// their code.
+static const RtSymbol dondUkSymbols[] = {
+    {"InpLoop", 0x0804df40},
+    {"JammaOp", 0x080bc7d7},
+    {"FbSetMode", 0x080785c0},
+    {"WndOpen", 0x0806dac0},
+    {"BankerOfferInitialize", 0x080a6a20},
+    {"BankerOfferDeinitialize", 0x080a6e10},
+    {NULL, 0},
+};
+
+static const RtPathAlias dondUkRootAliases[] = {{"/dondukuser", "dondukuser"}, {NULL, NULL}};
+
+// Deluxe, v01.18.00.NJS (stripped, C++): a later build, its functions found
+// from their calls (the mode table, the board's switch requests). Its
+// dongle is a HASP HL, checked at boot by DongleCheck (logs in, reads its
+// settings, starts a check thread like the Rockey's): see rtDond.c.
+static const RtSymbol dondDlxSymbols[] = {
+    {"InpLoop", 0x08058640},
+    {"JammaOp", 0x08174e12},
+    {"FbSetMode", 0x080b6c10},
+    {"WndOpen", 0x080b4790},
+    {"DongleCheck", 0x0811d080},
+    // The wheel type's write to the dongle (type), and the wheel type.
+    {"DongleWriteWheel", 0x0811d380},
+    {"DongleWheelType", 0x085c6c48},
+    {NULL, 0},
+};
+
+// ---------------------------------------------------------------------------
 // Big Buck HD Wild (g5 engine): like Terminator Salvation a stripped but
 // normally linked binary, not a dump, so its imports need no rebuilding.
 // The HASP HL library is linked in statically and sits at a constant offset
@@ -1564,6 +1631,87 @@ static const RtGame rtGames[] = {
         .rootAliases = wofRootAliases,
         // Its default (1366x768) otherwise, parsed from its command line.
         .sizeArgument = "-r%dx%d",
+    },
+    {
+        .crc32 = DEAL_OR_NO_DEAL_RT,
+        .envelopeSelfSlot = -1,
+        .symbols = dondSymbols,
+        .stubs = dondStubs,
+        .override = rtDondOverride,
+        .lptPanel = 1,
+        .ioFrame = rtDondIoFrame,
+        .desktopKey = rtDondDesktopKey,
+        .frameDraw = rtDondFrameDraw,
+        .rootPath = "/g3",
+        .rootAliases = dondRootAliases,
+        // "push %ebp; mov %esp,%ebp; sub $0x8,%esp"
+        .setModeSymbol = "FbSetMode",
+        .setModePrologue = 6,
+        .modePointer = 0x080f61ac,
+        // "push %ebp; mov $0x3,%eax"
+        .windowOpenSymbol = "WndOpen",
+        .windowOpenPrologue = 6,
+        .jammaPollSymbol = "InpLoop",
+        // "push %ebp; mov $0xffffffff,%eax"
+        .jammaPollPrologue = 6,
+        .jammaOpSymbol = "JammaOp",
+        // "push %ebp; mov %esp,%ebp; push %esi; push %ebx; sub $0x60,%esp"
+        .jammaOpPrologue = 8,
+        .jammaSwitches = dondJammaSwitches,
+    },
+    {
+        .crc32 = DEAL_OR_NO_DEAL_UK_RT,
+        .envelopeSelfSlot = -1,
+        .symbols = dondUkSymbols,
+        .stubs = dondStubs,
+        .override = rtDondOverride,
+        .lptPanel = 1,
+        .ioFrame = rtDondIoFrame,
+        .desktopKey = rtDondDesktopKey,
+        .frameDraw = rtDondFrameDraw,
+        .rootPath = "/g3",
+        .rootAliases = dondUkRootAliases,
+        // "push %ebp; mov %esp,%ebp; sub $0x8,%esp"
+        .setModeSymbol = "FbSetMode",
+        .setModePrologue = 6,
+        .modePointer = 0x08114d6c,
+        // "push %ebp; mov $0x3,%eax"
+        .windowOpenSymbol = "WndOpen",
+        .windowOpenPrologue = 6,
+        .jammaPollSymbol = "InpLoop",
+        // "push %ebp; mov $0xffffffff,%eax"
+        .jammaPollPrologue = 6,
+        .jammaOpSymbol = "JammaOp",
+        // "push %ebp; mov %esp,%ebp; push %esi; push %ebx; sub $0x60,%esp"
+        .jammaOpPrologue = 8,
+        .jammaSwitches = dondJammaSwitches,
+    },
+    {
+        .crc32 = DEAL_OR_NO_DEAL_DELUXE_RT,
+        .envelopeSelfSlot = -1,
+        .symbols = dondDlxSymbols,
+        .install = rtDondInstall,
+        .override = rtDondOverride,
+        .lptPanel = 1,
+        .ioFrame = rtDondIoFrame,
+        .desktopKey = rtDondDesktopKey,
+        .frameDraw = rtDondFrameDraw,
+        .rootPath = "/g3",
+        .rootAliases = dondRootAliases,
+        // "push %ebp; mov %esp,%ebp; sub $0x8,%esp"
+        .setModeSymbol = "FbSetMode",
+        .setModePrologue = 6,
+        .modePointer = 0x086cbaf8,
+        // "push %ebp; mov $0x3,%eax"
+        .windowOpenSymbol = "WndOpen",
+        .windowOpenPrologue = 6,
+        .jammaPollSymbol = "InpLoop",
+        // "push %ebp; mov $0xffffffff,%eax"
+        .jammaPollPrologue = 6,
+        .jammaOpSymbol = "JammaOp",
+        // "push %ebp; mov %esp,%ebp; push %esi; push %ebx; sub $0x70,%esp"
+        .jammaOpPrologue = 8,
+        .jammaSwitches = dondJammaSwitches,
     },
 };
 
