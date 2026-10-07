@@ -166,6 +166,7 @@ uint32_t cleanElfCRC32[] = {
     0x6BAA510D, // DVP-5020  | vf5 | Ver 6.000
     0x6D238B08, // Namco ES1 | Nirin a.elf (NRN100-4-NA-DAT0-A37)
     0xDA52FA88, // Namco ES1 | Dead Heat Riders a.elf (DH RIDERS rev 1247)
+    0x7A18BEB3, // Namco ES1 | Dead Heat a.elf (US DRIVE rev 6273)
 };
 
 int cleanElfCRC32Count = sizeof(cleanElfCRC32) / sizeof(uint32_t);

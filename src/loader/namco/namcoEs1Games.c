@@ -20,6 +20,41 @@ static const NamcoEs1Game games[] = {
         .mesaOnNvidia = 1,
     },
     {
+        // Dead Heat (US DRIVE, rev 6273). Nirin's platform (SDL 1.2 window,
+        // the linked HASP HL), with DHR's boot sequence.
+        .crc32 = DEADHEAT_ES1,
+        .fileCrc32 = 0x7a18beb3,
+        .jvsDevice = "/dev/ttyS2",
+        .haspLogin = 0x084b9fd0,
+        .haspLogout = 0x084ba070,
+        .haspRead = 0x084badc8,
+        .haspDecrypt = 0x084ba248,
+        .haspFeature = 0xffff0000, // clHASP::Check()
+        .dongleSerial = "280911000001",
+        // Its steering board as Maximum Heat 3D's (which has the same).
+        .kickbackDevice = "/dev/ttyS1",
+        .kickbackReportsUnprompted = 1,
+        .kickbackPowerGpo = 0x80,     // GOUT0 STR PCB POWER
+        .selfCheckCall = {0x08267b0d, 0x08269d31}, // clSeqBootSteerDeviceThread
+        .jammaCalibration = 0x087e5abc, // clInputDeviceJamma::sm_handle_center
+        .jammaCalibrationStride = 4,
+        .jammaForce = 0x0808bf5d,     // movzbl 0x8(%esp),%eax
+        .steerDeviceForce = {0x08267ac5, 0x08269cdc}, // movzbl 0x1(%edx),%ecx; 0x1(%ecx),%eax
+        .brakeSwitch = BUTTON_3,      // STR_BRAKE_DIGITAL: P1 button 3
+        .lanSessionStart = 0x080fecf0, // clLanBasicSessionControler::start()
+        .camIsError = 0x08087370,     // clCameraDeviceManager::IsError()
+        .camIsDevice = 0x080869d0,    // clCameraDeviceManager::IsDevice()
+        .camInitProgress = 0x080a6570, // nmUVCCameraInitProgress()
+        .camInitState = 0x09116be0,
+        .cameraWebcam = 1,
+        .cameraBufferCheck = 0x080a685f, // cmp $0x96000; jbe
+        .screenReal = 0x087e50c4,     // SCREEN_REAL_W (SCREEN_REAL_H after)
+        .intelCpuIndicator = 0x092ff24c,
+        .alignStack = 1,
+        .soundEmulation = 1,
+        .ffb = {.instance = 0x09035980, .effectsField = 0x48, .centerOffsetField = 0x2c, .springRange = 254, .viscosityRange = 254, .reflectRange = 63},
+    },
+    {
         // Dead Heat Riders (DH RIDERS, rev 1247). No SDL: the game makes its
         // own X11/GLX window, and the HASP_OLD dongle is verified by
         // clHASP::Check (a USB presence check) instead of the linked hasp_*.
