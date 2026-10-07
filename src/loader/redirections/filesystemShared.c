@@ -1291,6 +1291,12 @@ int openat(int dirfd, const char *pathname, int flags, ...)
         return sharedOpen(pathname, flags);
     }
 
+    // Counter Strike NEO's cabinet free disk (namco/namcoN2Csneo.c): the
+    // engine's raw openat(AT_FDCWD, ...) opens go through this funnel, so
+    // its /freespace/ paths are remapped onto the dump's TeknoParrot/ copy.
+    char csneoBuf[PATH_MAX];
+    if (namcoN2Openat(dirfd, pathname, flags, csneoBuf, sizeof(csneoBuf)))
+        return _openat(dirfd, csneoBuf, flags, mode);
     return _openat(dirfd, pathname, flags, mode);
 }
 
