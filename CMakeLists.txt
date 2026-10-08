@@ -192,10 +192,12 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux" AND NOT MINGW AND NOT CMAKE_C_COMPILER MATC
         src/loader/rawthrills/g7/*.cpp
         # the Raw Thrills Unity base, then its games
         src/loader/rawthrills/unity/*.c
-        src/loader/rawthrills/nerf/*.c)
+        src/loader/rawthrills/nerf/*.c
+        src/loader/rawthrills/sb3/*.c)
     add_library(loader64 SHARED
         ${LOADER64_SO_SRC}
         src/loader/config/iniParser.c
+        src/loader/input/evdevFfb.c
         src/loader/graphics/border.c
         src/loader/graphics/borderFrame.c
         src/loader/graphics/frameScale.c
@@ -213,7 +215,7 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux" AND NOT MINGW AND NOT CMAKE_C_COMPILER MATC
         OVERLAY_FONT_PATH=${PROJECT_SOURCE_DIR}/src/fonts/cozette.ttf)
     target_include_directories(loader64 PRIVATE ${PROJECT_SOURCE_DIR}/src/imgui ${PROJECT_SOURCE_DIR}/src/stb)
     target_link_options(loader64 PRIVATE -m64)
-    target_link_libraries(loader64 PRIVATE dl pthread)
+    target_link_libraries(loader64 PRIVATE dl pthread m)
     add_custom_command(TARGET loader64 POST_BUILD
         COMMAND ln -s -f linuxloader64.so ${CMAKE_BINARY_DIR}/g7_rt.so
         COMMAND ln -s -f linuxloader64.so ${CMAKE_BINARY_DIR}/halo_rt.so)
