@@ -75,9 +75,11 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux" AND NOT MINGW AND NOT CMAKE_C_COMPILER MATC
 
     # libsegaapi.so
     add_library(segaapi SHARED src/loader/audio/lindbergh/libsegaapi/libsegaapi.c)
+    target_include_directories(segaapi PRIVATE ${PROJECT_SOURCE_DIR}/src/FAudio)
     set(LIBSEGAAPI_C_FLAGS -m32 -mincoming-stack-boundary=2 -fPIC -shared)
-    set(LIBSEGAAPI_LINKER_FLAGS -O0 -g -m32 -Wl,-Bstatic -lFAudio -Wl,-Bdynamic -fPIC -shared)
+    set(LIBSEGAAPI_LINKER_FLAGS -O0 -g -m32 -fPIC -shared)
     target_link_libraries(segaapi ${LIBSEGAAPI_LINKER_FLAGS})
+    target_link_libraries(segaapi ${PROJECT_SOURCE_DIR}/libs/linux_x86/libFAudio.a)
     target_compile_options(segaapi PRIVATE ${LIBSEGAAPI_C_FLAGS})
 
     # linuxloader.so
