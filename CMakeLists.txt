@@ -166,10 +166,12 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux" AND NOT MINGW AND NOT CMAKE_C_COMPILER MATC
     file(GLOB LOADER64_SO_SRC
         src/loader/loader64/rt64.c
         src/loader/rawthrills/g7/*.c
-        src/loader/rawthrills/nerf/*.c)
+        src/loader/rawthrills/nerf/*.c
+        src/loader/rawthrills/sb3/*.c)
     add_library(loader64 SHARED
         ${LOADER64_SO_SRC}
         src/loader/config/iniParser.c
+        src/loader/input/evdevFfb.c
         src/loader/graphics/border.c
         src/loader/graphics/borderFrame.c
         src/loader/graphics/frameScale.c
@@ -177,7 +179,7 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux" AND NOT MINGW AND NOT CMAKE_C_COMPILER MATC
     set_target_properties(loader64 PROPERTIES PREFIX "" OUTPUT_NAME "linuxloader64")
     target_compile_options(loader64 PRIVATE -m64 -fPIC -Wall -Wextra)
     target_link_options(loader64 PRIVATE -m64)
-    target_link_libraries(loader64 PRIVATE dl pthread)
+    target_link_libraries(loader64 PRIVATE dl pthread m)
     add_custom_command(TARGET loader64 POST_BUILD
         COMMAND ln -s -f linuxloader64.so ${CMAKE_BINARY_DIR}/g7_rt.so
         COMMAND ln -s -f linuxloader64.so ${CMAKE_BINARY_DIR}/halo_rt.so)

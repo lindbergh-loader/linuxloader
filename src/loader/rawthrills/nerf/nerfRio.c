@@ -1,9 +1,10 @@
 // The RIO1 board's library (librio.so), as the game's Rio1 class calls it.
 // The switches report a count that each press and each release bump, its
-// low bit the switch's state (IOManager.ButtonPressed); the guns' ADCs are
-// 12 bits, X from the left, Y from the bottom, the scale nerfMono.c gives
-// the game's calibration. Outputs (lamps, solenoids, meters) are taken and
-// dropped.
+// low bit the switch's state (IOManager.ButtonPressed); the ADCs are 12
+// bits, the scale nerfMono.c and sb3Mono.c give the games' calibration:
+// Nerf's guns X from the left, Y from the bottom; Superbikes 3's handlebar
+// (ADC1) from the left, its throttle (ADC2) from released. Outputs (lamps,
+// solenoids, meters) are taken and dropped.
 #include "nerf.h"
 
 enum
@@ -26,8 +27,12 @@ int RIO_Init(void)
         nerfInputInit();
         initialised = 1;
     }
-    // IOManager.Start has read the calibration just before.
-    nerfForceCalibration();
+    // Nerf: IOManager.Start has read the calibration just before.
+    // Superbikes 3: its RIO1 manager reads it once the board is up.
+    if (nerfGame == NERF_GAME_SB3)
+        sb3ForceCalibration();
+    else
+        nerfForceCalibration();
     return RIO_OK;
 }
 
@@ -53,6 +58,24 @@ int RIO_ProcessCallbacks(void) { return 0; }
 int RIO_SampleInput(void)
 {
     nerfInputSample(&input);
+    if (nerfGame == NERF_GAME_SB3)
+    {
+        static unsigned samples;
+        if (samples++ % 60 == 0)
+            sb3SteerRange();
+        sb3FfbUpdate();
+    }
+    // Superbikes 3's arrows: in its test menu, its up and down (the volume
+    // buttons there; the brake goes back), the throttle kept for the
+    // calibration; else the brake.
+    if (nerfGame == NERF_GAME_SB3 && (input.arrowUp || input.arrowDown))
+    {
+        int menu = sb3InTestMenu();
+        if (input.arrowDown)
+            input.switches[menu ? RIO_VOL_DN_SW : RIO_START2_SW] = 1;
+        if (input.arrowUp && menu)
+            input.switches[RIO_VOL_UP_SW] = 1;
+    }
     for (int i = 0; i < RIO_NUM_SW; i++)
     {
         int held = input.switches[i] != 0;
@@ -90,10 +113,19 @@ int RIO_ADC_Val(int obj)
     if (obj < RIO_ADC1 || obj > RIO_ADC4)
         return RIO_INVALID_OBJECT;
     v = input.analog[obj - RIO_ADC1];
-    if (v < 0.f) // no gun: the middle
-        v = 0.5f;
-    if ((obj - RIO_ADC1) % 2) // Y: the ADC counts from the bottom
-        v = 1.f - v;
+    if (nerfGame == NERF_GAME_SB3)
+    {
+        // No handlebar: straight; no pedal: released.
+        if (v < 0.f)
+            v = obj == RIO_ADC1 ? 0.5f : 0.f;
+    }
+    else
+    {
+        if (v < 0.f) // no gun: the middle
+            v = 0.5f;
+        if ((obj - RIO_ADC1) % 2) // Y: the ADC counts from the bottom
+            v = 1.f - v;
+    }
     return (int)(v * NERF_ADC_MAX + 0.5f);
 }
 
@@ -114,7 +146,8 @@ int RIO_GetValue(int obj)
 }
 
 int RIO_AudiomuteStatus(int obj) { (void)obj; return 0; }
-int RIO_Kpad_SW(int obj) { (void)obj; return 0; }
+// Superbikes 3 takes 0..11 as a key of its keypad held.
+int RIO_Kpad_SW(int obj) { (void)obj; return nerfGame == NERF_GAME_SB3 ? -1 : 0; }
 int RIO_TicketStatus(int obj) { (void)obj; return 0; }
 int RIO_WdogStatus(void) { return 0; }
 int RIO_TicketAdd(int obj, int tickets) { (void)obj; (void)tickets; return RIO_OK; }

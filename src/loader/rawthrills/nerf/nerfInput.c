@@ -15,6 +15,11 @@
 //
 // Either way Esc quits, while the game's window has the keyboard.
 //
+// Superbikes 3 maps them its own way (sb3Switches, sb3Keys): ANALOGUE_1
+// the handlebar, ANALOGUE_2 the throttle, ANALOGUE_3 the brake (a pedal, the
+// brake switch past half way), and the cabinet's buttons; on the desktop the
+// arrows ride (sb3DesktopRide), the mouse's buttons are the game's own.
+//
 // A source is "<device>:KEY:<code>", "<device>:ABS:<code>" (ABS_NEG: the
 // axis reversed), "<device>:REL:<code>", or for a switch an axis pushed to
 // one end, "<device>:ABS:<code>:MIN" or ":MAX" (a d-pad, a stick), as the
@@ -160,9 +165,20 @@ static const SwitchKey nerfSwitches[] = {
     {0, NULL},
 };
 
+// Superbikes 3's cabinet: START2 is its brake switch, VIEW1 the view
+// button, TUNES the music button.
+static const SwitchKey sb3Switches[] = {
+    {RIO_START1_SW, "PLAYER_1_BUTTON_START"}, {RIO_START2_SW, "PLAYER_1_BUTTON_1"},
+    {RIO_VIEW1_SW, "PLAYER_1_BUTTON_2"},      {RIO_TUNES_SW, "PLAYER_1_BUTTON_3"},
+    {RIO_COIN1_SW, "PLAYER_1_COIN"},          {RIO_COIN2_SW, "PLAYER_2_COIN"},
+    {RIO_TEST_SW, "TEST_BUTTON"},             {RIO_SERVICE_SW, "PLAYER_1_BUTTON_SERVICE"},
+    {RIO_VOL_UP_SW, "PLAYER_1_BUTTON_UP"},    {RIO_VOL_DN_SW, "PLAYER_1_BUTTON_DOWN"},
+    {0, NULL},
+};
+
 static void evdevConfig(void)
 {
-    const SwitchKey *map = nerfSwitches;
+    const SwitchKey *map = nerfGame == NERF_GAME_SB3 ? sb3Switches : nerfSwitches;
     for (int i = 0; i < RIO_NUM_SW; i++)
         for (int j = 0; j < MAX_SOURCES; j++)
             switchSources[i][j].device = -1;
@@ -256,6 +272,9 @@ static void evdevState(NerfInput *in)
         for (int g = 0; g < 2; g++) // a gun aims with both axes or not at all
             if (in->analog[g * 2] < 0.f || in->analog[g * 2 + 1] < 0.f)
                 in->analog[g * 2] = in->analog[g * 2 + 1] = -1.f;
+    // Superbikes 3's brake is a switch: the pedal presses it half way down.
+    if (nerfGame == NERF_GAME_SB3 && in->analog[2] > 0.5f)
+        in->switches[RIO_START2_SW] = 1;
 }
 
 // ---------------------------------------------------------------------------
@@ -412,9 +431,48 @@ static const SwitchKeysym nerfKeys[] = {
     {0, 0},
 };
 
+// Superbikes 3's own keyboard map is its developers', locked unless
+// unlocked by a key combination (RTInput): the cabinet's switches here.
+static const SwitchKeysym sb3Keys[] = {
+    {RIO_COIN1_SW, '5'},          {RIO_START1_SW, 0xff0d /* Return */}, {RIO_START1_SW, 's'},
+    {RIO_VIEW1_SW, 'v'},          {RIO_TUNES_SW, 't'},
+    {RIO_TEST_SW, 0xffbf /* F2 */}, {RIO_SERVICE_SW, 0xffbe /* F1 */},
+    {RIO_VOL_UP_SW, 0xff55 /* Prior */}, {RIO_VOL_DN_SW, 0xff56 /* Next */},
+    {0, 0},
+};
+
+// Superbikes 3 on the keyboard, an analog handlebar: Left/Right lean it
+// further the longer they are held (full over SB3_LEAN_MS), so a tap is a
+// small correction; let go (or the other way) it comes back to the middle
+// faster (SB3_RETURN_MS from full). Up and Down: the throttle and the
+// brake, or the test menu's up and down (nerfRio.c, by the game's state).
+#define SB3_LEAN_MS 1000.f
+#define SB3_RETURN_MS 300.f
+
+static void sb3DesktopRide(NerfInput *in, const char keys[32])
+{
+    int left = keyDown(keys, x.keysymToKeycode(x.display, 0xff51)),
+        right = keyDown(keys, x.keysymToKeycode(x.display, 0xff53));
+    // -1 (full left) .. 1 (full right)
+    float lean = state.analog[0] < 0.f ? 0.f : state.analog[0] * 2.f - 1.f,
+          dir = (float)(right - left), leanStep = POLL_MS / SB3_LEAN_MS * 2.f,
+          returnStep = POLL_MS / SB3_RETURN_MS * 2.f;
+    if (dir != 0.f && lean * dir >= 0.f) // leaning further that way
+        lean += dir * leanStep;
+    else if (lean > 0.f) // let go, or the other way: back to the middle
+        lean = lean - returnStep < 0.f ? (dir != 0.f ? -leanStep : 0.f) : lean - returnStep;
+    else if (lean < 0.f)
+        lean = lean + returnStep > 0.f ? (dir != 0.f ? leanStep : 0.f) : lean + returnStep;
+    lean = lean < -1.f ? -1.f : lean > 1.f ? 1.f : lean;
+    in->analog[0] = (lean + 1.f) / 2.f;
+    in->arrowUp = keyDown(keys, x.keysymToKeycode(x.display, 0xff52));
+    in->arrowDown = keyDown(keys, x.keysymToKeycode(x.display, 0xff54));
+    in->analog[1] = in->arrowUp ? 1.f : 0.f;
+}
+
 static void desktopKeys(NerfInput *in, const char keys[32])
 {
-    for (const SwitchKeysym *k = nerfKeys; k->keysym; k++)
+    for (const SwitchKeysym *k = nerfGame == NERF_GAME_SB3 ? sb3Keys : nerfKeys; k->keysym; k++)
         if (keyDown(keys, x.keysymToKeycode(x.display, k->keysym)))
             in->switches[k->sw] = 1;
 }
@@ -428,6 +486,8 @@ static void desktopState(NerfInput *in, const char keys[32])
     unsigned int mask, w, h, bw, d, area = 0;
 
     desktopKeys(in, keys);
+    if (nerfGame == NERF_GAME_SB3)
+        sb3DesktopRide(in, keys);
     if (nerfGame != NERF_GAME_NERF) // the mouse is a gun in Nerf only
         return;
     // Looked for again now and then: the game makes its window late.
@@ -529,6 +589,12 @@ void nerfInputInit(void)
     nerfLog("input: %s\n", evdevMode ? "evdev" : "desktop mouse and keyboard");
     if (pthread_create(&thread, NULL, inputThread, NULL) == 0)
         pthread_detach(thread);
+}
+
+const char *nerfAnalogDevice(int a)
+{
+    const Source *s = &analogSources[a];
+    return evdevMode && a >= 0 && a < 4 && s->device >= 0 ? devices[s->device].path : NULL;
 }
 
 void nerfInputSample(NerfInput *in)

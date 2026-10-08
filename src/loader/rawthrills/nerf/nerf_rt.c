@@ -1,11 +1,12 @@
 // Nerf Arcade's preload and native plugins (see nerf.h): the settings, the
 // dongle (libUnityNatives.so's and libhasp's API), and the cabinet's system
-// files kept out of the host.
+// files kept out of the host. Superbikes 3's too.
 #define _GNU_SOURCE
 #include <dlfcn.h>
 #include <fcntl.h>
 #include <limits.h>
 #include <stdarg.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -61,13 +62,30 @@ static const struct
     {"/pm/FlushBuffers.sh", "LocalData/system/FlushBuffers.sh"},
 };
 
+// Superbikes 3 reads its version from the cabinet's /pm (the dump's
+// version.txt and original_version.txt, in the game's directory) and keeps
+// its updater's files there (workingAsExpected, audits/): the rest of /pm
+// is LocalData/system/pm.
+#define SB3_PM "LocalData/system/pm"
+
 static const char *mapPath(const char *path)
 {
-    if (!active)
+    static __thread char mapped[PATH_MAX];
+    if (!active || !path)
         return path;
-    for (size_t i = 0; path && i < sizeof(cabinetFiles) / sizeof(cabinetFiles[0]); i++)
+    for (size_t i = 0; i < sizeof(cabinetFiles) / sizeof(cabinetFiles[0]); i++)
         if (!strcmp(path, cabinetFiles[i].path))
             return cabinetFiles[i].local;
+    // Mono's FileStream looks for the directory first.
+    if (nerfGame == NERF_GAME_SB3 && (!strcmp(path, "/pm") || !strcmp(path, "/pm/")))
+        return SB3_PM;
+    if (nerfGame == NERF_GAME_SB3 && !strncmp(path, "/pm/", 4))
+    {
+        if (!strcmp(path, "/pm/version.txt") || !strcmp(path, "/pm/original_version.txt"))
+            return path + 4;
+        snprintf(mapped, sizeof(mapped), SB3_PM "/%s", path + 4);
+        return mapped;
+    }
     return path;
 }
 
@@ -162,6 +180,11 @@ static void makeCabinetFiles(void)
 {
     mkdir("LocalData", 0755);
     mkdir("LocalData/system", 0755);
+    if (nerfGame == NERF_GAME_SB3)
+    {
+        mkdir(SB3_PM, 0755);
+        mkdir(SB3_PM "/audits", 0755);
+    }
     for (size_t i = 0; i < sizeof(cabinetFiles) / sizeof(cabinetFiles[0]); i++)
     {
         int fd = realOpen(cabinetFiles[i].local, O_WRONLY | O_CREAT, 0755);
@@ -173,11 +196,13 @@ static void makeCabinetFiles(void)
 // ---------------------------------------------------------------------------
 // The dongle. The game reads its identity through libUnityNatives.so
 // (Hasp*), which calls back into the HASP library through the delegates the
-// game hands it: answered here instead. It must read version 0, and a
+// game hands it: answered here instead. Nerf must read version 0, and a
 // serial number, cabinet type 0 and a template for the game to take its
-// settings from it (TestPreferences.BuildDefaultPrefs). What the game writes
-// (the lifetime coin count, the identity from the factory setup menu) is
-// kept in LocalData/system/dongle.
+// settings from it (TestPreferences.BuildDefaultPrefs); Superbikes 3 a
+// version up to 2, cabinet type 1 (the standard cabinet, 2 is the motion
+// one) and a color (1 orange .. 4 fuchsia). What the game writes (the
+// lifetime coin count, the identity from the factory setup menu) is kept in
+// LocalData/system/dongle.
 enum
 {
     HASP_OK = 0,
@@ -188,7 +213,10 @@ static struct
     int32_t lifetimeCoins;
     int32_t serial;
     uint8_t country, cabType, cabTemplate;
-} dongle = {0, 12345, 0, 0, 1};
+    // Superbikes 3's (the file grew them: an older one ends before)
+    uint8_t cabColor;
+    int32_t version;
+} dongle = {0, 12345, 0, 0, 1, 1, 0};
 
 #define DONGLE_FILE "LocalData/system/dongle"
 
@@ -196,9 +224,11 @@ static void dongleLoad(void)
 {
     FILE *f = realFopen(DONGLE_FILE, "rb");
     const char *t = getenv("NERF_CAB_TEMPLATE");
+    if (nerfGame == NERF_GAME_SB3)
+        dongle.cabType = 1;
     if (f)
     {
-        if (fread(&dongle, sizeof(dongle), 1, f) != 1)
+        if (fread(&dongle, 1, sizeof(dongle), f) < offsetof(typeof(dongle), cabColor))
             nerfLog("%s: short read\n", DONGLE_FILE);
         fclose(f);
     }
@@ -230,17 +260,20 @@ int HaspLogin(int feature, int *handle)
     return HASP_OK;
 }
 int HaspLogout(int handle) { (void)handle; return HASP_OK; }
-int HaspReadDongleVersion(int h, int *v) { (void)h; *v = 0; return HASP_OK; }
+int HaspReadDongleVersion(int h, int *v) { (void)h; *v = dongle.version; return HASP_OK; }
 int HaspReadLifetimeCoinCount(int h, int *v) { (void)h; *v = dongle.lifetimeCoins; return HASP_OK; }
 int HaspReadCountryCode(int h, uint8_t *v) { (void)h; *v = dongle.country; return HASP_OK; }
 int HaspReadCabType(int h, uint8_t *v) { (void)h; *v = dongle.cabType; return HASP_OK; }
 int HaspReadCabTemplate(int h, uint8_t *v) { (void)h; *v = dongle.cabTemplate; return HASP_OK; }
 int HaspReadCabSerialNum(int h, int *v) { (void)h; *v = dongle.serial; return HASP_OK; }
+int HaspReadCabColor(int h, uint8_t *v) { (void)h; *v = dongle.cabColor; return HASP_OK; }
 int HaspWriteLifetimeCoinCount(int h, int *v) { (void)h; dongle.lifetimeCoins = *v; return dongleSave(); }
 int HaspWriteCountryCode(int h, uint8_t *v) { (void)h; dongle.country = *v; return dongleSave(); }
 int HaspWriteCabType(int h, uint8_t *v) { (void)h; dongle.cabType = *v; return dongleSave(); }
 int HaspWriteCabTemplate(int h, uint8_t *v) { (void)h; dongle.cabTemplate = *v; return dongleSave(); }
 int HaspWriteCabSerialNum(int h, int *v) { (void)h; dongle.serial = *v; return dongleSave(); }
+int HaspWriteCabColor(int h, uint8_t *v) { (void)h; dongle.cabColor = *v; return dongleSave(); }
+int HaspWriteDongleVersion(int h, int *v) { (void)h; dongle.version = *v; return dongleSave(); }
 
 // The HASP library itself: the game only calls it once, with dummy
 // arguments, to get the delegates' entry points marshalled (a buffer of
@@ -292,7 +325,7 @@ __attribute__((constructor)) static void init(void)
     if (realAccess(exe, F_OK) != 0)
         return;
     active = 1;
-    nerfGame = NERF_GAME_NERF;
+    nerfGame = strstr(exe, "/fnfmega_Data") ? NERF_GAME_SB3 : NERF_GAME_NERF;
     if (!path || !*path)
         path = realAccess("linuxloader.ini", R_OK) == 0 ? "linuxloader.ini" : NULL;
     if (path && !(ini = iniLoad(path)))

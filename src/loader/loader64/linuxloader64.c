@@ -232,6 +232,27 @@ static const char *pluginStandIn(const char *name)
     return NULL;
 }
 
+// The plugins a game's dumps lack, the cabinet's Linux ones gone with their
+// player: the library under their names in <name>_Data/Plugins/x86_64.
+// Superbikes 3 (rawthrills/sb3): the RIO boards, the dongle, the handlebar's
+// motor, the camera.
+static void addStandIns(const char *dataDir, const Game64 *g)
+{
+    static const char *const sb3[] = {"librio.so",     "libRIO2.so",  "libUnityNatives.so", "libhasp_linux_23557.so",
+                                      "libwheel.so", "libWebCamCV.so", NULL};
+    char path[PATH_MAX * 2];
+    if (strcmp(g->name, "fnfmega"))
+        return;
+    snprintf(path, sizeof(path), "%s/Plugins/x86_64", dataDir);
+    mkdir(path, 0755);
+    for (const char *const *n = sb3; *n; n++)
+    {
+        snprintf(path, sizeof(path), "%s/Plugins/x86_64/%s", dataDir, *n);
+        if (access(path, F_OK) != 0)
+            makeLink(library, path);
+    }
+}
+
 // <name>_Data/Plugins: the game's, the stand-ins in place of the cabinet's,
 // the player's own (ScreenSelector.so) before the game's copy.
 static void linkPlugins(const char *from, const char *to, const char *playerPlugins)
@@ -338,6 +359,7 @@ static void runUnity(const char *gameDir, const Game64 *g)
         snprintf(dst, sizeof(dst), "%s/Plugins", path);
         snprintf(ownPlugins, sizeof(ownPlugins), "%s/Data/Plugins", player);
         linkPlugins(from, dst, ownPlugins);
+        addStandIns(path, g);
         // The game's plugins find each other there (one needing another,
         // as FMOD's studio library its core one).
         snprintf(dst, sizeof(dst), "%s/Plugins/x86_64", path);
