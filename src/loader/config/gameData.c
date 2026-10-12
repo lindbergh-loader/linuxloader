@@ -32,6 +32,7 @@ static const GameData gameData[] = {
     {POLICE_TRAINER_2_TEAMPLAY, "Police Trainer 2", "police-trainer-2", "Teamplay", "TPL-PT2", "2003", "640x480", WORKING, NO_JVS_IO, SHOOTING, 640, 480, -1, 0, 0, 0, 0, 0, 0, RED},
     {AMERICAS_ARMY_GVR, "America's Army", "americas-army", "Global VR", "GVR-AA", "2007", "640x480", WORKING, NO_JVS_IO, SHOOTING, 640, 480, -1, 0, 0, 0, 0, 0, 0, RED},
     {PUCK_OFF_GVR, "Puck Off", "puck-off", "Global VR", "GVR-PO", "2007", "640x480", WORKING, NO_JVS_IO, DIGITAL, 640, 480, -1, 0, 0, 0, 0, 0, 0, RED},
+    {TUX_RACER_ROXOR, "Tux Racer", "tux-racer", "Roxor", "RXR-TUX", "2002", "640x480", WORKING, NO_JVS_IO, DIGITAL, 640, 480, -1, 0, 0, 0, 0, 0, 0, RED},
     {WMMT3DXPLUS_N2, "Wangan Midnight Maximum Tune 3DX+", "wmmt3dxp", "Namco N2", "W3P100", "2010", "640x480", NOT_WORKING, NAMCO_FCA_1, DRIVING, 640, 480, -1, 0, 0, 0, 0, 0, 0, RED},
     {CSNEO_N2, "Counter Strike NEO", "csneo", "Namco N2", "csneo2", "2005", "640x480", WORKING, NO_JVS_IO, SHOOTING, 640, 480, -1, 0, 0, 0, 0, 0, 0, RED},
     {DHRIDERS_ES1, "Dead Heat Riders", "dhriders", "Namco ES1", "DHR100", "2013", "1360x768", WORKING, NAMCO_NA_JV, DRIVING, 1360, 768, -1, 0, 0, 0, 0, 0, 0, RED},

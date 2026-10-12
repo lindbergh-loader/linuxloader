@@ -49,6 +49,7 @@
 #define CROSSFIRE_TEAMPLAY 0x0a8b80a6                            // Teamplay, med_pball
 #define PUCK_OFF_GVR 0x71da2491                                  // Global VR, v0710240921
 #define AMERICAS_ARMY_GVR 0x1af79b17                             // Global VR, 1.0.1.082 (armyops-bin)
+#define TUX_RACER_ROXOR 0xa27ceeb7                               // Roxor, Tux Racer 4.1 ARCADE (tuxracer)
 #define POLICE_TRAINER_2_TEAMPLAY 0xf1709a8e                     // Teamplay, pt2s_g11
 #define AFTER_BURNER_CLIMAX_SBLR 0xa3c246e2                       // DVP-0009
 #define AFTER_BURNER_CLIMAX_SBLR_REVA 0xe657b1c0                  // DVP-0009A
