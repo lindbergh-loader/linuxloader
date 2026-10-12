@@ -23,6 +23,7 @@
 #include "namco/namcoN2.h"
 #include "teamplay/teamplay.h"
 #include "globalvr/gvr.h"
+#include "roxor/roxor.h"
 #include "common/desktopInput.h"
 #endif
 
@@ -153,6 +154,35 @@ void initMain(char *configPath, char *controlsPath)
         desktopStartQuitWatch();
         if (gvrInit() != 0)
             exit(1);
+        printf("\n");
+        return;
+    }
+
+    // Roxor games (Tux Racer) keep their own SDL window too: none of the
+    // Lindbergh hardware; their parallel port I/O board is the loader's (see
+    // roxor/roxorIo.c), fed from evdev or the desktop.
+    if (isRoxorGame())
+    {
+        printf("\nLinux Loader\nBy the Linux Loader Development Team 2026\n\n");
+        printf("  GAME:        %s\n", getGameName());
+        printf("  GAME ID:     %s\n", getGameId());
+        initJVS();
+        if (getConfig()->inputMode == 2)
+        {
+            if (initEvdevControllers(&controllers) != 0)
+                exit(1);
+            for (int i = 0; i < controllers.count; i++)
+                if (controllers.controller[i].inUse)
+                    printf("  CONTROLLER:  %s\n", controllers.controller[i].name);
+        }
+        desktopStartQuitWatch();
+        // The board's functions are detoured (MinHook), as the Lindbergh
+        // path's hooks below are.
+        if (MH_Initialize() != MH_OK || roxorInit() != 0 || MH_EnableHook(MH_ALL_HOOKS) != MH_OK)
+        {
+            log_error("Roxor: cannot install the I/O board");
+            exit(1);
+        }
         printf("\n");
         return;
     }
