@@ -85,6 +85,7 @@ char *games[] = {"a.elf",
                  "med_pball",      // Teamplay (Crossfire Maximum Paintball)
                  "pt2s_g11",       // Teamplay (Police Trainer 2)
                  "armyops-bin",    // Global VR (America's Army)
+                 "tuxracer",       // Roxor (Tux Racer)
                  "END"};
 
 /**
@@ -181,6 +182,7 @@ uint32_t cleanElfCRC32[] = {
     0xC2AFF8D4, // Teamplay  | Crossfire Maximum Paintball med_pball
     0x210F3077, // Global VR | Puck Off game (v0710240921)
     0x1492D7CD, // Global VR | America's Army armyops-bin (1.0.1.082)
+    0x4DF577F6, // Roxor     | Tux Racer tuxracer (4.1 ARCADE)
     0xFE266A17, // Namco N2  | Counter Strike NEO hlds_amd (code segment)
 };
 
