@@ -76,6 +76,7 @@ char *games[] = {"a.elf",
                  "vf5",
                  "vsg",
                  "vt3",
+                 "game_dump.exec", // Raw Thrills Space Invaders Frenzy native dump
                  "game", // Raw Thrills (Jurassic Park)
                  "vt3_Lindbergh",
                  "n_tank_release", // Namco ES1 (Tank! Tank! Tank!)

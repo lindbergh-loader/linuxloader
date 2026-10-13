@@ -10,11 +10,12 @@ usage: rt-imports.py <dump> <first GOT slot> <first import name> <array name>
   e.g. rt-imports.py "Doodle Jump/game" 0x822148c waitpid djGameImports
 """
 
+import argparse
 import re
 import struct
 import sys
 
-VERSION = re.compile(r"^(GLIBC|GLIBCXX|CXXABI|GCC)_")
+VERSION = re.compile(r"^(GLIBC|GLIBCXX|CXXABI|GCC|LIBUDEV)_")
 
 
 def segments(elf):
@@ -79,9 +80,25 @@ def parse_list(elf, start):
 
 
 def main():
-    path, got, first, array = sys.argv[1], int(sys.argv[2], 0), sys.argv[3], sys.argv[4]
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("path")
+    parser.add_argument("got", type=lambda value: int(value, 0))
+    parser.add_argument("first")
+    parser.add_argument("array")
+    parser.add_argument("--skip-got-range", action="append", default=[], metavar="START:END",
+                        help="skip an aligned, end-exclusive GOT padding or reserved range")
+    args = parser.parse_args()
+    path, got, first, array = args.path, args.got, args.first, args.array
     elf = open(path, "rb").read()
     skip = relocated_slots(elf)
+    for span in args.skip_got_range:
+        try:
+            start, end = (int(value, 0) for value in span.split(":"))
+        except ValueError:
+            parser.error("GOT ranges must be START:END addresses")
+        if start % 4 or end % 4 or end <= start:
+            parser.error("GOT ranges must be aligned and increasing")
+        skip.update(range(start, end, 4))
     slot = got
     print("static const RtGameImport %s[] = {" % array)
     for name, version in import_list(elf, first):

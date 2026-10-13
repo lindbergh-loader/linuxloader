@@ -8,6 +8,8 @@
 #include "walkingdead/twdImports.h"
 #include "jurassicpark/jpImports.h"
 #include "angrybirds/abImports.h"
+#include "spaceinvadersfrenzy/sifImports.h"
+#include "spaceinvadersfrenzy/sifSymbols.h"
 
 // SDL 1.2 key codes (engine input ids of the keyboard).
 enum
@@ -303,6 +305,30 @@ static const RtIoInput gaRioSwitches[] = {
 
 // The RIO board is reported connected.
 static const RtStub gaStubs[] = {{"RIO_Connected", 0}, {NULL, 0}};
+
+static const RtPathAlias sifPathAliases[] = {{"invaders/invaders", ""}, {NULL, NULL}};
+
+static const RtIoInput sifRioSwitches[] = {
+    {RT_IO_COIN, 0, 0, 0},
+    {RT_IO_COIN, 1, 1, 0},
+    {RT_IO_SWITCH, SYSTEM, 3, BUTTON_TEST},
+    {RT_IO_SWITCH, PLAYER_1, 4, BUTTON_SERVICE},
+    {RT_IO_SWITCH, PLAYER_1, 5, BUTTON_UP},
+    {RT_IO_SWITCH, PLAYER_1, 6, BUTTON_DOWN},
+    {RT_IO_SWITCH, PLAYER_1, 7, BUTTON_START},
+    {RT_IO_SWITCH, PLAYER_1, 15, BUTTON_1},
+    {RT_IO_SWITCH, PLAYER_2, 8, BUTTON_START},
+    {RT_IO_SWITCH, PLAYER_2, 17, BUTTON_1},
+    {RT_IO_END, 0, 0, 0},
+};
+
+static const RtIoInput sifRioAnalogs[] = {
+    {RT_IO_ANALOG, PLAYER_1, 0x13, ANALOGUE_1},
+    {RT_IO_ANALOG, PLAYER_1, 0x14, ANALOGUE_2},
+    {RT_IO_ANALOG, PLAYER_2, 0x15, ANALOGUE_3},
+    {RT_IO_ANALOG, PLAYER_2, 0x16, ANALOGUE_4},
+    {RT_IO_END, 0, 0, 0},
+};
 
 // ---------------------------------------------------------------------------
 // The Walking Dead (g6 engine; the dump exports no game function), v1.05.
@@ -1798,6 +1824,38 @@ static const RtGame rtGames[] = {
         // with its own centre: the range is set every frame.
         .ioRawRange = 2,
         .ioDesktop = 1,
+    },
+    {
+        .crc32 = SPACE_INVADERS_FRENZY_RT,
+        .fileCrc32 = 0xacdf964f,
+        .envelopeSelfSlot = -1,
+        .gameImports = sifGameImports,
+        .gameImportCount = sizeof(sifGameImports) / sizeof(sifGameImports[0]),
+        .symbols = sifSymbols,
+        .haspFeature = 0xffff0000,
+        .haspMemoryFileId = 0xfff0,
+        .bssStart = 0x086a8354,
+        .bssEnd = 0x144d09e0,
+        .threadStackSize = 8 << 20,
+        .replacedLib = "libSDL2-2.0.so.0",
+        .replacedLibPrefix = "SDL_",
+        .rootPath = "/pm",
+        .pathAliases = sifPathAliases,
+        .install = rtSifInstall,
+        .stubs = gaStubs,
+        .rioSwitches = sifRioSwitches,
+        .rioAnalogs = sifRioAnalogs,
+        .rioDesktopKeys = 1,
+        .rioTransitionCounts = 1,
+        .parseArgsSymbol = "_Z19Main_ProcessCmdLineiPPc",
+        .parseArgsPrologue = 6,
+        .resolution = 0x08694c20,
+        .monitorSize = 0x08694c28,
+        .rotateFlag = 0x0872d254,
+        .fullscreenFlag = 0x0872d248,
+        .orthoSymbol = "set_ortho",
+        .orthoPrologue = 6,
+        .exeGlxGetProcAddress = 1,
     },
     {
         .crc32 = GHOSTBUSTERS_RT,
