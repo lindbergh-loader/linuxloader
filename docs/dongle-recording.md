@@ -200,6 +200,48 @@ The 32-byte and 16-byte encrypts are the efilemaps' AES key and IV; the 256- and
 512-byte decrypts are the file-key secrets. With them in place the loader
 replays all four, the def files decrypt, and the game reaches the coin page.
 
+## Worked example: Ghostbusters Arcade (32-bit, g6)
+
+Ghostbusters uses the same recorder shape as The Walking Dead. Its linked
+`hasp_encrypt` and `hasp_decrypt` wrappers are at `0x83e277c` and `0x83e2868`.
+The game calls them from `0x819b7bc` and `0x819b74f`, respectively. The first
+load segment maps file offset 0 at VMA `0x8048000`, so the call instructions
+are at file offsets `0x1537bc` (encrypt) and `0x15374f` (decrypt).
+
+`tools/dongle-recording/gb-cave.S` places a 152-byte stub in the unused zero
+run at file offset `0x9370a2` (VMA `0x897f0a2`). The decrypt trampoline is at
+`CAVE`; the encrypt trampoline is at `CAVE + 0xc`, after the 12-byte decrypt
+trampoline. It records marker, length, input, 4-byte return status, and output
+to fd 2. The copy's calls should resolve to `0x897f0ae` and `0x897f0a2`:
+
+The helper assembles the cave, verifies the clean executable's CRC, wrapper
+calls, TracerGuard prologue, and zero-filled cave region, then writes a
+separate instrumented copy. It never patches the input:
+
+```sh
+tools/dongle-recording/prepare-ghostbusters-dongle-log.py \
+    '/path/to/Ghostbusters Arcade/pm/game' \
+    '/path/to/Ghostbusters Arcade/pm/game_dongle_log'
+```
+
+Verify the two calls resolve to `0x897f0a2` and `0x897f0ae` before running the
+copy under BudgieLoader. Its records use the same parser options as The
+Walking Dead and Big Buck HD Wild:
+
+```sh
+tools/dongle-recording/split-records.py donglelog.bin hasp \
+    --key-size 16 --status-bytes 4
+```
+
+The helper also stubs the game's `TracerGuard` with `mov eax,1; ret` at VMA
+`0x82e8719`, so the anti-debug fork cannot interleave the capture records.
+
+The 2026-10-13 BudgieLoader capture yielded four records. Two decrypt answers
+match the native startup questions; the two encrypt answers are also needed
+to pass startup checks. They are installed in
+`Ghostbusters Arcade/hasp/`. No `hhl_mem.dmp` was captured, so the loader uses
+its synthesized dongle memory image.
+
 ## What is in the tree
 
 Instrumented copies are kept beside the originals, same size, differing only in
@@ -212,10 +254,12 @@ the patched call and the injected stub:
 | `The Walking Dead/pm/game_aim_log` | 0x3d1768 | 0x9dda00 | gun aim, same technique |
 | `Big Buck HD Wild/game_dongle_log` | 0x21ecfc, 0x21ec8f | 0xab3422 (vaddr 0x8afb422) | dongle encrypt/decrypt |
 | `Halo .../pm/g7/halo/game_dongle_log` | 0x2398e8 (vaddr 0x6398e8) | 0x1061100 (vaddr 0x1461100) | dongle decrypt |
+| `Ghostbusters Arcade/pm/game_dongle_log` | 0x1537bc, 0x15374f | 0x9370a2 (vaddr 0x897f0a2) | dongle encrypt/decrypt |
 
 Every stub source is in `tools/dongle-recording/`: `halo-cave.S`,
-`twd-cave.S` (recovered by disassembling `game_dongle_log`) and `bbhd-cave.S`
-(the same generic body retargeted at BBHDW's addresses). The Walking Dead's `game_keydump`
+`twd-cave.S` (recovered by disassembling `game_dongle_log`), `bbhd-cave.S`
+(the same generic body retargeted at BBHDW's addresses), and `gb-cave.S`
+(the same recorder shape for Ghostbusters). The Walking Dead's `game_keydump`
 and `game_aim_log` sources were not kept either, so they were recovered the
 same way and are `twd-keydump.S` and `twd-aim.S`; each reassembles to the bytes
 in its copy exactly.

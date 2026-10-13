@@ -526,6 +526,12 @@ int rtReplaceLib(const RtGame *game)
             target = (void *)sdlGlSwapWindow;
         }
         rtDetourAddress(sym->st_value, target);
+        // Protected exports can be wrapper cells while the game calls the
+        // native implementation directly (Space Invaders Frenzy). A named
+        // native target in the descriptor must receive the replacement too.
+        void *native = lookup(name);
+        if (native && (uint32_t)(uintptr_t)native != sym->st_value)
+            rtDetourAddress((uint32_t)(uintptr_t)native, target);
         replaced++;
     }
     log_info("Raw Thrills: %d %s functions sent to %s (%d not found)", replaced, game->replacedLibPrefix,
