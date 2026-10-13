@@ -10,6 +10,7 @@
 #include "angrybirds/abImports.h"
 #include "spaceinvadersfrenzy/sifImports.h"
 #include "spaceinvadersfrenzy/sifSymbols.h"
+#include "worldslargestpacman/wlpImports.h"
 
 // SDL 1.2 key codes (engine input ids of the keyboard).
 enum
@@ -327,6 +328,34 @@ static const RtIoInput sifRioAnalogs[] = {
     {RT_IO_ANALOG, PLAYER_1, 0x14, ANALOGUE_2},
     {RT_IO_ANALOG, PLAYER_2, 0x15, ANALOGUE_3},
     {RT_IO_ANALOG, PLAYER_2, 0x16, ANALOGUE_4},
+    {RT_IO_END, 0, 0, 0},
+};
+
+static const RtPathAlias wlpPathAliases[] = {{"pacman/pacman", ""}, {NULL, NULL}};
+
+static const RtIoInput wlpRioSwitches[] = {
+    {RT_IO_COIN, 0, 0, 0},
+    {RT_IO_COIN, 1, 1, 0},
+    {RT_IO_SWITCH, SYSTEM, 3, BUTTON_TEST},
+    {RT_IO_SWITCH, PLAYER_1, 4, BUTTON_SERVICE},
+    {RT_IO_SWITCH, PLAYER_1, 5, BUTTON_7}, // Volume/menu up: Page Up
+    {RT_IO_SWITCH, PLAYER_1, 6, BUTTON_8}, // Volume/menu down: Page Down
+    {RT_IO_SWITCH, PLAYER_1, 7, BUTTON_START},
+    {RT_IO_SWITCH, PLAYER_1, 13, BUTTON_1},
+    {RT_IO_SWITCH, PLAYER_1, 14, BUTTON_2},
+    // Table entries 19..26 are RIO switches 36..43, not 13..20.
+    // The gameplay reader uses entries 19..22 for P1 and 23..26 for P2.
+    {RT_IO_SWITCH, PLAYER_1, 0x24, BUTTON_UP},
+    {RT_IO_SWITCH, PLAYER_1, 0x25, BUTTON_DOWN},
+    {RT_IO_SWITCH, PLAYER_1, 0x26, BUTTON_LEFT},
+    {RT_IO_SWITCH, PLAYER_1, 0x27, BUTTON_RIGHT},
+    {RT_IO_SWITCH, PLAYER_2, 8, BUTTON_START},
+    {RT_IO_SWITCH, PLAYER_2, 15, BUTTON_1},
+    {RT_IO_SWITCH, PLAYER_2, 16, BUTTON_2},
+    {RT_IO_SWITCH, PLAYER_2, 0x28, BUTTON_UP},
+    {RT_IO_SWITCH, PLAYER_2, 0x29, BUTTON_DOWN},
+    {RT_IO_SWITCH, PLAYER_2, 0x2a, BUTTON_LEFT},
+    {RT_IO_SWITCH, PLAYER_2, 0x2b, BUTTON_RIGHT},
     {RT_IO_END, 0, 0, 0},
 };
 
@@ -1853,6 +1882,39 @@ static const RtGame rtGames[] = {
         .monitorSize = 0x08694c28,
         .rotateFlag = 0x0872d254,
         .fullscreenFlag = 0x0872d248,
+        .orthoSymbol = "set_ortho",
+        .orthoPrologue = 6,
+        .exeGlxGetProcAddress = 1,
+    },
+    {
+        .crc32 = WORLDS_LARGEST_PACMAN_RT,
+        .fileCrc32 = 0xa568b286,
+        .envelopeSelfSlot = -1,
+        .gameImports = wlpGameImports,
+        .gameImportCount = sizeof(wlpGameImports) / sizeof(wlpGameImports[0]),
+        .symbols = wlpSymbols,
+        .haspFeature = 0xffff0000,
+        .haspMemoryFileId = 0xfff0,
+        .bssStart = 0x0878ac20,
+        // The envelope version/hash tables follow the native runtime state;
+        // keep them and the export wrappers available to ld.so and dlsym.
+        .bssEnd = 0x088ec3c4,
+        .threadStackSize = 8 << 20,
+        .replacedLib = "libSDL2-2.0.so.0",
+        .replacedLibPrefix = "SDL_",
+        .rootPath = "/pm",
+        .pathAliases = wlpPathAliases,
+        .install = rtWlpInstall,
+        .stubs = gaStubs,
+        .rioSwitches = wlpRioSwitches,
+        .rioDesktopKeys = 1,
+        .rioTransitionCounts = 1,
+        .parseArgsSymbol = "_Z19Main_ProcessCmdLineiPPc",
+        .parseArgsPrologue = 6,
+        .resolution = 0x087760e0,
+        .monitorSize = 0x087760e8,
+        .rotateFlag = 0x08854794,
+        .fullscreenFlag = 0x08854788,
         .orthoSymbol = "set_ortho",
         .orthoPrologue = 6,
         .exeGlxGetProcAddress = 1,

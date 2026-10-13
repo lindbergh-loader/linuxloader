@@ -465,6 +465,7 @@ void rtAbIoFrame(struct JVSIO *io) __attribute__((weak));
 // Ghostbusters' IR backend and optional shader backup (rtGb.c).
 void rtGbInstall(const RtGame *game) __attribute__((weak));
 void rtSifInstall(const RtGame *game) __attribute__((weak));
+void rtWlpInstall(const RtGame *game) __attribute__((weak));
 // The IR gun games' crosshairs (rtCrosshair.c), a frameDraw. Weak: the
 // launcher links the descriptors without it (NULL there, never called).
 void rtCrosshairFrameDraw(int x, int y, int width, int height) __attribute__((weak));
