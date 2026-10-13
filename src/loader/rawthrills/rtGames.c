@@ -880,6 +880,44 @@ static const RtIoInput bbhdIoInputs[] = {
     {RT_IO_END, 0, 0, 0},
 };
 
+// Ghostbusters Arcade: normally linked g6 executable (BuildID
+// e35529888ac920e45039eca47b8a286c945745c2). HASP entries verified against
+// their trace strings; the camera entries against io_irtrack's calls.
+static const RtSymbol gbSymbols[] = {
+    {"hasp_login", 0x083e25f0},
+    {"hasp_logout", 0x083e2690},
+    {"hasp_encrypt", 0x083e277c},
+    {"hasp_decrypt", 0x083e2868},
+    {"hasp_free", 0x083e2eac},
+    {"hasp_get_sessioninfo", 0x083e3170},
+    {"hasp_read", 0x083e33e8},
+    {"hasp_write", 0x083e34b4},
+    {"TracerGuard", 0x082e8719},
+    {"ParseCommandLineArgs", 0x0807f080},
+    {"SDL_SetVideoMode", 0x081bd720},
+    {"io_new_data_present", 0x0818aa6f},
+    {"io_get_input_digital", 0x0818b0e4},
+    {"io_get_input_analog", 0x0818b598},
+    {"io_set_input_raw_range", 0x0818aea3},
+    {"io_rio_loop", 0x0818fb86},
+    {"InputInit", 0x0808c320},
+    {"CheckFileIntegrity", 0x080b6440},
+    {"IrInit", 0x0847ed7c},
+    {"IrGunActive", 0x0847ea58},
+    {"IrGunRaw", 0x0847f7b1},
+    {"IrGunRawFiltered", 0x0847f829},
+    {"IrGunAim", 0x0848014a},
+    {"IrGunButton", 0x0847fa8e},
+    {NULL, 0},
+};
+
+static const RtStub gbStubs[] = {
+    {"TracerGuard", 1},
+    // The loader supplies the camera reports; no hardware camera threads.
+    {"IrInit", 0},
+    {NULL, 0},
+};
+
 static const RtStub bbhdStubs[] = {
     {"TracerGuard", 1},
     {NULL, 0},
@@ -1760,6 +1798,45 @@ static const RtGame rtGames[] = {
         // with its own centre: the range is set every frame.
         .ioRawRange = 2,
         .ioDesktop = 1,
+    },
+    {
+        .crc32 = GHOSTBUSTERS_RT,
+        .fileCrc32 = 0x774ad438,
+        .envelopeSelfSlot = -1,
+        .symbols = gbSymbols,
+        .haspFeature = 0xffff0000,
+        .haspMemoryFileId = 0xfff2,
+        // FactorySetupProc writes 1 at 0x39; attract reads the same byte.
+        .haspFactorySetupOffset = 0x39,
+        .haspAnswers = "hasp",
+        .haspAnswerKeySize = 16,
+        .threadStackSize = 8 << 20,
+        .rootPath = "/pm",
+        .stubs = gbStubs,
+        .install = rtGbInstall,
+        .resolution = 0x08e169c0,
+        .aspect = 0x08e169c8,
+        .fullscreenFlag = 0x08e169dc,
+        // push ebp; mov esp,ebp; push edi; push esi; push ebx.
+        .parseArgsPrologue = 6,
+        .videoModeSymbol = "SDL_SetVideoMode",
+        .videoModePrologue = 6,
+        // Cabinet switches use the same I/O slots as Aliens Armageddon.
+        .ioLoopSymbol = "io_rio_loop",
+        .ioLoopPrologue = 6,
+        .ioInputs = aaIoInputs,
+        .ioDesktop = 1,
+        .irGunActiveSymbol = "IrGunActive",
+        .irGunRawSymbols = {"IrGunRaw", "IrGunRawFiltered"},
+        .irGunButtonSymbol = "IrGunButton",
+        .irGunAimSymbol = "IrGunAim",
+        // Two 0x34-byte analog slots, then three 0x2c-byte buttons.
+        .irGunSlots = 0x08b36404,
+        .irGunInvertX = 1,
+        .irAbsGunInvertX = 1,
+        .irAbsGunInvertY = 1,
+        .irGunSlotStride = 0xec,
+        .irGunButtonSlot = 0x68,
     },
     {
         .crc32 = WALKING_DEAD_RT,

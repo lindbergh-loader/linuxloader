@@ -264,6 +264,9 @@ typedef struct RtGame
     // RIO games without keys of their own: desktop keyboard on the switches
     // when not in evdev mode (see rtIo.c).
     int rioDesktopKeys;
+    // RIO_SW_Count is a transition count (odd while held), rather than
+    // a count of presses, for games reading its parity as switch state.
+    int rioTransitionCounts;
     // Games that take the board's switch reports themselves (g6 engine):
     // its report handler, (switch, 3, transition count, time), called from
     // a hook of ioLoopSymbol (the engine's io_rio_loop(dt)) for each switch
@@ -459,6 +462,9 @@ void rtTtFrameDraw(int x, int y, int width, int height) __attribute__((weak));
 // Angry Birds Arcade's touch frame (rtAb.c), the same way.
 void rtAbInstall(const RtGame *game) __attribute__((weak));
 void rtAbIoFrame(struct JVSIO *io) __attribute__((weak));
+// Ghostbusters' IR backend and optional shader backup (rtGb.c).
+void rtGbInstall(const RtGame *game) __attribute__((weak));
+void rtSifInstall(const RtGame *game) __attribute__((weak));
 // The IR gun games' crosshairs (rtCrosshair.c), a frameDraw. Weak: the
 // launcher links the descriptors without it (NULL there, never called).
 void rtCrosshairFrameDraw(int x, int y, int width, int height) __attribute__((weak));

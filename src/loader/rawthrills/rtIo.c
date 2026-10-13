@@ -611,14 +611,19 @@ static int rioSwState(int sw)
     for (const RtIoInput *in = currentGame->rioSwitches; in->type != RT_IO_END; in++)
         if (in->io == sw)
             held |= rtIoSwitchState(in, io) | (evdev && currentGame->rioDesktopKeys && desktopKeyState(in));
-    if (held && !rioHeld[sw])
+    if (held != rioHeld[sw] && (held || currentGame->rioTransitionCounts))
         rioCount[sw]++;
     rioHeld[sw] = held;
-    return held;
+    // This RIO build's native API uses 1 for pressed and 2 for released;
+    // its gameplay code checks those values rather than treating state as a
+    // plain boolean. Other profiles retain the 0/1 result used by their API.
+    return held ? 1 : currentGame->rioTransitionCounts ? 2 : 0;
 }
 
 static uint32_t rioSwCount(int sw)
 {
+    if (currentGame->rioTransitionCounts && sw >= 0 && sw < RIO_SWITCHES)
+        rioSwState(sw);
     return sw >= 0 && sw < RIO_SWITCHES ? rioCount[sw] : 0;
 }
 
