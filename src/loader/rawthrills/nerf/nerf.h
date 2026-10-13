@@ -23,6 +23,7 @@ typedef enum
     NERF_GAME_NONE, // not a Raw Thrills Unity game: the hooks change nothing
     NERF_GAME_NERF,
     NERF_GAME_SB3, // Superbikes 3 (fnfmega_Data)
+    NERF_GAME_TMNT, // Teenage Mutant Ninja Turtles (TMNT_Data)
 } NerfGame;
 
 extern NerfGame nerfGame;
@@ -46,6 +47,7 @@ enum
     RIO_GEAR4_SW = 16, // P2 shoulder button
     RIO_DASH_SW = 17,  // P2 trigger
     RIO_NUM_SW = 19,
+    TMNT_NUM_INPUTS = 50,
     RIO_ADC1 = 19, // P1 X, Y, then P2 X, Y
     RIO_ADC4 = 22,
     RIO_SERIAL = 24,
@@ -60,7 +62,7 @@ enum
 // What the players hold, sampled once a frame (nerfInput.c).
 typedef struct
 {
-    int switches[RIO_NUM_SW]; // held, by RIO switch object
+    int switches[TMNT_NUM_INPUTS]; // held, by RIO switch or TMNT GameInput
     // [EVDEV] ANALOGUE_1..4, 0..1 (an axis from its minimum); -1: none.
     // Nerf: P1's aim X, Y (from the left, from the top), then P2's.
     // Superbikes 3: the handlebar (from the left), the throttle, the brake.

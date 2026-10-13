@@ -224,10 +224,12 @@ static int copyFile(const char *from, const char *to, mode_t mode)
 }
 
 // The cabinet's native plugins the library stands in for (rawthrills/nerf):
-// the RIO board, the dongle and its glue; the RIO2 the game never calls.
+// the RIO board, the dongle and its glue.
 static const char *pluginStandIn(const char *name)
 {
     if (!strcmp(name, "librio.so") || !strcmp(name, "libUnityNatives.so") || !strncmp(name, "libhasp_linux_", 14))
+        return library;
+    if (!strcmp(name, "libOrenVid.so"))
         return library;
     return NULL;
 }
@@ -235,17 +237,19 @@ static const char *pluginStandIn(const char *name)
 // The plugins a game's dumps lack, the cabinet's Linux ones gone with their
 // player: the library under their names in <name>_Data/Plugins/x86_64.
 // Superbikes 3 (rawthrills/sb3): the RIO boards, the dongle, the handlebar's
-// motor, the camera.
+// motor, the camera. TMNT: RIO2, dongle and cabinet USB integration.
 static void addStandIns(const char *dataDir, const Game64 *g)
 {
     static const char *const sb3[] = {"librio.so",     "libRIO2.so",  "libUnityNatives.so", "libhasp_linux_23557.so",
                                       "libwheel.so", "libWebCamCV.so", NULL};
+    static const char *const tmnt[] = {"libRIO2.so", "libUnityNatives.so", "libhasp_linux_31655.so", "libOrenVid.so", NULL};
     char path[PATH_MAX * 2];
-    if (strcmp(g->name, "fnfmega"))
+    const char *const *plugins = !strcmp(g->name, "fnfmega") ? sb3 : !strcmp(g->name, "TMNT") ? tmnt : NULL;
+    if (!plugins)
         return;
     snprintf(path, sizeof(path), "%s/Plugins/x86_64", dataDir);
     mkdir(path, 0755);
-    for (const char *const *n = sb3; *n; n++)
+    for (const char *const *n = plugins; *n; n++)
     {
         snprintf(path, sizeof(path), "%s/Plugins/x86_64/%s", dataDir, *n);
         if (access(path, F_OK) != 0)

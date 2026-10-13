@@ -62,7 +62,7 @@ static struct
 } devices[MAX_DEVICES];
 static int deviceCount;
 
-static Source switchSources[RIO_NUM_SW][MAX_SOURCES];
+static Source switchSources[TMNT_NUM_INPUTS][MAX_SOURCES];
 static Source analogSources[4]; // ANALOGUE_1..4
 static int evdevMode;
 static int relSpan[2] = {1280, 720};
@@ -176,10 +176,30 @@ static const SwitchKey sb3Switches[] = {
     {0, NULL},
 };
 
+// TMNT's GameInput values, read in groups of one GPIO bank and seven
+// switch-matrix rows for each player. These names also let EVDEV configs
+// address the same controls as the other Raw Thrills games.
+static const SwitchKey tmntSwitches[] = {
+    {0, "TEST_BUTTON"}, {1, "PLAYER_1_BUTTON_SERVICE"}, {2, "VOLUME_UP"},
+    {3, "VOLUME_DOWN"}, {4, "PLAYER_1_COIN"}, {5, "PLAYER_2_COIN"},
+    {6, "PLAYER_3_COIN"}, {7, "PLAYER_4_COIN"}, {8, "PLAYER_5_COIN"},
+    {11, "PLAYER_1_BUTTON_START"}, {12, "PLAYER_2_BUTTON_START"}, {13, "PLAYER_3_BUTTON_START"},
+    {14, "PLAYER_4_BUTTON_START"},
+    {15, "PLAYER_1_BUTTON_UP"}, {16, "PLAYER_2_BUTTON_UP"}, {17, "PLAYER_3_BUTTON_UP"}, {18, "PLAYER_4_BUTTON_UP"}, {19, "PLAYER_5_BUTTON_UP"},
+    {20, "PLAYER_1_BUTTON_DOWN"}, {21, "PLAYER_2_BUTTON_DOWN"}, {22, "PLAYER_3_BUTTON_DOWN"}, {23, "PLAYER_4_BUTTON_DOWN"}, {24, "PLAYER_5_BUTTON_DOWN"},
+    {25, "PLAYER_1_BUTTON_LEFT"}, {26, "PLAYER_2_BUTTON_LEFT"}, {27, "PLAYER_3_BUTTON_LEFT"}, {28, "PLAYER_4_BUTTON_LEFT"}, {29, "PLAYER_5_BUTTON_LEFT"},
+    {30, "PLAYER_1_BUTTON_RIGHT"}, {31, "PLAYER_2_BUTTON_RIGHT"}, {32, "PLAYER_3_BUTTON_RIGHT"}, {33, "PLAYER_4_BUTTON_RIGHT"}, {34, "PLAYER_5_BUTTON_RIGHT"},
+    {35, "PLAYER_1_BUTTON_1"}, {36, "PLAYER_2_BUTTON_1"}, {37, "PLAYER_3_BUTTON_1"}, {38, "PLAYER_4_BUTTON_1"}, {39, "PLAYER_5_BUTTON_1"},
+    {40, "PLAYER_1_BUTTON_2"}, {41, "PLAYER_2_BUTTON_2"}, {42, "PLAYER_3_BUTTON_2"}, {43, "PLAYER_4_BUTTON_2"}, {44, "PLAYER_5_BUTTON_2"},
+    {45, "PLAYER_1_BUTTON_3"}, {46, "PLAYER_2_BUTTON_3"}, {47, "PLAYER_3_BUTTON_3"}, {48, "PLAYER_4_BUTTON_3"}, {49, "PLAYER_5_BUTTON_3"},
+    {0, NULL},
+};
+
 static void evdevConfig(void)
 {
-    const SwitchKey *map = nerfGame == NERF_GAME_SB3 ? sb3Switches : nerfSwitches;
-    for (int i = 0; i < RIO_NUM_SW; i++)
+    const SwitchKey *map = nerfGame == NERF_GAME_SB3 ? sb3Switches :
+                           nerfGame == NERF_GAME_TMNT ? tmntSwitches : nerfSwitches;
+    for (int i = 0; i < TMNT_NUM_INPUTS; i++)
         for (int j = 0; j < MAX_SOURCES; j++)
             switchSources[i][j].device = -1;
     for (; map->key; map++)
@@ -260,7 +280,7 @@ static int switchHeld(const Source *s)
 
 static void evdevState(NerfInput *in)
 {
-    for (int sw = 0; sw < RIO_NUM_SW; sw++)
+    for (int sw = 0; sw < TMNT_NUM_INPUTS; sw++)
         for (int j = 0; j < MAX_SOURCES; j++)
         {
             if (switchHeld(&switchSources[sw][j]))
@@ -441,6 +461,21 @@ static const SwitchKeysym sb3Keys[] = {
     {0, 0},
 };
 
+// A four-player keyboard layout for TMNT. WASD/J/K/L is player one;
+// arrows/Return/Right Shift/Slash is player two. The next two sets support
+// simultaneous local play on the same keyboard.
+static const SwitchKeysym tmntKeys[] = {
+    {0, 0xffbf}, {1, 0xffbe}, {2, 0xff55}, {3, 0xff56},
+    {4, '5'}, {5, '6'}, {6, '7'}, {7, '8'}, {8, '9'},
+    {11, '1'}, {12, '2'}, {13, '3'}, {14, '4'},
+    {15, 'w'}, {20, 's'}, {25, 'a'}, {30, 'd'}, {35, 'j'}, {40, 'k'}, {45, 'l'},
+    {16, 0xff52}, {21, 0xff54}, {26, 0xff51}, {31, 0xff53},
+    {36, 0xff0d}, {41, 0xffe2}, {46, '/'},
+    {17, 'i'}, {22, 'k'}, {27, 'j'}, {32, 'l'}, {37, 'u'}, {42, 'o'}, {47, 'p'},
+    {18, 't'}, {23, 'g'}, {28, 'f'}, {33, 'h'}, {38, 'r'}, {43, 'y'}, {48, 'u'},
+    {0, 0},
+};
+
 // Superbikes 3 on the keyboard, an analog handlebar: Left/Right lean it
 // further the longer they are held (full over SB3_LEAN_MS), so a tap is a
 // small correction; let go (or the other way) it comes back to the middle
@@ -472,7 +507,9 @@ static void sb3DesktopRide(NerfInput *in, const char keys[32])
 
 static void desktopKeys(NerfInput *in, const char keys[32])
 {
-    for (const SwitchKeysym *k = nerfGame == NERF_GAME_SB3 ? sb3Keys : nerfKeys; k->keysym; k++)
+    const SwitchKeysym *map = nerfGame == NERF_GAME_SB3 ? sb3Keys :
+                              nerfGame == NERF_GAME_TMNT ? tmntKeys : nerfKeys;
+    for (const SwitchKeysym *k = map; k->keysym || k->sw; k++)
         if (keyDown(keys, x.keysymToKeycode(x.display, k->keysym)))
             in->switches[k->sw] = 1;
 }

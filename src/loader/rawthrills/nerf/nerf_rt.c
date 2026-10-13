@@ -171,7 +171,7 @@ void *dlopen(const char *file, int mode)
         mode &= ~RTLD_DEEPBIND;
     handle = realDlopen(file, mode);
     // Loaded locally: its API is reached through this handle.
-    if (handle && file && strstr(file, "libmonobdwgc"))
+    if (handle && file && strstr(file, "libmono"))
         nerfMonoHandle = handle;
     return handle;
 }
@@ -299,6 +299,67 @@ int ReadCoinAuditsFromFile(void *audits) { (void)audits; return 0; }
 void WriteCoinAuditsToFile(void *audits) { (void)audits; }
 void GetRIOKeys(void *pub, void *priv) { (void)pub; (void)priv; }
 
+// TMNT's build puts several small gameplay helpers in UnityNatives as well
+// as the cabinet calls above. These keep the imports resolvable on Linux;
+// the game remains responsible for its actual gameplay state.
+void GetSprintInfo(uint8_t *doubleTap, uint8_t *hold, float *holdTime)
+{
+    if (doubleTap) *doubleTap = 0;
+    if (hold) *hold = 0;
+    if (holdTime) *holdTime = 0;
+}
+int BossInvincibilityHits(float health, float maxHealth) { (void)health; (void)maxHealth; return 1; }
+uint8_t ThrowCheck(float dist, float forward, float right) { return dist >= 0 && forward >= -180 && forward <= 180 && right >= -180 && right <= 180; }
+uint8_t ThrowCheckScreen(float dist, float forward, float right) { return ThrowCheck(dist, forward, right); }
+uint8_t AllowAttack(uint8_t boss, float dmg5, float dmg8, float enemyDmg5, float health,
+                    float playerHealth, float playerTime, float sinceDamage, float sinceDealt)
+{
+    (void)boss; (void)dmg5; (void)dmg8; (void)enemyDmg5; (void)health;
+    (void)playerHealth; (void)playerTime; (void)sinceDamage; (void)sinceDealt;
+    return 1;
+}
+uint8_t CheckWaveComplete(float sinceDropIn, int alive, uint8_t allSpawned)
+{
+    (void)sinceDropIn;
+    return alive <= 0 && allSpawned;
+}
+float CurrentDamageMod(float cycle, float control, float gameMod)
+{
+    (void)cycle; (void)control;
+    return gameMod;
+}
+uint8_t RestrainCheck(float dist, float between, float down)
+{
+    return dist >= 0 && between >= -180 && between <= 180 && down >= -180 && down <= 180;
+}
+uint8_t RestrainCheckMouser(float dist, float between, float up)
+{
+    return RestrainCheck(dist, between, up);
+}
+float GetRotZTarget(float angle) { return angle; }
+float GetRotXTarget(uint8_t rect, float angle) { (void)rect; return angle; }
+uint8_t GetNewHeight(float *base, float *velocity, float delta, uint8_t gravity)
+{
+    if (!base || !velocity || delta < 0) return 0;
+    if (gravity) *velocity -= 9.81f * delta;
+    *base += *velocity * delta;
+    return 1;
+}
+float GetCircleY(float start, float offset, float original, float elevator, float mod)
+{
+    return start + (offset - original) + elevator * mod;
+}
+float GetAngleDelta(float maxSpeed, float delta, float angle)
+{
+    float step = maxSpeed * delta;
+    if (step < 0) step = -step;
+    if (angle > 180) angle -= 360;
+    if (angle < -180) angle += 360;
+    if (angle > step) return step;
+    if (angle < -step) return -step;
+    return angle;
+}
+
 void GetPeriodicRebootInfo(float *rebootTime, float *rebootDelay)
 {
     *rebootTime = 1e12f;
@@ -325,7 +386,8 @@ __attribute__((constructor)) static void init(void)
     if (realAccess(exe, F_OK) != 0)
         return;
     active = 1;
-    nerfGame = strstr(exe, "/fnfmega_Data") ? NERF_GAME_SB3 : NERF_GAME_NERF;
+    nerfGame = strstr(exe, "/fnfmega_Data") ? NERF_GAME_SB3 :
+               strstr(exe, "/TMNT_Data") ? NERF_GAME_TMNT : NERF_GAME_NERF;
     if (!path || !*path)
         path = realAccess("linuxloader.ini", R_OK) == 0 ? "linuxloader.ini" : NULL;
     if (path && !(ini = iniLoad(path)))
