@@ -3,10 +3,11 @@
 // Arcade, the first of them).
 #include "unity.h"
 
-extern const UnityGame nerfGame, sb3Game;
+extern const UnityGame nerfGame, sb3Game, tmntGame;
 
 const UnityGame *const unityGames[] = {
     &sb3Game,
+    &tmntGame,
     &nerfGame,
     NULL,
 };
