@@ -38,6 +38,7 @@
 // cleared and libcsv path shortened).
 // The untouched executable's partial CRC is 0x344ca1b3.
 #define GHOSTBUSTERS_RT 0xcaeea463
+#define SPACE_INVADERS_FRENZY_RT 0xa3cdb3b6
 #define DOODLE_JUMP_RT 0x7ae081d8                                // ICE (Raw Thrills pm platform), v1.28
 #define TIPPIN_BLOKS_RT 0x1b27d8e9                               // ICE (PlayMechanix g3), v1.80 (patched copy)
 #define TARGET_TERROR_GOLD_RT 0x595365af                         // Raw Thrills, 2004 engine, Gold (patched copy)
