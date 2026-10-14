@@ -9,6 +9,10 @@ the game process, so the game's own `Dongle*` layer above it runs unchanged.
 Everything below lives in `src/loader/rawthrills/rtDongle.c`, driven by the
 per-game fields in `rtGames.c`.
 
+Big Buck Hunter Pro v1.25 uses a Rockey boot envelope instead. Its executable
+can be restored and started after the envelope without HASP emulation or
+recorded replies; see [big-buck-hunter-pro.md](big-buck-hunter-pro.md).
+
 ## What the protection actually does
 
 A protected game does four things, and all four have to be answered:

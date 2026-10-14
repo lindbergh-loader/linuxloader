@@ -2,6 +2,7 @@
 #include "config.h"
 
 static const GameData gameData[] = {
+    {BIG_BUCK_HUNTER_PRO_RT, "Big Buck Hunter Pro", "big-buck-hunter-pro", "Raw Thrills", "RT-BBHP", "2008", "640x480", WORKING, NO_JVS_IO, SHOOTING, 640, 480, -1, 0, 0, 0, 0, 0, 0, RED},
     {SPACE_INVADERS_FRENZY_RT, "Space Invaders Frenzy", "space-invaders-frenzy", "Raw Thrills", "RT-SIF", "2017", "1600x1200", NOT_WORKING, NO_JVS_IO, SHOOTING, 1600, 1200, -1, 0, 0, 0, 0, 0, 0, RED},
     {WORLDS_LARGEST_PACMAN_RT, "World's Largest Pac-Man", "worlds-largest-pacman", "Raw Thrills", "RT-WLPM", "2024", "1920x1080", WORKING, NO_JVS_IO, DIGITAL, 1920, 1080, -1, 0, 0, 0, 0, 0, 0, RED},
     {GHOSTBUSTERS_RT, "Ghostbusters Arcade", "ghostbusters", "Raw Thrills", "RT-GB", "2016", "1280x720", WORKING, NO_JVS_IO, SHOOTING, 1280, 720, -1, 0, 0, 0, 0, 0, 0, RED},

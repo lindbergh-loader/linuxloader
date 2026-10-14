@@ -43,6 +43,7 @@
 #define DOODLE_JUMP_RT 0x7ae081d8                                // ICE (Raw Thrills pm platform), v1.28
 #define TIPPIN_BLOKS_RT 0x1b27d8e9                               // ICE (PlayMechanix g3), v1.80 (patched copy)
 #define TARGET_TERROR_GOLD_RT 0x595365af                         // Raw Thrills, 2004 engine, Gold (patched copy)
+#define BIG_BUCK_HUNTER_PRO_RT 0x5251b97d                        // Raw Thrills, v1.25, Rockey envelope removed
 #define NIRIN_ES1 0x71e72ff6                                     // Namco ES1, NRN100-4-NA-DAT0-A37
 #define DHRIDERS_ES1 0x5d3df1cd                                  // Namco ES1, DH RIDERS (rev 1247)
 #define DEADHEAT_ES1 0x7a3a5554                                  // Namco ES1, US DRIVE (rev 6273)
