@@ -1460,6 +1460,16 @@ static const RtSymbol ttSymbols[] = {
 
 static const RtStub ttStubs[] = {{"poll_for_dongle", 1}, {NULL, 0}};
 
+static const RtPathAlias bbhproRootAliases[] = {{"/bbh3user", "bbh3user"}, {NULL, NULL}};
+static const RtSymbol bbhproSymbols[] = {
+    {"JammaPoll", 0x0804cb50},
+    {"JammaOp", 0x080da943},
+    {"JammaLoop", 0x080dbf32},
+    {"PostInputEvent", 0x0804d040},
+    {NULL, 0},
+};
+static const RtStub bbhproStubs[] = {{"JammaLoop", 0}, {NULL, 0}};
+
 // Its settings, audits and hiscores, files of the cabinet's /tt, are in
 // save/ in the dump (see rtTt.c for its data).
 static const RtPathAlias ttPathAliases[] = {
@@ -1470,6 +1480,34 @@ static const RtPathAlias ttPathAliases[] = {
 };
 
 static const RtGame rtGames[] = {
+    {
+        .crc32 = BIG_BUCK_HUNTER_PRO_RT,
+        .fileCrc32 = 0x0a5b0341,
+        .rockeyTextStart = 0x0804ad80,
+        .rockeyTextSize = 0x937c0,
+        .rockeyTextXor = 0xf167eb84,
+        .envelopeSelfSlot = -1,
+        .rootPath = "/g3",
+        .rootAliases = bbhproRootAliases,
+        .symbols = bbhproSymbols,
+        .stubs = bbhproStubs,
+        .jammaPollSymbol = "JammaPoll",
+        .jammaPollPrologue = 6,
+        .jammaOpSymbol = "JammaOp",
+        .jammaOpPrologue = 8,
+        .jammaSwitches = jammaSwitches,
+        .postEventSymbol = "PostInputEvent",
+        .jammaGuns = bbwGuns,
+        .jammaGunCount = sizeof(bbwGuns) / sizeof(bbwGuns[0]),
+        .gunPositionEvent = 0x3f,
+        .gunWidth = 640,
+        .gunHeight = 480,
+        .jammaGunCalibrateOp = 0x16,
+        .jammaGunCalibrationModeOp = 0x19,
+        .offScreenButton = 1,
+        .glutGameModeWindow = 1,
+        .frameAspect = {4, 3},
+    },
     {
         .crc32 = JURASSIC_PARK_RT,
         .fileCrc32 = 0xf4a8eca8,

@@ -12,6 +12,11 @@ runs these same Linux game binaries under Wine with the dongle answered. The
 recording is done by running the game there with a patched copy that logs every
 dongle call, and keeping the input/output pairs.
 
+Big Buck Hunter Pro v1.25 is an exception: its Rockey boot envelope uses a
+fixed XOR mask over executable code. The launcher restores that code in a
+cached copy and starts after the envelope, so no dongle recording is needed.
+See [big-buck-hunter-pro.md](big-buck-hunter-pro.md).
+
 ## The idea
 
 Redirect the game's call to its dongle decrypt wrapper into a small stub of our
