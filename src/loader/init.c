@@ -17,6 +17,15 @@
 #include "config/config.h"
 #include "../minhook/include/MinHook.h"
 #include "log/log.h"
+#if defined(__linux__)
+#include "rawthrills/rawthrills.h"
+#include "namco/namcoEs1.h"
+#include "namco/namcoN2.h"
+#include "teamplay/teamplay.h"
+#include "globalvr/gvr.h"
+#include "roxor/roxor.h"
+#include "common/desktopInput.h"
+#endif
 
 #if defined(__linux__)
 #include "input/evdevInput.h"
@@ -54,6 +63,132 @@ void initMain(char *configPath, char *controlsPath)
     gWidth = getConfig()->width;
     gHeight = getConfig()->height;
 
+#ifdef __linux__
+    // Raw Thrills games use none of the Lindbergh hardware. They also link
+    // SDL 1.2, whose SDL_Init() & co. shadow SDL3's in the global scope, so
+    // the SDL-based GPU detection below cannot run for them.
+    if (isRawThrillsGame())
+    {
+        printf("\nLinux Loader\nBy the Linux Loader Development Team 2026\n\n");
+        printf("  GAME:        %s\n", getGameName());
+        printf("  GAME ID:     %s\n", getGameId());
+        // Evdev input fills the (emulated) JVS state; the Raw Thrills I/O
+        // hooks feed it to the game's own input system.
+        if (getConfig()->inputMode == 2)
+        {
+            initJVS();
+            if (initEvdevControllers(&controllers) != 0)
+                exit(1);
+            for (int i = 0; i < controllers.count; i++)
+                if (controllers.controller[i].inUse)
+                    printf("  CONTROLLER:  %s\n", controllers.controller[i].name);
+        }
+        if (rtInit() != 0)
+            exit(1);
+        printf("\n");
+        return;
+    }
+
+    // Namco ES1 games: none of the Lindbergh hardware either, and SDL 1.2
+    // too. Their JVS I/O board is the loader's JVS emulation, on a serial
+    // port (see namco/namcoEs1.c), fed from evdev or the desktop keys.
+    if (isNamcoEs1Game())
+    {
+        printf("\nLinux Loader\nBy the Linux Loader Development Team 2026\n\n");
+        printf("  GAME:        %s\n", getGameName());
+        printf("  GAME ID:     %s\n", getGameId());
+        initJVS();
+        if (getConfig()->inputMode == 2)
+        {
+            if (initEvdevControllers(&controllers) != 0)
+                exit(1);
+            for (int i = 0; i < controllers.count; i++)
+                if (controllers.controller[i].inUse)
+                    printf("  CONTROLLER:  %s\n", controllers.controller[i].name);
+        }
+        if (namcoEs1Init() != 0)
+            exit(1);
+        printf("\n");
+        return;
+    }
+
+    // Namco N2 games: the same, with no X server on the cabinet: the window
+    // is the loader's (see namco/namcoN2.c).
+    if (isNamcoN2Game())
+    {
+        printf("\nLinux Loader\nBy the Linux Loader Development Team 2026\n\n");
+        printf("  GAME:        %s\n", getGameName());
+        printf("  GAME ID:     %s\n", getGameId());
+        initJVS();
+        if (getConfig()->inputMode == 2)
+        {
+            if (initEvdevControllers(&controllers) != 0)
+                exit(1);
+            for (int i = 0; i < controllers.count; i++)
+                if (controllers.controller[i].inUse)
+                    printf("  CONTROLLER:  %s\n", controllers.controller[i].name);
+        }
+        if (namcoN2Init() != 0)
+            exit(1);
+        printf("\n");
+        return;
+    }
+
+    // Global VR games keeping their own (SDL) window, America's Army: none
+    // of the Lindbergh hardware; their I/O daemon is the loader's (see
+    // globalvr/gvrLink.c), fed from evdev or the desktop.
+    if (isGvrGame() && gvrCurrentGame()->ownWindow)
+    {
+        printf("\nLinux Loader\nBy the Linux Loader Development Team 2026\n\n");
+        printf("  GAME:        %s\n", getGameName());
+        printf("  GAME ID:     %s\n", getGameId());
+        initJVS();
+        if (getConfig()->inputMode == 2)
+        {
+            if (initEvdevControllers(&controllers) != 0)
+                exit(1);
+            for (int i = 0; i < controllers.count; i++)
+                if (controllers.controller[i].inUse)
+                    printf("  CONTROLLER:  %s\n", controllers.controller[i].name);
+        }
+        desktopStartQuitWatch();
+        if (gvrInit() != 0)
+            exit(1);
+        printf("\n");
+        return;
+    }
+
+    // Roxor games (Tux Racer) keep their own SDL window too: none of the
+    // Lindbergh hardware; their parallel port I/O board is the loader's (see
+    // roxor/roxorIo.c), fed from evdev or the desktop.
+    if (isRoxorGame())
+    {
+        printf("\nLinux Loader\nBy the Linux Loader Development Team 2026\n\n");
+        printf("  GAME:        %s\n", getGameName());
+        printf("  GAME ID:     %s\n", getGameId());
+        initJVS();
+        if (getConfig()->inputMode == 2)
+        {
+            if (initEvdevControllers(&controllers) != 0)
+                exit(1);
+            for (int i = 0; i < controllers.count; i++)
+                if (controllers.controller[i].inUse)
+                    printf("  CONTROLLER:  %s\n", controllers.controller[i].name);
+        }
+        desktopStartQuitWatch();
+        // The board's functions are detoured (MinHook), as the Lindbergh
+        // path's hooks below are.
+        if (MH_Initialize() != MH_OK || roxorInit() != 0 || MH_EnableHook(MH_ALL_HOOKS) != MH_OK)
+        {
+            log_error("Roxor: cannot install the I/O board");
+            exit(1);
+        }
+        printf("\n");
+        return;
+    }
+#endif
+
+
     initFpsLimiter();
 
     getConfig()->GPUVendor = getGPUVendorID();
@@ -63,6 +198,7 @@ void initMain(char *configPath, char *controlsPath)
         log_error("Failed to detect GPU\nUsing default values\n");
         getConfig()->GPUVendor = UNKNOWN_GPU;
     }
+
 
     if (MH_Initialize() != MH_OK)
     {
@@ -77,6 +213,17 @@ void initMain(char *configPath, char *controlsPath)
     if (initResolutionPatches() != 0)
         exit(1);
     log_info("Resolution patches initialized");
+
+#ifdef __linux__
+    // Teamplay games run as the Lindbergh glut games do; their cabinet's
+    // checks are hooked here, before the hooks are enabled (see
+    // teamplay/teamplay.c).
+    if (isTeamplayGame() && teamplayInit() != 0)
+        exit(1);
+    // Global VR games too (see globalvr/gvr.c).
+    if (isGvrGame() && gvrInit() != 0)
+        exit(1);
+#endif
 
     if (MH_EnableHook(MH_ALL_HOOKS) != MH_OK)
     {

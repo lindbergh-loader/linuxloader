@@ -6,6 +6,13 @@
 #endif
 #undef __x86_64__
 
+#ifdef __linux__
+#include "rawthrills/rtGame.h"
+#include "namco/namcoEs1Game.h"
+#include "namco/namcoN2.h"
+#include "hostLinker.h"
+#include "globalvr/gvrGame.h"
+#endif
 #include <ctype.h>
 #include <libgen.h>
 #include <limits.h>
@@ -68,7 +75,18 @@ char *games[] = {"a.elf",
                  "vf5",
                  "vsg",
                  "vt3",
+                 "game_dump.exec", // Raw Thrills Space Invaders Frenzy native dump
+                 "game", // Raw Thrills (Jurassic Park)
                  "vt3_Lindbergh",
+                 "n_tank_release", // Namco ES1 (Tank! Tank! Tank!)
+                 "n_gun_station_rel_opt_es1", // Namco ES1 (Gundam: Senjo no Kizuna)
+                 "main",           // Namco N2 (Wangan Midnight Maximum Tune 3)
+                 "WMN4r",          // Namco ES1 (Wangan Midnight Maximum Tune 4)
+                 "hlds_amd",       // Namco N2 (Counter Strike NEO, GoldSrc HLDS)
+                 "med_pball",      // Teamplay (Crossfire Maximum Paintball)
+                 "pt2s_g11",       // Teamplay (Police Trainer 2)
+                 "armyops-bin",    // Global VR (America's Army)
+                 "tuxracer",       // Roxor (Tux Racer)
                  "END"};
 
 /**
@@ -154,6 +172,21 @@ uint32_t cleanElfCRC32[] = {
     0xFCB9D941, // DVP-5019A | vf5
     0xAB70901C, // DVP-5020  | vf5
     0x6BAA510D, // DVP-5020  | vf5 | Ver 6.000
+    0x6D238B08, // Namco ES1 | Nirin a.elf (NRN100-4-NA-DAT0-A37)
+    0xDA52FA88, // Namco ES1 | Dead Heat Riders a.elf (DH RIDERS rev 1247)
+    0x7A18BEB3, // Namco ES1 | Dead Heat a.elf (US DRIVE rev 6273)
+    0x6E2BE119, // Namco ES1 | Maximum Heat 3D a.elf (US DRIVE rev 8807)
+    0x41ABDA0C, // Namco N2  | WMMT3 main (WM3100-3-NA-DAT0-A70)
+    0x509A97C4, // Namco N2  | WMMT3DX+ main (W3P100-1-NA-DAT0-B02)
+    0x66136EE9, // Namco ES1 | Tank! Tank! Tank! n_tank_release (rev 1.03.14)
+    0xF251B573, // Namco ES1 | Wangan Midnight Maximum Tune 4 WMN4r (rev 1.10.18)
+    0x84777366, // Namco ES1 | Gundam: Senjo no Kizuna n_gun_station_rel_opt_es1 (REV3.57.07)
+    0xC2AFF8D4, // Teamplay  | Crossfire Maximum Paintball med_pball
+    0x210F3077, // Global VR | Puck Off game (v0710240921)
+    0x1492D7CD, // Global VR | America's Army armyops-bin (1.0.1.082)
+    0x4DF577F6, // Roxor     | Tux Racer tuxracer (4.1 ARCADE)
+    0x0A5B0341, // Raw Thrills | Big Buck Hunter Pro game (v1.25, Rockey envelope)
+    0xFE266A17, // Namco N2  | Counter Strike NEO hlds_amd (code segment)
 };
 
 int cleanElfCRC32Count = sizeof(cleanElfCRC32) / sizeof(uint32_t);
@@ -222,15 +255,21 @@ int calculateCRC32inChunks(const char *filename, uint32_t *crc)
         return EXIT_FAILURE;
     }
 
+    // A byte at a time from a table: the games' files run to hundreds of MB.
+    static uint32_t table[256];
+    if (table[1] == 0)
+        for (uint32_t i = 0; i < 256; i++)
+            table[i] = calcCrc32(i, 0);
+
     *crc = 0xFFFFFFFF;
-    uint8_t buffer[4096];
+    static uint8_t buffer[1 << 16];
     size_t bytesRead;
 
     while ((bytesRead = fread(buffer, 1, sizeof(buffer), file)) > 0)
     {
         for (size_t i = 0; i < bytesRead; i++)
         {
-            *crc = calcCrc32(*crc, buffer[i]);
+            *crc = (*crc >> 8) ^ table[(*crc ^ buffer[i]) & 0xFF];
         }
     }
     fclose(file);
@@ -292,6 +331,36 @@ bool dirExists(const char *path)
 {
     struct stat buffer;
     return stat(path, &buffer) == 0 && S_ISDIR(buffer.st_mode);
+}
+
+// The first known game file in the current directory, or NULL. Raw Thrills
+// folders hold both the dump (game_dump.exec) and TeknoParrot's rebuild
+// (game), and either can be the supported one (Space Invaders Frenzy runs the
+// dump, Doodle Jump the rebuild): with several candidates, the first whose
+// CRC32 a Raw Thrills entry knows wins.
+static const char *findGameElf(void)
+{
+    const char *first = NULL;
+    int found = 0;
+    for (int i = 0; games[i] && strcmp(games[i], "END") != 0; i++)
+    {
+        if (!fileExists(games[i]))
+            continue;
+        if (!first)
+            first = games[i];
+        found++;
+    }
+
+#ifdef __linux__
+    for (int i = 0; found > 1 && games[i] && strcmp(games[i], "END") != 0; i++)
+    {
+        uint32_t crc;
+        if (fileExists(games[i]) && calculateCRC32inChunks(games[i], &crc) == 0 &&
+            rtGetGameByFileCrc(crc ^ 0xFFFFFFFF))
+            return games[i];
+    }
+#endif
+    return first;
 }
 
 void isCleanElf(char *command)
@@ -485,6 +554,32 @@ int pathsDiffer(const char *p1, const char *p2)
     return strcmp(real1, real2) != 0;
 }
 
+// Global VR games keeping their own SDL 1.2 window (America's Army) load the
+// SDL 1.2 next to them first (their RPATH is "."): the one in the library
+// path (sdl12-compat, which scales the game's fullscreen to the screen's
+// size) is preloaded instead, when there is one.
+static void preloadHostSdl12(const char *libraryPath)
+{
+    const GvrGame *g = gvrGetGameByFileCrc(elfCrc);
+    char *paths, *dir, *save, cwd[PATH_MAX], lib[PATH_MAX], real[PATH_MAX], preload[MAX_PATH_LENGTH * 2];
+
+    if (!g || !g->ownWindow || !getcwd(cwd, sizeof(cwd)) || !(paths = strdup(libraryPath)))
+        return;
+    for (dir = strtok_r(paths, ":", &save); dir; dir = strtok_r(NULL, ":", &save))
+    {
+        if (dir[0] != '/')
+            continue;
+        snprintf(lib, sizeof(lib), "%s/libSDL-1.2.so.0", dir);
+        if (!realpath(lib, real) || !strncmp(real, cwd, strlen(cwd)))
+            continue;
+        snprintf(preload, sizeof(preload), "%s %s", getenv("LD_PRELOAD") ? getenv("LD_PRELOAD") : "", real);
+        setenv("LD_PRELOAD", preload, 1);
+        printf("SDL 1.2: %s\n", real);
+        break;
+    }
+    free(paths);
+}
+
 void setEnvironmentVariables(const char *ldLibPath, const char *originalDir, const char *gameDir, int zink, int nvidia,
                              const char *libraryPath, const char *confFilePath, const char *contFilePath,
                              const char *contDbFilePath, char *libOpenal)
@@ -590,6 +685,7 @@ void setEnvironmentVariables(const char *ldLibPath, const char *originalDir, con
     }
 
     setenv("LD_LIBRARY_PATH", newLdLibPath, 1);
+    preloadHostSdl12(newLdLibPath);
 
     if (strlen(confFilePath) > 0)
     {
@@ -1095,14 +1191,9 @@ int parseArgs(int argc, char *argv[], char *command, char *originalDir, char *ga
         }
         else
         {
-            for (int i = 0; games[i] && strcmp(games[i], "END") != 0; i++)
-            {
-                if (fileExists(games[i]))
-                {
-                    strncpy(gameELF, games[i], MAX_PATH_LENGTH);
-                    break;
-                }
-            }
+            const char *found = findGameElf();
+            if (found)
+                strncpy(gameELF, found, MAX_PATH_LENGTH);
 
             if (strlen(gameELF) == 0)
             {
@@ -1122,15 +1213,12 @@ int parseArgs(int argc, char *argv[], char *command, char *originalDir, char *ga
     }
     else
     {
-        for (int i = 0; games[i] && strcmp(games[i], "END") != 0; i++)
+        const char *found = findGameElf();
+        if (found)
         {
-            if (access(games[i], F_OK) == 0)
-            {
-                strncpy(gameELF, games[i], MAX_PATH_LENGTH);
-                gameELF[MAX_PATH_LENGTH - 1] = '\0';
-                printf("Auto-detected ELF: %s\n", gameELF);
-                break;
-            }
+            strncpy(gameELF, found, MAX_PATH_LENGTH);
+            gameELF[MAX_PATH_LENGTH - 1] = '\0';
+            printf("Auto-detected ELF: %s\n", gameELF);
         }
 
         if (gameELF[0] == '\0')
@@ -1183,6 +1271,16 @@ int parseArgs(int argc, char *argv[], char *command, char *originalDir, char *ga
     }
 
     isCleanElf(command);
+#ifdef __linux__
+    // Raw Thrills dumps run from a patched copy (see rawthrills/rtLaunch.c).
+    rtPrepareCommand(command, MAX_PATH_LENGTH, elfCrc, resolvedConfigPath);
+    // Namco ES1 games ask for the cabinet's dynamic linker (see namco/namcoEs1Launch.c).
+    namcoEs1PrepareCommand(command, MAX_PATH_LENGTH, elfCrc);
+    // Namco N2 games with a cabinet command line append it (see namco/namcoN2Launch.c).
+    namcoN2PrepareCommand(command, MAX_PATH_LENGTH, elfCrc);
+    // Teamplay and Global VR dumps may have lost their executable mode (see hostLinker.c).
+    hostLinkerPrepareCommand(command, MAX_PATH_LENGTH, elfCrc);
+#endif
 
 #ifdef __linux__
     setEnvironmentVariables(libPath, originalDir, targetedGameDir, zink, nvidia, libraryPath, extConfigPath, extControlsPath,

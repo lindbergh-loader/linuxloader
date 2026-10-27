@@ -1,0 +1,1020 @@
+syntax = "proto2";
+package v388.protobuf;
+message RegisterSystemInfoRequest {
+  message ErrorLogEntry {
+    required uint32 datetime = 1;
+    required string message = 2;
+  }
+  required string pcb_serial = 1;
+  required .v388.protobuf.TerminalType terminal_type = 2;
+  required uint32 rom_version = 3;
+  required string country = 4;
+  required .v388.protobuf.LineType line_type = 5;
+  required string shop_name = 6;
+  required string shop_nickname = 7;
+  optional uint32 allnet_place_id = 8;
+  optional uint32 allnet_region0 = 9;
+  optional string mucha_place_id = 10;
+  optional uint32 mucha_prefecture_id = 11;
+  required string region_name0 = 12;
+  required string region_name1 = 13;
+  required string region_name2 = 14;
+  required string region_name3 = 15;
+  required sint32 timezone_offset = 16;
+  required .v388.protobuf.SystemSetting system_setting = 17;
+  repeated .v388.protobuf.RegisterSystemInfoRequest.ErrorLogEntry error_logs = 18;
+}
+message RegisterSystemInfoResponse {
+  required .v388.protobuf.ErrorCode error = 1;
+  required uint32 region_id = 2;
+  required string place_id = 3;
+  required uint32 pajero_disclose_at = 4;
+  required uint32 car_campaign_start_at = 5;
+  required uint32 car_campaign_end_at = 6;
+  required uint32 team_suspension_announcement_start_at = 7;
+  required uint32 team_suspension_start_at = 8;
+  required uint32 succession_close_announcement_start_at = 9;
+  required uint32 succession_close_at = 10;
+  required uint32 succession_close_announcement_end_at = 11;
+  required bool face_recognition_permitted = 12;
+  optional uint32 latest_competition_id = 13;
+  optional .v388.protobuf.GhostCompetitionSchedule competition_schedule = 14;
+}
+message RegisterSystemStatsRequest {
+  message DriveStats {
+    repeated uint32 operation = 1;
+    repeated uint32 story = 2;
+    repeated uint32 versus = 3;
+    repeated uint32 ghost = 4;
+    repeated uint32 time_attack = 5;
+    repeated uint32 event = 6;
+    repeated uint32 ghost_selection = 7;
+  }
+  message TerminalStats {
+    repeated uint32 operation = 1;
+  }
+  required string pcb_serial = 1;
+  optional .v388.protobuf.RegisterSystemStatsRequest.DriveStats drive_stats = 2;
+  optional .v388.protobuf.RegisterSystemStatsRequest.TerminalStats terminal_stats = 3;
+}
+message RegisterSystemStatsResponse {
+  required .v388.protobuf.ErrorCode error = 1;
+}
+message RegisterGhostTrailRequest {
+  required uint64 ghost_session_id = 1;
+  required .v388.protobuf.GhostCar ghost = 2;
+  required bytes trail = 3;
+}
+message RegisterGhostTrailResponse {
+  required .v388.protobuf.ErrorCode error = 1;
+}
+message LoadUserRequest {
+  required string card_chip_id = 1;
+  optional string access_code = 2;
+  optional uint32 card_type_code = 3;
+  optional uint32 card_region_code = 4;
+  required .v388.protobuf.DeviceType device = 5;
+  required uint32 rom_version = 6;
+  required uint32 max_cars = 7;
+  optional bool create_user = 8;
+}
+message LoadUserResponse {
+  message CarState {
+    required bool has_opponent_ghost = 1;
+    optional .v388.protobuf.GhostCompetitionParticipantState competition_state = 2;
+  }
+  required .v388.protobuf.ErrorCode error = 1;
+  optional uint32 unlock_at = 2;
+  optional string access_code = 3;
+  optional uint32 banapassport_am_id = 4;
+  optional uint32 personal_id = 5;
+  optional uint32 user_id = 6;
+  required uint32 num_of_owned_cars = 7;
+  repeated .v388.protobuf.Car cars = 8;
+  repeated .v388.protobuf.LoadUserResponse.CarState car_states = 9;
+  required bool has_hp600_car = 10;
+  required uint32 hp600_count = 11;
+  required uint32 tutorials = 12;
+  optional .v388.protobuf.CarCampaignUserState car_campaign_user_state = 13;
+  optional .v388.protobuf.GhostCompetitionParticipantState competition_user_state = 14;
+  optional uint32 team_id = 15;
+  optional string team_name = 16;
+  optional uint32 team_sticker_font = 17;
+}
+message UpdateUserLockRequest {
+  optional uint32 user_id = 1;
+  optional string card_chip_id = 2;
+  optional string access_code = 3;
+  optional uint32 card_type_code = 4;
+  optional uint32 card_region_code = 5;
+  optional .v388.protobuf.DeviceType device = 6;
+  required uint32 unlock_at = 7;
+}
+message UpdateUserLockResponse {
+  required .v388.protobuf.ErrorCode error = 1;
+}
+message LoadCarRequest {
+  required uint32 car_id = 1;
+}
+message LoadCarResponse {
+  required .v388.protobuf.ErrorCode error = 1;
+  required .v388.protobuf.Car car = 2;
+  required uint32 tuning_point = 3;
+  required uint32 dressup_point = 4;
+  required uint32 dressup_level = 5;
+  required uint32 odometer = 6;
+  required uint32 play_count = 7;
+  required bool earned_custom_color = 8;
+  required uint32 owned_custom_colors = 9;
+  required uint32 owned_dressup_parts = 10;
+  required .v388.protobuf.CarSetting setting = 11;
+  required uint32 vs_play_count = 13;
+  required uint32 vs_burst_count = 14;
+  required uint32 vs_star_count = 15;
+  required uint32 vs_star_count_max = 16;
+  required sint32 vs_cool_or_wild = 17;
+  required sint32 vs_smooth_or_rough = 18;
+  required uint32 rg_play_count = 19;
+  required uint32 rg_win_count = 20;
+  required uint32 maxi_coin = 21;
+  required uint32 rg_block = 22;
+  repeated uint32 rg_progress = 23;
+  required uint32 rg_clear_count = 24;
+  required uint32 rg_consecutive_losses = 25;
+  required uint32 st_play_count = 26;
+  required uint32 st_clear_bits = 27;
+  required uint32 st_clear_div_count = 28;
+  required uint32 st_clear_count = 29;
+  required uint64 st_lose_bits = 30;
+  required bool st_lose = 31;
+  required uint32 st_consecutive_wins = 32;
+  required uint32 st_consecutive_wins_max = 33;
+  required uint32 owned_meters = 34;
+  required uint32 owned_bgm = 35;
+  optional .v388.protobuf.GhostCar challenger = 36;
+  optional .v388.protobuf.GhostCar opponent_ghost = 37;
+  optional uint64 opponent_trail_id = 38;
+  optional uint32 opponent_competition_id = 39;
+  optional .v388.protobuf.GhostCompetitionParameter competition_parameter = 40;
+  required uint32 owned_nameplates = 41;
+  optional uint32 special_title = 42;
+  optional uint32 earned_title = 43;
+}
+message CreateCarRequest {
+  optional uint32 user_id = 1;
+  optional uint32 banapassport_am_id = 2;
+  optional string card_chip_id = 3;
+  optional string access_code = 4;
+  optional uint32 card_type_code = 5;
+  optional uint32 card_region_code = 6;
+  optional .v388.protobuf.DeviceType device = 7;
+  required .v388.protobuf.Car car = 8;
+  required bool transmission = 9;
+  required .v388.protobuf.CarCreationMethod method = 10;
+  required uint32 timestamp = 11;
+}
+message CreateCarResponse {
+  required .v388.protobuf.ErrorCode error = 1;
+  optional string access_code = 2;
+  optional uint32 banapassport_am_id = 3;
+  optional uint32 personal_id = 4;
+  required uint32 user_id = 5;
+  required uint32 car_id = 6;
+  required string search_code = 7;
+  optional uint32 st_clear_bits = 8;
+  optional uint32 st_clear_div_count = 9;
+  optional uint32 st_clear_count = 10;
+  optional uint64 st_lose_bits = 11;
+  optional bool st_lose = 12;
+  optional uint32 st_consecutive_wins = 13;
+  optional uint32 st_consecutive_wins_max = 14;
+}
+message LoadGameHistoryRequest {
+  required uint32 car_id = 1;
+}
+message LoadGameHistoryResponse {
+  message TimeAttackRecord {
+    required uint32 course = 1;
+    optional uint32 time = 2;
+    optional uint32 tune_power = 3;
+    optional uint32 tune_handling = 4;
+    optional uint32 whole_rank = 5;
+    required uint32 whole_participants = 6;
+    optional uint32 model_rank = 7;
+    required uint32 model_participants = 8;
+  }
+  message GhostBattleRecord {
+    required string opponent_name = 1;
+    required uint32 opponent_model = 2;
+    required uint32 opponent_visual_model = 3;
+    required uint32 opponent_default_color = 4;
+    required uint32 opponent_region_id = 5;
+    required uint32 opponent_tune_power = 6;
+    required uint32 opponent_tune_handling = 7;
+    required uint32 area = 8;
+    required sint32 result = 9;
+    required uint32 played_at = 10;
+    required string played_shop_name = 11;
+  }
+  required .v388.protobuf.ErrorCode error = 1;
+  repeated .v388.protobuf.LoadGameHistoryResponse.TimeAttackRecord ta_records = 2;
+  required uint32 ta_ranking_updated_at = 3;
+  repeated .v388.protobuf.LoadGameHistoryResponse.GhostBattleRecord ghost_history = 4;
+  required uint32 ghost_battle_count = 5;
+  required uint32 ghost_battle_win_count = 6;
+}
+message UpdateCarRequest {
+  required uint32 car_id = 1;
+  optional .v388.protobuf.Car car = 2;
+  optional uint32 hp600_count = 3;
+  optional uint32 owned_custom_colors = 4;
+  optional .v388.protobuf.CarSetting setting = 5;
+  required uint32 timestamp = 6;
+}
+message UpdateCarResponse {
+  required .v388.protobuf.ErrorCode error = 1;
+}
+message SaveGameResultRequest {
+  message StoryResult {
+    required uint32 st_play_count = 1;
+    optional uint32 tuning_point = 2;
+    optional uint32 st_clear_bits = 3;
+    optional uint32 st_clear_div_count = 4;
+    optional uint32 st_clear_count = 5;
+    optional uint64 st_lose_bits = 6;
+    optional bool st_lose = 7;
+    optional uint32 st_consecutive_wins = 8;
+    optional uint32 owned_meters = 9;
+    optional uint32 owned_bgm = 10;
+  }
+  message TimeAttackResult {
+    required uint32 time = 1;
+    required uint32 course = 2;
+    required uint32 section_1_time = 3;
+    required uint32 section_2_time = 4;
+    required uint32 section_3_time = 5;
+    required uint32 section_4_time = 6;
+    optional uint32 section_5_time = 7;
+    optional uint32 section_6_time = 8;
+    optional uint32 section_7_time = 9;
+  }
+  message VersusBattleResult {
+    required uint32 result = 1;
+    required bool survived = 2;
+    repeated uint32 opponent_car_id = 3;
+    required uint32 vs_play_count = 4;
+    optional uint32 vs_burst_count = 5;
+    optional uint32 vs_star_count = 6;
+    optional sint32 vs_cool_or_wild = 7;
+    optional sint32 vs_smooth_or_rough = 8;
+  }
+  message GhostBattleResult {
+    required sint32 result = 1;
+    required uint32 opponent_car_id = 2;
+    optional uint32 opponent_team_id = 3;
+    required uint32 area = 4;
+    required bool revenged = 5;
+    required .v388.protobuf.GhostSelectionMethod selection_method = 6;
+    required uint32 rg_play_count = 7;
+    optional uint32 rg_win_count = 8;
+    optional uint32 maxi_coin = 9;
+    optional uint32 dressup_point = 10;
+    optional uint32 dressup_level = 11;
+    optional uint32 owned_dressup_parts = 12;
+    optional uint32 rg_block = 13;
+    repeated uint32 rg_progress = 14;
+    optional uint32 rg_clear_count = 15;
+    optional uint32 competition_id = 16;
+    optional uint32 period_id = 17;
+    optional uint32 braking_point = 18;
+    optional uint32 earned_nameplate = 19;
+  }
+  required uint32 car_id = 1;
+  required .v388.protobuf.GameMode game_mode = 2;
+  required uint32 played_at = 3;
+  required uint32 play_count = 4;
+  required bool retired = 5;
+  required bool timeup = 6;
+  optional .v388.protobuf.Car car = 7;
+  optional .v388.protobuf.CarSetting setting = 8;
+  optional uint32 odometer = 9;
+  optional uint32 tutorials = 10;
+  optional uint32 hp600_count = 11;
+  optional bool earned_custom_color = 12;
+  optional uint32 owned_custom_colors = 13;
+  optional .v388.protobuf.SaveGameResultRequest.StoryResult st_result = 14;
+  optional .v388.protobuf.SaveGameResultRequest.TimeAttackResult ta_result = 15;
+  optional .v388.protobuf.SaveGameResultRequest.VersusBattleResult vs_result = 16;
+  optional .v388.protobuf.SaveGameResultRequest.GhostBattleResult rg_result = 17;
+}
+message SaveGameResultResponse {
+  required .v388.protobuf.ErrorCode error = 1;
+  optional uint64 ghost_session_id = 2;
+}
+message SaveMultiGameResultRequest {
+  required uint32 car_id = 1;
+  required uint32 played_at = 2;
+  required uint32 play_count = 3;
+  optional .v388.protobuf.Car car = 4;
+  optional .v388.protobuf.CarSetting setting = 5;
+  optional uint32 odometer = 6;
+  optional uint32 tutorials = 7;
+  optional uint32 hp600_count = 8;
+  optional bool earned_custom_color = 9;
+  optional uint32 owned_custom_colors = 10;
+  optional .v388.protobuf.SaveGameResultRequest.StoryResult st_result = 11;
+  repeated .v388.protobuf.SaveGameResultRequest.TimeAttackResult ta_result = 12;
+  optional .v388.protobuf.SaveGameResultRequest.VersusBattleResult vs_result = 13;
+}
+message SaveMultiGameResultResponse {
+  required .v388.protobuf.ErrorCode error = 1;
+}
+message SaveChargeRequest {
+  message ChargeLog {
+    required uint32 datetime = 1;
+    required string pcb_serial = 2;
+    required string place_id = 3;
+  }
+  repeated .v388.protobuf.SaveChargeRequest.ChargeLog charge_logs = 1;
+}
+message SaveChargeResponse {
+  required .v388.protobuf.ErrorCode error = 1;
+}
+message LoadRevengesRequest {
+  required uint32 car_id = 1;
+}
+message LoadRevengesResponse {
+  required .v388.protobuf.ErrorCode error = 1;
+  repeated .v388.protobuf.GhostCar ghosts = 2;
+}
+message LoadGhostBattleHistoryRequest {
+  required uint32 car_id = 1;
+}
+message LoadGhostBattleHistoryResponse {
+  required .v388.protobuf.ErrorCode error = 1;
+  repeated .v388.protobuf.Car cars = 2;
+}
+message LoadGhostBattleInfoRequest {
+  required uint32 car_id = 1;
+}
+message LoadGhostBattleInfoResponse {
+  required .v388.protobuf.ErrorCode error = 1;
+  repeated .v388.protobuf.FriendCar friend_cars = 2;
+  optional .v388.protobuf.GhostCar default_opponent = 3;
+  required bool has_revenges = 4;
+  required bool has_history = 5;
+  repeated .v388.protobuf.TeamSticker stickers = 6;
+}
+message LoadGhostCompetitionInfoRequest {
+  required uint32 car_id = 1;
+  required uint32 competition_id = 2;
+}
+message LoadGhostCompetitionInfoResponse {
+  required .v388.protobuf.ErrorCode error = 1;
+  optional uint32 period_id = 2;
+  required bool closed = 3;
+  optional uint32 braking_point = 4;
+  optional bool qualified = 5;
+  repeated sint32 top_results = 6;
+  optional sint32 result = 7;
+  optional uint32 rank = 8;
+  repeated float parameters1 = 9;
+  optional bool parameters2 = 10;
+}
+message LoadTimeAttackRecordRequest {
+  optional uint32 car_id = 1;
+  required uint32 model = 2;
+  required uint32 course = 3;
+}
+message LoadTimeAttackRecordResponse {
+  required .v388.protobuf.ErrorCode error = 1;
+  repeated uint32 whole_ranking = 2;
+  repeated uint32 model_ranking = 3;
+  optional uint32 personal_best_time = 4;
+  optional uint32 pb_section_1_time = 5;
+  optional uint32 pb_section_2_time = 6;
+  optional uint32 pb_section_3_time = 7;
+  optional uint32 pb_section_4_time = 8;
+  optional uint32 pb_section_5_time = 9;
+  optional uint32 pb_section_6_time = 10;
+  optional uint32 pb_section_7_time = 11;
+}
+message SaveTerminalResultRequest {
+  required uint32 user_id = 1;
+  required uint32 timestamp = 2;
+  repeated uint32 car_order = 3;
+  optional uint32 team_car_id = 4;
+  optional uint32 tutorials = 5;
+  optional bool team_notices_confirmed = 6;
+}
+message SaveTerminalResultResponse {
+  required .v388.protobuf.ErrorCode error = 1;
+}
+message PingRequest {
+  optional uint32 ping = 1;
+}
+message PingResponse {
+  required .v388.protobuf.ErrorCode error = 1;
+  required uint32 pong = 2;
+}
+message LoadTeamInformationRequest {
+  required uint32 user_id = 1;
+}
+message LoadTeamInformationResponse {
+  message NewsEntry {
+    required .v388.protobuf.TeamNewsEntry news_type = 1;
+    required uint32 datetime = 2;
+    optional string field_1 = 3;
+    optional uint32 field_2 = 4;
+  }
+  message NoticeEntry {
+    required .v388.protobuf.TeamNoticeEntry notice_type = 1;
+    optional string field_1 = 2;
+    optional uint32 field_2 = 3;
+    optional uint32 field_3 = 4;
+  }
+  required .v388.protobuf.ErrorCode error = 1;
+  optional uint32 team_created_at = 2;
+  optional bool applying = 3;
+  optional .v388.protobuf.Team team = 4;
+  repeated .v388.protobuf.LoadTeamInformationResponse.NoticeEntry notice_entries = 5;
+  repeated .v388.protobuf.LoadTeamInformationResponse.NewsEntry news_entries = 6;
+  repeated .v388.protobuf.TeamApplicant applicants = 7;
+  optional uint32 team_car_id = 8;
+}
+message CreateUserRequest {
+  optional uint32 banapassport_am_id = 1;
+  optional string card_chip_id = 2;
+  optional string access_code = 3;
+  optional uint32 card_type_code = 4;
+  optional uint32 card_region_code = 5;
+  optional .v388.protobuf.DeviceType device = 6;
+  required uint32 timestamp = 7;
+}
+message CreateUserResponse {
+  required .v388.protobuf.ErrorCode error = 1;
+  optional string access_code = 2;
+  optional uint32 banapassport_am_id = 3;
+  optional uint32 personal_id = 4;
+  required uint32 user_id = 5;
+}
+message AskAccessCodeRequest {
+  required string card_chip_id = 1;
+}
+message AskAccessCodeResponse {
+  required .v388.protobuf.ErrorCode error = 1;
+  required string access_code = 2;
+}
+message PrepareCarSuccessionRequest {
+  required uint32 user_id = 1;
+  required uint32 w3p_mark = 2;
+  required bool w3p_has_maxi2_nolose_point = 3;
+  required uint32 w3p_id1 = 4;
+  required uint32 w3p_id2 = 5;
+  required uint32 w3p_tune_power = 6;
+  required uint32 w3p_tune_handling = 7;
+  required uint32 w3p_dress = 8;
+  required uint32 w3p_renewal = 9;
+  required uint32 w3p_class = 10;
+  required uint32 w3p_odo_count = 11;
+  required uint32 w3p_join_play_count = 12;
+  required uint32 w3p_join_star_count = 13;
+  required bool w3p_has_story_nolose_point = 14;
+  required bool w3p_has_story_lose = 15;
+  required uint32 w3p_target_play_count = 16;
+  required uint32 w3p_target_win_count = 17;
+  required uint32 w3p_story_successive_victory_count = 18;
+  required bool w3p_has_story_nolose_point2 = 19;
+  required bool w3p_has_story_clear_point = 20;
+  required uint32 w3p_maxi_coin = 22;
+  required uint32 w3p_story_successive_victory_count_max = 23;
+  required uint32 w3p_story_clear_count = 24;
+  required bytes w3p_binary = 25;
+  required .v388.protobuf.Car car = 26;
+  required uint32 timestamp = 27;
+}
+message PrepareCarSuccessionResponse {
+  required .v388.protobuf.ErrorCode error = 1;
+  required uint32 succession_id = 2;
+  required string search_code = 3;
+}
+message SucceedCarRequest {
+  required uint32 succession_id = 1;
+}
+message SucceedCarResponse {
+  required .v388.protobuf.ErrorCode error = 1;
+  required uint32 car_id = 2;
+}
+message RegisterOpponentGhostRequest {
+  required uint32 car_id = 1;
+  required uint32 special_ghost_id = 2;
+}
+message RegisterOpponentGhostResponse {
+  required .v388.protobuf.ErrorCode error = 1;
+}
+message CheckTeamNameRequest {
+  required string team_name = 1;
+}
+message CheckTeamNameResponse {
+  required .v388.protobuf.ErrorCode error = 1;
+}
+message CreateTeamRequest {
+  required uint32 user_id = 1;
+  required string team_name = 2;
+  required uint32 timestamp = 3;
+}
+message CreateTeamResponse {
+  required .v388.protobuf.ErrorCode error = 1;
+}
+message SearchTeamRequest {
+  optional string name = 1;
+  optional string place_id = 2;
+}
+message SearchTeamResponse {
+  required .v388.protobuf.ErrorCode error = 1;
+  repeated .v388.protobuf.Team teams = 2;
+  optional .v388.protobuf.Team name_matched_team = 3;
+}
+message JoinTeamRequest {
+  required uint32 user_id = 1;
+  required uint32 team_id = 2;
+}
+message JoinTeamResponse {
+  required .v388.protobuf.ErrorCode error = 1;
+}
+message ApproveTeamApplicantsRequest {
+  required uint32 user_id = 1;
+  repeated uint32 approved_users = 2;
+  repeated uint32 rejected_users = 3;
+}
+message ApproveTeamApplicantsResponse {
+  required .v388.protobuf.ErrorCode error = 1;
+  required uint32 num_of_members = 2;
+  required uint32 num_of_member_cars = 3;
+  required uint32 num_of_applicants = 4;
+}
+message LeaveTeamRequest {
+  required uint32 user_id = 1;
+}
+message LeaveTeamResponse {
+  required .v388.protobuf.ErrorCode error = 1;
+}
+message DissolveTeamRequest {
+  required uint32 user_id = 1;
+}
+message DissolveTeamResponse {
+  required .v388.protobuf.ErrorCode error = 1;
+}
+message LoadTeamMembersRequest {
+  required uint32 team_id = 1;
+}
+message LoadTeamMembersResponse {
+  required .v388.protobuf.ErrorCode error = 1;
+  optional .v388.protobuf.Team team = 2;
+  repeated .v388.protobuf.TeamMember members = 3;
+}
+message LoadTeamApplicantsRequest {
+  required uint32 team_id = 1;
+}
+message LoadTeamApplicantsResponse {
+  required .v388.protobuf.ErrorCode error = 1;
+  repeated .v388.protobuf.TeamApplicant applicants = 2;
+}
+message UpdateTeamStickersRequest {
+  required uint32 user_id = 1;
+  required uint32 timestamp = 2;
+}
+message UpdateTeamStickersResponse {
+  message PrizeNotice {
+    required string name = 1;
+    required uint32 number = 2;
+  }
+  required .v388.protobuf.ErrorCode error = 1;
+  repeated .v388.protobuf.TeamSticker earned_stickers = 2;
+  repeated .v388.protobuf.TeamSticker team_stickers = 3;
+  required uint32 num_of_earned_stickers_before = 4;
+  required uint32 num_of_earned_stickers_after = 5;
+  required uint32 num_of_earned_stickers_today = 6;
+  optional .v388.protobuf.UpdateTeamStickersResponse.PrizeNotice notice = 7;
+}
+message UpdateTeamRequest {
+  required uint32 user_id = 1;
+  optional uint32 team_sticker_font = 2;
+  optional bool closed = 3;
+  required uint32 timestamp = 4;
+}
+message UpdateTeamResponse {
+  required .v388.protobuf.ErrorCode error = 1;
+}
+message GrantCarRightRequest {
+  required uint32 user_id = 1;
+  required uint32 target_user_id = 2;
+  required uint32 timestamp = 3;
+}
+message GrantCarRightResponse {
+  required .v388.protobuf.ErrorCode error = 1;
+}
+message GetTeamCampaignStatusRequest {
+  required uint32 user_id = 1;
+}
+message GetTeamCampaignStatusResponse {
+  required .v388.protobuf.ErrorCode error = 1;
+  required bool applied = 2;
+  optional string team_name = 3;
+  optional uint32 num_of_applicants = 4;
+}
+message PreApplyTeamCampaignRequest {
+  required uint32 user_id = 1;
+  required string team_name = 2;
+}
+message PreApplyTeamCampaignResponse {
+  required .v388.protobuf.ErrorCode error = 1;
+  required bool allowed = 2;
+  required uint32 num_of_applicants = 3;
+}
+message ApplyTeamCampaignRequest {
+  required uint32 user_id = 1;
+  required string team_name = 2;
+}
+message ApplyTeamCampaignResponse {
+  required .v388.protobuf.ErrorCode error = 1;
+  required uint32 num_of_applicants = 2;
+}
+message LoadCarCampaignInfoRequest {
+  required uint32 user_id = 1;
+}
+message LoadCarCampaignInfoResponse {
+  required .v388.protobuf.ErrorCode error = 1;
+  required .v388.protobuf.CarCampaignUserState car_campaign_user_state = 2;
+  required uint32 num_of_pieces = 3;
+  required uint32 num_of_remaining_lotteries = 4;
+  required uint32 lottery_open_bits = 5;
+}
+message SaveCarCampaignInfoRequest {
+  required uint32 user_id = 1;
+  required uint32 lottery_open_bits = 2;
+  required uint32 timestamp = 3;
+}
+message SaveCarCampaignInfoResponse {
+  required .v388.protobuf.ErrorCode error = 1;
+}
+message AcceptCarCampaignRequest {
+  required uint32 user_id = 1;
+}
+message AcceptCarCampaignResponse {
+  required .v388.protobuf.ErrorCode error = 1;
+}
+message LoadGhostCompetitionRankingRequest {
+  required uint32 car_id = 1;
+  required uint32 competition_id = 2;
+}
+message LoadGhostCompetitionRankingResponse {
+  message Entry {
+    required uint32 rank = 1;
+    required sint32 result = 2;
+    required uint32 car_id = 3;
+    required string name = 4;
+    required uint32 region_id = 5;
+    required uint32 model = 6;
+    required uint32 visual_model = 7;
+    required uint32 default_color = 8;
+    required uint32 title = 10;
+    required uint32 level = 11;
+    optional string team_name = 12;
+    required string played_shop_name = 13;
+    required uint32 played_at = 14;
+  }
+  required .v388.protobuf.ErrorCode error = 1;
+  optional uint32 period_id = 2;
+  required uint32 num_of_participants = 3;
+  optional .v388.protobuf.GhostCompetitionSchedule competition_schedule = 4;
+  optional .v388.protobuf.LoadGhostCompetitionRankingResponse.Entry own_record = 5;
+  repeated .v388.protobuf.LoadGhostCompetitionRankingResponse.Entry top_records = 6;
+}
+message SaveFaceRecognitionResultRequest {
+  required uint32 user_id = 1;
+  required uint32 timestamp = 2;
+  required string place_id = 3;
+  required string pcb_serial = 4;
+  required uint32 age = 5;
+  required uint32 age_confidence = 6;
+  required uint32 age_integrations = 7;
+  required uint32 gender = 8;
+  required uint32 gender_confidence = 9;
+  required uint32 gender_integrations = 10;
+}
+message SaveFaceRecognitionResultResponse {
+  required .v388.protobuf.ErrorCode error = 1;
+}
+message Car {
+  optional uint32 car_id = 1;
+  optional uint32 region_id = 2;
+  optional string name = 3;
+  optional string search_code = 4;
+  optional uint32 manufacturer = 5;
+  optional uint32 model = 6;
+  optional uint32 visual_model = 7;
+  optional uint32 default_color = 8;
+  required uint32 custom_color = 9;
+  required uint32 wheel = 10;
+  required uint32 wheel_color = 11;
+  required uint32 aero = 12;
+  required uint32 bonnet = 13;
+  required uint32 wing = 14;
+  required uint32 mirror = 15;
+  required uint32 sticker = 16;
+  required uint32 sticker_color = 17;
+  required uint32 neon = 18;
+  required uint32 trunk = 19;
+  required uint32 plate = 20;
+  required uint32 plate_color = 21;
+  required uint32 special_sticker = 22;
+  required uint32 special_sticker_color = 23;
+  required uint32 tune_power = 24;
+  required uint32 tune_handling = 25;
+  required uint32 title = 26;
+  required uint32 level = 27;
+  optional bool team_sticker = 28;
+  optional uint32 team_id = 29;
+  optional string team_name = 30;
+  optional uint32 team_sticker_font = 31;
+  optional uint32 last_played_at = 32;
+  optional .v388.protobuf.Place last_played_place = 33;
+  optional uint32 aura = 34;
+  optional uint32 ghost_level = 35;
+  optional string country = 36;
+}
+message CarSetting {
+  optional uint32 car_id = 1;
+  required bool view = 2;
+  required bool transmission = 3;
+  required bool retire = 4;
+  required uint32 meter = 5;
+  required uint32 volume = 6;
+  required uint32 bgm = 7;
+  required uint32 nameplate = 8;
+  required uint32 nameplate_color = 9;
+}
+message FriendCar {
+  required .v388.protobuf.Car car = 1;
+  required uint32 friendship_level = 2;
+  required uint32 revenge_level = 3;
+  required bool nonhuman = 4;
+}
+message GhostCar {
+  required .v388.protobuf.Car car = 1;
+  optional uint32 area = 2;
+  optional uint32 ramp = 3;
+  optional uint32 revenge_level = 4;
+  optional bool nonhuman = 5;
+  optional uint32 ghost_level = 6;
+}
+message GhostTrail {
+  required uint32 car_id = 1;
+  required uint32 area = 2;
+  required uint32 ramp = 3;
+  required uint32 played_at = 4;
+  optional .v388.protobuf.Place played_place = 5;
+  required bytes trail = 6;
+}
+message Team {
+  required uint32 team_id = 1;
+  required string name = 2;
+  required uint32 num_of_members = 3;
+  required uint32 num_of_member_cars = 4;
+  required uint32 leader_user_id = 5;
+  required string leader_car_name = 6;
+  required uint32 leader_region_id = 7;
+  required uint32 sticker_font = 8;
+  required bool fullfilled = 9;
+  required bool closed = 10;
+  required bool recruitment_suspended = 11;
+  required uint32 created_at = 12;
+  required .v388.protobuf.Place home_place = 13;
+}
+message TeamMember {
+  required uint32 user_id = 1;
+  required .v388.protobuf.Car car = 2;
+  required uint32 num_of_owned_cars = 3;
+}
+message TeamApplicant {
+  required uint32 user_id = 1;
+  required .v388.protobuf.Car car = 2;
+  required uint32 num_of_owned_cars = 3;
+  required uint32 expires_at = 4;
+}
+message TeamSticker {
+  optional uint32 team_id = 1;
+  optional string team_name = 2;
+  required uint32 count = 3;
+}
+message Place {
+  required string place_id = 1;
+  required string shop_name = 2;
+  required uint32 region_id = 3;
+  required string country = 4;
+}
+message SystemSetting {
+  required uint32 mCoinChute = 1;
+  required uint32 mBuyCardCost = 2;
+  required uint32 mGameCost = 3;
+  required uint32 mContinueCost = 4;
+  required uint32 mFullCourseCost = 5;
+  required bool mFreePlay = 6;
+  optional uint32 mPcbId = 7;
+  required bool mIcCardRw = 8;
+  required bool mIcCardVender = 9;
+  optional bool mMgCardRw = 10;
+  optional bool mForceFeedback = 11;
+  required bool mWinsAndRemains = 12;
+  required uint32 mEventMode = 13;
+  required bool mEventModeDist = 14;
+  required uint32 mCloseType = 15;
+  required uint32 mCloseSun = 16;
+  required uint32 mCloseMon = 17;
+  required uint32 mCloseTue = 18;
+  required uint32 mCloseWed = 19;
+  required uint32 mCloseThu = 20;
+  required uint32 mCloseFri = 21;
+  required uint32 mCloseSat = 22;
+  required uint32 mCloseDay = 23;
+  optional bool mTouchPanel = 24;
+  required uint32 mGameVol = 25;
+  required uint32 mAttractVol = 26;
+  optional uint32 mCalibHandleCenter = 27;
+  optional uint32 mCalibAccelCenter = 28;
+  optional uint32 mCalibBrakeCenter = 29;
+  optional uint32 mCalibTouchLeft = 30;
+  optional uint32 mCalibTouchRight = 31;
+  optional uint32 mCalibTouchTop = 32;
+  optional uint32 mCalibTouchBottom = 33;
+}
+message GhostCompetitionSchedule {
+  required uint32 competition_id = 1;
+  required uint32 qualifying_period_start_at = 2;
+  required uint32 qualifying_period_close_at = 3;
+  required uint32 competition_start_at = 4;
+  required uint32 competition_close_at = 5;
+  required uint32 competition_end_at = 6;
+  required uint32 length_of_period = 7;
+  required uint32 length_of_interval = 8;
+  required uint32 area = 9;
+  required uint32 minigame_pattern_id = 10;
+}
+message GhostCompetitionParameter {
+  repeated float parameters1 = 1;
+  required bool parameters2 = 2;
+}
+message PlaceList {
+  repeated .v388.protobuf.Place places = 1;
+}
+message GhostList {
+  repeated .v388.protobuf.GhostCar ghosts = 1;
+}
+message CarSummary {
+  required uint32 hit_count = 1;
+  repeated .v388.protobuf.Car cars = 2;
+}
+message CarSummaryCount {
+  message SearchCount {
+    required uint32 region_id = 1;
+    required uint32 ghost_level = 2;
+    required uint32 manufacturer = 3;
+    required uint32 model = 4;
+    required uint32 hit_count = 5;
+  }
+  repeated .v388.protobuf.CarSummaryCount.SearchCount summary = 1;
+}
+message GhostSummary {
+  repeated .v388.protobuf.GhostCar ghosts = 1;
+}
+message FileList {
+  message FileInfo {
+    required uint32 file_id = 1;
+    required .v388.protobuf.FileType file_type = 2;
+    required uint32 file_size = 3;
+    required string url = 4;
+    required bytes sha1sum = 5;
+    required uint32 not_before = 6;
+    required uint32 not_after = 7;
+  }
+  repeated .v388.protobuf.FileList.FileInfo files = 1;
+  optional uint32 interval = 2;
+}
+message GhostCompetitionTarget {
+  required uint32 competition_id = 1;
+  optional uint32 special_ghost_id = 2;
+  required .v388.protobuf.GhostCar ghost_car = 3;
+  required uint64 trail_id = 4;
+  required uint32 updated_at = 5;
+  optional .v388.protobuf.GhostCompetitionSchedule competition_schedule = 6;
+}
+message ActiveTeamList {
+  message ActiveTeam {
+    required .v388.protobuf.Team team = 1;
+    repeated .v388.protobuf.TeamMember members = 2;
+    required uint32 num_of_stickers = 3;
+    required uint32 updated_at = 4;
+  }
+  repeated .v388.protobuf.ActiveTeamList.ActiveTeam teams = 1;
+}
+enum ErrorCode {
+  ERR_SUCCESS = 0;
+  ERR_REQUEST = 1;
+  ERR_NOT_FOUND = 2;
+  ERR_ID_SERVER = 3;
+  ERR_ID_BANNED = 4;
+  ERR_USER_LOCKED = 5;
+  ERR_USER_VERSION = 6;
+  ERR_NAME_CONFLICTED = 7;
+  ERR_TEAM_LOCKED = 8;
+  ERR_FORBIDDEN = 9;
+  ERR_TEAM_DISSOLVED = 10;
+  ERR_USER_SUCCEEDED = 11;
+}
+enum LineType {
+  L_UNKNOWN = 0;
+  L_MOBILE = 1;
+  L_ISDN = 2;
+  L_BFLETS = 3;
+  L_WIRED = 4;
+}
+enum TerminalType {
+  T_DRIVE = 0;
+  T_TERMINAL = 1;
+}
+enum DeviceType {
+  DEVICE_CARD = 0;
+  DEVICE_PHONE = 1;
+}
+enum TutorialType {
+  TUTORIAL_STORY = 1;
+  TUTORIAL_TIME_ATTACK = 2;
+  TUTORIAL_GHOST = 4;
+  TUTORIAL_GHOST_CHALLENGE = 8;
+  TUTORIAL_GHOST_LEVEL = 16;
+  TUTORIAL_GHOST_REVENGE = 32;
+  TUTORIAL_GHOST_SEARCH = 64;
+  TUTORIAL_GHOST_COMPETITION = 128;
+  TUTORIAL_HP600_CARD = 256;
+  TUTORIAL_TEAM_CAMPAIGN = 512;
+  TUTORIAL_COMPETITION_QUALIFIED = 1024;
+  TUTORIAL_COMPETITION_TERMINAL = 2048;
+  TUTORIAL_COMPETITION_NOTICE = 4096;
+  TUTORIAL_COMPETITION_FINISHED = 8192;
+}
+enum CarCreationMethod {
+  CAR_NEW = 0;
+  CAR_INHERITED = 1;
+  CAR_HP600 = 2;
+  CAR_PROMOTION = 3;
+  CAR_CAMPAIGN = 4;
+}
+enum GameMode {
+  MODE_STORY = 1;
+  MODE_TIME_ATTACK = 2;
+  MODE_VS_BATTLE = 3;
+  MODE_GHOST_BATTLE = 4;
+  MODE_EVENT = 5;
+}
+enum GhostSelectionMethod {
+  GHOST_CHALLENGE = 1;
+  GHOST_SELECT_BY_LEVEL = 2;
+  GHOST_SELECT_FROM_REVENGES = 3;
+  GHOST_SELECT_FROM_HISTORY = 4;
+  GHOST_SEARCH_BY_AREA = 5;
+  GHOST_SEARCH_BY_NAME = 6;
+  GHOST_SEARCH_BY_CODE = 7;
+  GHOST_ACCEPT_CHALLENGER = 8;
+  GHOST_APPOINTMENT = 9;
+  GHOST_DEFAULT_OPPONENT = 10;
+  GHOST_COMPETITION = 11;
+}
+enum TeamNewsEntry {
+  NEWS_STICKER_PRIZE = 1;
+  NEWS_JOINED = 2;
+  NEWS_LEADER_CHANGED = 3;
+  NEWS_STICKER_CHANGED = 4;
+}
+enum TeamNoticeEntry {
+  NOTICE_TEAM_PRIZE = 1;
+  NOTICE_JOINED = 2;
+  NOTICE_DISSOLVED = 3;
+  NOTICE_LEADER_CHANGED = 4;
+  NOTICE_FORCEDLY_DISSOLVED = 5;
+}
+enum FileType {
+  FILE_PROMOTION_ANNOUNCEMENT = 1;
+}
+enum CarCampaignUserState {
+  CAR_CAMPAIGN_NOT_ACCEPTED = 1;
+  CAR_CAMPAIGN_ACCEPTED = 2;
+  CAR_CAMPAIGN_FINISHED = 3;
+}
+enum GhostCompetitionParticipantState {
+  COMPETITION_NOT_PARTICIPATED = 1;
+  COMPETITION_QUALIFIED = 2;
+  COMPETITION_PARTICIPATED = 3;
+  COMPETITION_WON = 4;
+}
+

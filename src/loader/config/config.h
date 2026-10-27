@@ -7,6 +7,57 @@
 #define MAX_PATH_LENGTH 1024
 #define INPUT_STRING_LENGTH 256
 
+#define JURASSIC_PARK_RT 0xf7503efd                              // Raw Thrills, v1.33
+#define CRUISN_BLAST_RT 0xddaf18ba                               // Raw Thrills, v1.25
+#define GALAGA_ASSAULT_RT 0x2986f0ca                             // Raw Thrills
+#define WALKING_DEAD_RT 0xf6330a20                               // Raw Thrills (patched copy: libcsv path shortened)
+#define TERMINATOR_SALVATION_RT 0xa999339e                       // Raw Thrills, v01.25.00
+#define BIG_BUCK_WORLD_RT 0x17633eb3                             // Raw Thrills, v1.20
+// Raw Thrills, g5 engine.  This is the CRC of the *patched* copy the loader
+// runs: the game links libcsv by absolute path, and shortening that DT_NEEDED
+// string falls inside the 0x4000 bytes the id is taken over (0x56adc4aa is
+// the untouched file).
+#define BIG_BUCK_HD_WILD_RT 0xc814b556
+#define PACMAN_CHOMP_MANIA_RT 0xf841f9e7                         // Raw Thrills, v1.28C
+#define WHEEL_OF_FORTUNE_RT 0x4a739bbd                           // Raw Thrills, g3 engine
+#define DEAL_OR_NO_DEAL_RT 0x7d589b9a                             // Raw Thrills, v01.07.06
+#define DEAL_OR_NO_DEAL_UK_RT 0x13c57d44                          // Raw Thrills, v01.06.06 UK
+#define DEAL_OR_NO_DEAL_DELUXE_RT 0x0bb3d477                      // Raw Thrills, v01.18.00.NJS
+// Raw Thrills, g6 engine; like Big Buck HD Wild, the CRC of the patched copy
+// (0xd394437b is the untouched file).
+#define PINK_PANTHER_RT 0x2a0ca1ef
+#define ALIENS_ARMAGEDDON_RT 0x1e59ce21                          // Raw Thrills, g6 engine
+// Raw Thrills, g6 engine, an envelope dump; the CRC of the patched copy
+// (0x12b2ad06 is the untouched file).
+#define ANGRY_BIRDS_RT 0x5cf3dd99
+// Raw Thrills, g6 engine; the CRC of the patched copy, for both TeknoParrot's
+// game and the untouched game0.
+#define MOTOGP_RT 0x470a9e32
+// Ghostbusters Arcade, g6 engine: patched copy (undefined symbol values
+// cleared and libcsv path shortened).
+// The untouched executable's partial CRC is 0x344ca1b3.
+#define GHOSTBUSTERS_RT 0xcaeea463
+#define SPACE_INVADERS_FRENZY_RT 0xa3cdb3b6
+#define WORLDS_LARGEST_PACMAN_RT 0x604f0e91                         // Raw Thrills, v1.71
+#define DOODLE_JUMP_RT 0x7ae081d8                                // ICE (Raw Thrills pm platform), v1.28
+#define TIPPIN_BLOKS_RT 0x1b27d8e9                               // ICE (PlayMechanix g3), v1.80 (patched copy)
+#define TARGET_TERROR_GOLD_RT 0x595365af                         // Raw Thrills, 2004 engine, Gold (patched copy)
+#define BIG_BUCK_HUNTER_PRO_RT 0x5251b97d                        // Raw Thrills, v1.25, Rockey envelope removed
+#define NIRIN_ES1 0x71e72ff6                                     // Namco ES1, NRN100-4-NA-DAT0-A37
+#define DHRIDERS_ES1 0x5d3df1cd                                  // Namco ES1, DH RIDERS (rev 1247)
+#define DEADHEAT_ES1 0x7a3a5554                                  // Namco ES1, US DRIVE (rev 6273)
+#define WMMT4_ES1 0x5031e0db                                     // Namco ES1, WMN4r (rev 1.10.18)
+#define MAXIMUMHEAT3D_ES1 0xf932e88e                             // Namco ES1, US DRIVE (rev 8807)
+#define WMMT3_N2 0xec016afd                                      // Namco N2, WM3100-3-NA-DAT0-A70 (export)
+#define WMMT3DXPLUS_N2 0x85a0e7ab                                // Namco N2, W3P100-1-NA-DAT0-B02
+#define CSNEO_N2 0xfe266a17                                       // Namco N2, csneo2 (Counter Strike NEO, hlds_amd code segment)
+#define TANKTANKTANK_ES1 0xd7270b7d                              // Namco ES1, tank_us_100226_rev1.03.14
+#define GUNDAM_KIZUNA_ES1 0xb647d490                             // Namco ES1, Senjo no Kizuna REV3.57.07
+#define CROSSFIRE_TEAMPLAY 0x0a8b80a6                            // Teamplay, med_pball
+#define PUCK_OFF_GVR 0x71da2491                                  // Global VR, v0710240921
+#define AMERICAS_ARMY_GVR 0x1af79b17                             // Global VR, 1.0.1.082 (armyops-bin)
+#define TUX_RACER_ROXOR 0xa27ceeb7                               // Roxor, Tux Racer 4.1 ARCADE (tuxracer)
+#define POLICE_TRAINER_2_TEAMPLAY 0xf1709a8e                     // Teamplay, pt2s_g11
 #define AFTER_BURNER_CLIMAX_SBLR 0xa3c246e2                       // DVP-0009
 #define AFTER_BURNER_CLIMAX_SBLR_REVA 0xe657b1c0                  // DVP-0009A
 #define AFTER_BURNER_CLIMAX_SBLR_REVB 0xdb9d8396                  // DVP-0009B
@@ -187,7 +238,11 @@ typedef struct
 typedef enum
 {
     SEGA_TYPE_1,
-    SEGA_TYPE_3
+    SEGA_TYPE_3,
+    NAMCO_NA_JV,
+    NAMCO_ES1_JAMMA,
+    NAMCO_FCA_1,
+    NO_JVS_IO
 } JVSIOType;
 
 typedef struct
@@ -318,6 +373,9 @@ typedef struct
     int touchCursorHeight;
     int mj4EnabledAtT;
     int enableNetworkPatches;
+    // WMMT4: the loader's own game server (card, cars, progress) instead of
+    // the dump's offline mode (namco/namcoEs1Wmmt4Server.c).
+    int wmmt4Server;
     char idIpSeat1[16];
     char idIpSeat2[16];
     char nicName[20];
@@ -337,6 +395,9 @@ typedef struct
     float whiteBorderPercentage;
     float blackBorderPercentage;
     int borderEnabled;
+    int rotateVertical;
+    char bezel[MAX_PATH_LENGTH];
+    int bezelEnabled; // -1: auto, when the image exists
     int enableCrosshairs;
     int gsevoCrosshairAlwaysOn;
     int gsevoCrosshairAlwaysOff;

@@ -17,6 +17,9 @@
 #include <SDL3_image/SDL_image.h>
 #include <stdbool.h>
 #include <unistd.h>
+#ifdef __linux__
+#include "../input/trackball.h"
+#endif
 
 #include "blitStretching.h"
 #include "../config/config.h"
@@ -318,11 +321,27 @@ void sdlQuit()
 void pollEvents()
 {
     SDL_Event event;
+#ifdef __linux__
+    trackballApplyCapture(g_SdlWindow);
+#endif
     while (SDL_PollEvent(&event))
     {
 #ifdef __linux__
         if (event.type == SDL_WIIMOTION_EVENT)
             processSdlEvent(&event);
+        // A trackball's motion and buttons (see input/trackball.h).
+        if (event.type == SDL_EVENT_MOUSE_MOTION)
+        {
+            // Fractions of a count are kept for the next motion: a
+            // high-resolution mouse moving slowly would lose them all.
+            static float restX, restY;
+            float x = restX + event.motion.xrel, y = restY + event.motion.yrel;
+            restX = x - (int)x;
+            restY = y - (int)y;
+            trackballAdd((int)x, (int)y);
+        }
+        else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN || event.type == SDL_EVENT_MOUSE_BUTTON_UP)
+            trackballSetButton(event.button.button, event.button.down);
 #endif
         switch (event.type)
         {

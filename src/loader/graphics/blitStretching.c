@@ -69,10 +69,18 @@ void blitSetWidthandHeightSize()
             blitHeight = gHeight;
         }
     }
-    else if (gId == GHOST_SQUAD_EVOLUTION_SBNJ || gGrp == GROUP_VT3_TEST)
+    // Police Trainer 2 draws 640x480, whatever its window's size.
+    else if (gId == GHOST_SQUAD_EVOLUTION_SBNJ || gGrp == GROUP_VT3_TEST || gId == POLICE_TRAINER_2_TEAMPLAY)
     {
         blitWidth = 640;
         blitHeight = 480;
+    }
+    // Crossfire Maximum Paintball draws 512x384 (its medium-resolution
+    // monitor's size), whatever its window's size.
+    else if (gId == CROSSFIRE_TEAMPLAY)
+    {
+        blitWidth = 512;
+        blitHeight = 384;
     }
     else if (gId == QUIZ_AXA_SBMS || gId == QUIZ_AXA_SBUR_LIVE || gId == MJ4_SBPN_REVG || gId == MJ4_EVO_SBTA)
     {

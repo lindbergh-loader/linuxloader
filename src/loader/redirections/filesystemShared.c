@@ -26,6 +26,17 @@
 #include "../hardware/lindbergh/driveBoard.h"
 #include "../hardware/lindbergh/rideBoard.h"
 #include "../graphics/shaderCache.h"
+#ifdef __linux__
+#include <limits.h>
+#include "../rawthrills/rawthrills.h"
+#include "../common/gamePath.h"
+#include "../common/ossDsp.h"
+#include "../common/webcam.h"
+#include "../namco/namcoEs1.h"
+#include "../namco/namcoN2.h"
+#include "../teamplay/teamplay.h"
+#include "../globalvr/gvr.h"
+#endif
 #include "../resources/font.h"
 #include "../resources/lindberghLogo.h"
 #include "../log/log.h"
@@ -33,7 +44,9 @@
 
 #ifdef __linux__
 #include <dlfcn.h>
+#include <fcntl.h>
 #include <net/if.h>
+#include <stdarg.h>
 #include <sys/ioctl.h>
 #define REAL_FUNC(name) dlsym(RTLD_NEXT, #name)
 #else
@@ -91,6 +104,10 @@ int sharedRemove(const char *path)
 {
     if (_remove == NULL)
         _remove = REAL_FUNC(remove);
+#ifdef __linux__
+    char pathBuf[PATH_MAX];
+    path = gameRedirectPath(path, pathBuf, sizeof(pathBuf));
+#endif
 
     if (strncmp(path, "/home/disk1/rankingdata/", 24) == 0 && (gGrp == GROUP_OUTRUN || gGrp == GROUP_OUTRUN_TEST))
     {
@@ -126,6 +143,10 @@ int sharedMkdir(const char *path, mode_t mode)
     static int (*_mkdir)(const char *path, mode_t mode) = NULL;
     if (_mkdir == NULL)
         _mkdir = REAL_FUNC(mkdir);
+#endif
+#ifdef __linux__
+    char pathBuf[PATH_MAX];
+    path = gameRedirectPath(path, pathBuf, sizeof(pathBuf));
 #endif
 
     if (strncmp(path, "/tmp", 4) == 0)
@@ -204,6 +225,37 @@ int sharedOpen(const char *pathname, int flags, ...)
     va_start(args, flags);
     int mode = va_arg(args, int);
     va_end(args);
+
+#ifdef __linux__
+    // X11 socket and Xauthority: never redirect. A game's own libX11 opens
+    // them to reach the X server; the loader's path redirection must not
+    // touch these.
+    if (pathname && (strncmp(pathname, "/tmp/.X11-unix/", 16) == 0 ||
+                     strstr(pathname, "Xauthority") != NULL ||
+                     strncmp(pathname, "/run/user/", 9) == 0))
+        return _open(pathname, flags, mode);
+
+    // Raw Thrills: OSS sound device and cabinet paths.
+    if (ossDspIsPath(pathname))
+        return ossDspOpen(flags);
+    // Namco: the JVS I/O board's serial port.
+    if (namcoEs1JvsIsPath(pathname))
+        return namcoEs1JvsOpen(_open);
+    if (namcoEs1KickbackIsPath(pathname))
+        return namcoEs1KickbackOpen(_open);
+    if (namcoN2KickbackIsPath(pathname))
+        return namcoN2KickbackOpen(_open);
+    // Teamplay: the MegaJamma board.
+    if (teamplayMjIsPath(pathname))
+        return teamplayMjOpen(_open);
+    // Global VR: the GFXIO board.
+    if (gvrGfxioIsPath(pathname))
+        return gvrGfxioOpen(_open);
+    if (webcamIsPath(pathname))
+        return webcamOpen(pathname, flags, mode, _open);
+    char pathBuf[PATH_MAX];
+    pathname = gameRedirectPath(pathname, pathBuf, sizeof(pathBuf));
+#endif
 
     if (strcmp(pathname, "/dev/lbb") == 0)
     {
@@ -306,6 +358,10 @@ FILE *sharedFopen(const char *restrict pathname, const char *restrict mode)
 {
     if (_fopen == NULL)
         _fopen = REAL_FUNC(fopen);
+#ifdef __linux__
+    char pathBuf[PATH_MAX];
+    pathname = gameRedirectPath(pathname, pathBuf, sizeof(pathBuf));
+#endif
 #ifdef _WIN32
 
     if (strcmp(mode, "r") == 0)
@@ -378,10 +434,12 @@ FILE *sharedFopen(const char *restrict pathname, const char *restrict mode)
         }
     }
 
+    // Its lines come from sharedFgets; the stream itself is empty, so that a
+    // reader looping on feof() (Namco N2's Alchemy) sees the end after them.
     if (strcmp(pathname, "/proc/cpuinfo") == 0)
     {
         fileRead[CPUINFO] = 0;
-        fileHooks[CPUINFO] = _fopen(HOOK_FILE_NAME, mode);
+        fileHooks[CPUINFO] = _fopen("/dev/null", mode);
         return fileHooks[CPUINFO];
     }
 
@@ -535,6 +593,10 @@ FILE *sharedFopen64(const char *pathname, const char *mode)
 {
     if (_fopen64 == NULL)
         _fopen64 = REAL_FUNC(fopen64);
+#ifdef __linux__
+    char pathBuf[PATH_MAX];
+    pathname = gameRedirectPath(pathname, pathBuf, sizeof(pathBuf));
+#endif
 
     if (strcmp(pathname, "/proc/sys/kernel/osrelease") == 0)
     {
@@ -673,6 +735,21 @@ int sharedClose(int fd)
         _close = REAL_FUNC(close);
 #endif
 
+#ifdef __linux__
+    if (ossDspIsFd(fd))
+        ossDspClose();
+    if (namcoEs1JvsIsFd(fd))
+        namcoEs1JvsClose();
+    if (namcoEs1KickbackIsFd(fd))
+        namcoEs1KickbackClose();
+    if (namcoN2KickbackIsFd(fd))
+        namcoN2KickbackClose();
+    if (teamplayMjIsFd(fd))
+        teamplayMjClose();
+    if (gvrGfxioIsFd(fd))
+        gvrGfxioClose();
+#endif
+
 
     for (size_t i = 0; i < (sizeof hooks / sizeof hooks[0]); i++)
     {
@@ -712,7 +789,7 @@ char *sharedFgets(char *str, int n, FILE *stream)
             strcpy(contents[3], "model name	: Intel(R) Celeron(R) CPU 2.80GHz");
 
         if (fileRead[CPUINFO] == 4)
-            return NULL;
+            return _fgets(str, n, stream); // NULL, and the stream at its end
 
         strcpy(str, contents[fileRead[CPUINFO]++]);
         return str;
@@ -727,6 +804,17 @@ ssize_t sharedRead(int fd, void *buf, size_t count)
     static ssize_t (*_read)(int fd, void *buf, size_t count) = NULL;
     if (_read == NULL)
         _read = REAL_FUNC(read);
+
+    if (namcoEs1JvsIsFd(fd))
+        return namcoEs1JvsRead(buf, count);
+    if (namcoEs1KickbackIsFd(fd))
+        return namcoEs1KickbackRead(buf, count);
+    if (namcoN2KickbackIsFd(fd))
+        return namcoN2KickbackRead(buf, count);
+    if (teamplayMjIsFd(fd))
+        return teamplayMjRead(buf, count);
+    if (gvrGfxioIsFd(fd))
+        return gvrGfxioRead(buf, count);
 #endif
 
     if (fd == (int)hooks[BASEBOARD])
@@ -893,6 +981,17 @@ ssize_t sharedWrite(int fd, const void *buf, size_t count)
         _write = REAL_FUNC(write);
 #endif
 
+#ifdef __linux__
+    if (ossDspIsFd(fd))
+        return ossDspWrite(buf, count);
+    if (namcoEs1JvsIsFd(fd))
+        return namcoEs1JvsWrite(buf, count);
+    if (namcoEs1KickbackIsFd(fd))
+        return namcoEs1KickbackWrite(buf, count);
+    if (namcoN2KickbackIsFd(fd))
+        return namcoN2KickbackWrite(buf, count);
+#endif
+
     // void *addr = __builtin_return_address(0);
     if (fd == (int)hooks[BASEBOARD])
     {
@@ -940,6 +1039,35 @@ int sharedIoctl(int fd, unsigned long int request, ...)
     static int (*_ioctl)(int fd, int request, void *data) = NULL;
     if (_ioctl == NULL)
         _ioctl = REAL_FUNC(ioctl);
+#endif
+
+#ifdef __linux__
+    if (ossDspIsFd(fd))
+        return ossDspIoctl(request, argp);
+    if (namcoEs1JvsIsFd(fd))
+        return namcoEs1JvsIoctl(request, argp);
+    if (namcoEs1KickbackIsFd(fd))
+        return namcoEs1KickbackIoctl(request, argp);
+    if (namcoN2KickbackIsFd(fd))
+        return namcoN2KickbackIoctl(request, argp);
+    if (teamplayMjIsFd(fd))
+        return teamplayMjIoctl(request, argp);
+    if (gvrGfxioIsFd(fd))
+        return gvrGfxioIoctl(request, argp);
+    if (request == SIOCGIFHWADDR && isNamcoEs1Game())
+        return namcoEs1HwAddr(fd, argp, _ioctl);
+    if ((request == SIOCGIFFLAGS || request == SIOCGIFADDR || request == SIOCGIFNETMASK || request == SIOCGIFBRDADDR) &&
+        isNamcoEs1Game())
+    {
+        int r = _ioctl(fd, request, argp);
+        if (r != 0 && errno == ENODEV && namcoEs1Eth0(request, argp) == 0)
+            return 0;
+        return r;
+    }
+    // The Namco ES1 camera driver crops the cabinet camera's picture; a
+    // webcam may not crop (VIDIOC_S_CROP), and the picture is used whole.
+    if (request == 0x4014563c && isNamcoEs1Game())
+        return 0;
 #endif
 
     if (fd == (int)hooks[EEPROM])
@@ -1041,6 +1169,10 @@ DIR *opendir(const char *dirname)
 {
     if (_opendir == NULL)
         _opendir = REAL_FUNC(opendir);
+#ifdef __linux__
+    char pathBuf[PATH_MAX];
+    dirname = gameRedirectPath(dirname, pathBuf, sizeof(pathBuf));
+#endif
     log_debug("Opendir %s\n", dirname);
 
     if (strcmp(dirname, "/tmp/") == 0 && gGrp == GROUP_ID5)
@@ -1084,6 +1216,14 @@ int __xstat64(int ver, const char *path, struct stat64 *stat_buf)
 {
     if (___xstat64 == NULL)
         ___xstat64 = REAL_FUNC(__xstat64);
+#ifdef __linux__
+    // X11 socket: never redirect (see sharedOpen above).
+    if (path && (strncmp(path, "/tmp/.X11-unix/", 16) == 0 ||
+                 strncmp(path, "/run/user/", 9) == 0))
+        return ___xstat64(ver, path, stat_buf);
+    char pathBuf[PATH_MAX];
+    path = gameRedirectPath(path, pathBuf, sizeof(pathBuf));
+#endif
 
     if (strcmp("/var/tmp/warning", path) == 0)
     {
@@ -1125,9 +1265,17 @@ int fclose(FILE *stream)
     return sharedFclose(stream);
 }
 
-static int (*_openat)(int dirfd, const char *pathname, int flags) = NULL;
-int openat(int dirfd, const char *pathname, int flags)
+static int (*_openat)(int dirfd, const char *pathname, int flags, mode_t mode) = NULL;
+int openat(int dirfd, const char *pathname, int flags, ...)
 {
+    mode_t mode = 0;
+    va_list ap;
+    if (flags & O_CREAT)
+    {
+        va_start(ap, flags);
+        mode = (mode_t)va_arg(ap, int);
+        va_end(ap);
+    }
     if (_openat == NULL)
         _openat = REAL_FUNC(openat);
 
@@ -1137,7 +1285,13 @@ int openat(int dirfd, const char *pathname, int flags)
         return sharedOpen(pathname, flags);
     }
 
-    return _openat(dirfd, pathname, flags);
+    // Counter Strike NEO's cabinet free disk (namco/namcoN2Csneo.c): the
+    // engine's raw openat(AT_FDCWD, ...) opens go through this funnel, so
+    // its /freespace/ paths are remapped onto the dump's TeknoParrot/ copy.
+    char csneoBuf[PATH_MAX];
+    if (namcoN2Openat(dirfd, pathname, flags, csneoBuf, sizeof(csneoBuf)))
+        return _openat(dirfd, csneoBuf, flags, mode);
+    return _openat(dirfd, pathname, flags, mode);
 }
 
 int close(int fd)

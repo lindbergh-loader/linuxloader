@@ -18,6 +18,15 @@ pthread_mutex_t jvsMutex = PTHREAD_MUTEX_INITIALIZER;
 
 JVSIO io = {0};
 
+// What the cabinet wires to the general outputs, if the game needs it seen
+// (Maximum Heat 3D: GOUT0 powers the steering board): told of each byte.
+static JVSGpoHandler gpoHandler;
+
+void setJVSGpoHandler(JVSGpoHandler handler)
+{
+    gpoHandler = handler;
+}
+
 /**
  * Initialise the JVS emulation
  *
@@ -45,6 +54,75 @@ int initJVS()
         io.capabilities.jvsVersion = 48;
         io.capabilities.commsVersion = 16;
         strcpy(io.capabilities.name, "SEGA ENTERPRISESLTD.;I/O BD JVS;837-13551;Ver1.00;98/10");
+    }
+    break;
+
+    // Namco's multipurpose board (Namco ES1 games). The games check the maker
+    // and look the product up in their list of boards: ID fields are maker;
+    // product;version;comments.
+    case NAMCO_NA_JV:
+    {
+        io.capabilities.switches = 16;
+        io.capabilities.coins = 2;
+        io.capabilities.players = 2;
+        io.capabilities.analogueInBits = 16;
+        io.capabilities.rightAlignBits = 0;
+        io.capabilities.analogueInChannels = 8;
+        io.capabilities.generalPurposeOutputs = 16;
+        io.capabilities.commandVersion = 17;
+        io.capabilities.jvsVersion = 48;
+        io.capabilities.commsVersion = 16;
+        strcpy(io.capabilities.name, "namco ltd.;NA-JV;Ver4.00;JPN,Multipurpose + Rotary Encoder");
+    }
+    break;
+
+    // The Namco N2 Wangan cabinets' board (the Pacloader fork's): the N2
+    // master clamps each function to what the board declares and wants the
+    // command and JVS versions at exactly 0x10.
+    case NAMCO_FCA_1:
+    {
+        io.capabilities.switches = 24;
+        io.capabilities.coins = 2;
+        io.capabilities.players = 2;
+        io.capabilities.analogueInBits = 16;
+        io.capabilities.rightAlignBits = 0;
+        io.capabilities.analogueInChannels = 8;
+        io.capabilities.rotaryChannels = 1;
+        io.capabilities.generalPurposeInputs = 16;
+        io.capabilities.generalPurposeOutputs = 6;
+        io.capabilities.analogueOutChannels = 4;
+        io.capabilities.commandVersion = 0x10;
+        io.capabilities.jvsVersion = 0x10;
+        io.capabilities.commsVersion = 0x10;
+        strcpy(io.capabilities.name, "namco ltd.;FCA-1;Ver1.00;JPN,Multipurpose + Rotary Encoder");
+    }
+    break;
+
+    // The ES1 driving cabinets' board (Maximum Heat 3D), as the Pacloader
+    // fork describes it: revision 3.1 (the ES1 master records a board's later
+    // capabilities only above 1.2 and 2.9), 20 general outputs (lamps, and
+    // GOUT0 powers the steering board; without them: "Gout Update Timeout")
+    // and the two analog outputs the master refuses a board without.
+    case NAMCO_ES1_JAMMA:
+    {
+        io.capabilities.switches = 24;
+        io.capabilities.coins = 2;
+        io.capabilities.players = 2;
+        io.capabilities.analogueInBits = 16;
+        io.capabilities.rightAlignBits = 0;
+        io.capabilities.analogueInChannels = 8;
+        io.capabilities.keypad = 1;
+        io.capabilities.generalPurposeOutputs = 20;
+        io.capabilities.analogueOutChannels = 2;
+        io.capabilities.commandVersion = 0x31;
+        io.capabilities.jvsVersion = 0x31;
+        io.capabilities.commsVersion = 0x31;
+        // WMMT4's master wants an NA-JV (its I/O test screen's name), with
+        // the same profile.
+        if (getConfig()->crc32 == WMMT4_ES1)
+            strcpy(io.capabilities.name, "namco ltd.;NA-JV;Ver4.00;JPN,Multipurpose.");
+        else
+            strcpy(io.capabilities.name, "namco ltd.;ES1-JAMMA;Ver1.00;USA,Driving");
     }
     break;
 
@@ -409,6 +487,8 @@ JVSStatus processPacket(int *packetSize)
             {
                 // setGeneralPurposeOutputByte(i, inputPacket.data[index + 2 + i]);
                 processGPOpacket(inputPacket.data[index + 2 + i]);
+                if (gpoHandler)
+                    gpoHandler((unsigned char)i, inputPacket.data[index + 2 + i]);
             }
             outputPacket.data[outputPacket.length] = REPORT_SUCCESS;
             outputPacket.length += 1;
@@ -503,6 +583,49 @@ JVSStatus processPacket(int *packetSize)
                     break;
             }
             printf("CMD_CONVEY_ID = %s\n", idData);
+        }
+        break;
+
+        // Namco's own commands: 0x70, then a sub-command. "PL" (0x18 'P' 'L'
+        // and two bytes) only wants an acknowledgement; the others are not
+        // known, and take the rest of the packet.
+        case CMD_NAMCO_SPECIFIC:
+        {
+            if (getConfig()->jvsIOType == NAMCO_ES1_JAMMA)
+            {
+                // The ES1 board (the Pacloader fork's answers): several of
+                // these per packet, each with its report. 03 (2 bytes),
+                // 15/16 (4: the serial pass-through, which has nothing to
+                // pass: a count of 0) and 18 (6: the bytes waiting, none:
+                // claiming some overflows the game's ring buffer) are
+                // known; anything else takes the rest of the packet.
+                int known = 1;
+                switch (inputPacket.data[index + 1])
+                {
+                case 0x03:
+                    size = 2;
+                    break;
+                case 0x15:
+                case 0x16:
+                    size = 4;
+                    break;
+                case 0x18:
+                    size = 6;
+                    break;
+                default:
+                    known = 0;
+                    size = inputPacket.length - 1 - index;
+                }
+                outputPacket.data[outputPacket.length++] = REPORT_SUCCESS;
+                if (known)
+                    outputPacket.data[outputPacket.length++] = 0;
+                break;
+            }
+            if (inputPacket.data[index + 1] == 0x18)
+                size = 6;
+            else
+                size = inputPacket.length - 1 - index;
+            outputPacket.data[outputPacket.length++] = REPORT_SUCCESS;
         }
         break;
 
@@ -666,6 +789,10 @@ int setSwitch(JVSPlayer player, JVSInput switchNumber, int value)
 
     if (value)
     {
+        // The switches going down: their presses (see JVSState).
+        for (unsigned int down = player <= PLAYER_4 ? switchNumber & ~io.state.inputSwitch[player] : 0; down;
+             down &= down - 1)
+            io.state.switchPresses[player][__builtin_ctz(down)]++;
         io.state.inputSwitch[player] |= switchNumber;
     }
     else

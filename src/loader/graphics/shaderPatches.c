@@ -23,6 +23,10 @@
 #include "../config/config.h"
 #include "../patching/flowControl.h"
 #include "../log/log.h"
+#ifdef __linux__
+#include "../namco/namcoEs1.h"
+#include "../rawthrills/rawthrills.h"
+#endif
 #include "shaderWork/common.h"
 
 #include "shaderWork/abc.h"
@@ -291,6 +295,10 @@ void bridgeglEnable(GLenum cap)
     {
         cap = GL_FRAGMENT_PROGRAM_ARB;
     }
+    // Before the game's context is current (WMMT4's first glEnable): nothing
+    // to enable, as without a context.
+    if (!glad_glEnable)
+        return;
     glad_glEnable(cap);
 }
 
@@ -311,8 +319,170 @@ void bridgeglDisable(GLenum cap)
     {
         cap = GL_FRAGMENT_PROGRAM_ARB;
     }
+    // Before the game's context is current (WMMT4's first glEnable): nothing
+    // to enable, as without a context.
+    if (!glad_glDisable)
+        return;
     glad_glDisable(cap);
 }
+
+#ifdef __linux__
+// Shader sources the engines wrote for NVIDIA's compiler, which Mesa's
+// refuses: the family's fixes are applied in place, and the (concatenated)
+// source is passed on as a single string.
+// - Raw Thrills: the g5 bloom output demotion, and the g3 #version 1.20 with
+//   its sized gl_TexCoord (rtPatchShaderSource).
+// - Namco ES1: texture2DLod() (not in GLSL 1.20), and gl_TexCoord[] indexed
+//   by a variable (namcoEs1PatchShader).
+typedef void (*ShaderSourceFn)(GLuint, GLsizei, const GLchar *const *, const GLint *);
+
+// The sources concatenated, patched for the family, and handed to real.
+static void patchedShaderSource(ShaderSourceFn real, GLuint shader, GLsizei count, const GLchar *const *string,
+                                const GLint *length)
+{
+    size_t total = 0;
+    char *src, *out;
+
+    if ((!isRawThrillsGame() && !isNamcoEs1Game()) || count <= 0)
+        return real(shader, count, string, length);
+
+    for (GLsizei i = 0; i < count; i++)
+        total += length && length[i] >= 0 ? (size_t)length[i] : strlen(string[i]);
+    // Room for the patches' insertions.
+    if (!(src = malloc(total + 256)))
+        return real(shader, count, string, length);
+    out = src;
+    for (GLsizei i = 0; i < count; i++)
+    {
+        size_t n = length && length[i] >= 0 ? (size_t)length[i] : strlen(string[i]);
+        memcpy(out, string[i], n);
+        out += n;
+    }
+    *out = '\0';
+
+    if (isNamcoEs1Game())
+        namcoEs1PatchShader(src);
+    else
+        rtPatchShaderSource(src);
+
+    const GLchar *one = src;
+    real(shader, 1, &one, NULL);
+    free(src);
+}
+
+#undef glShaderSource
+void glShaderSource(GLuint shader, GLsizei count, const GLchar *const *string, const GLint *length)
+{
+    static ShaderSourceFn real;
+    if (!real)
+        real = (ShaderSourceFn)dlsym(RTLD_NEXT, "glShaderSource");
+    patchedShaderSource(real, shader, count, string, length);
+}
+
+// The Namco games' shader compiles and links that fail, with the driver's
+// message (a shader the driver refuses draws nothing).
+static void namcoShaderLog(GLuint object, int link, int arb)
+{
+    void (*getiv)(GLuint, GLenum, GLint *) = NULL;
+    void (*getLog)(GLuint, GLsizei, GLsizei *, char *) = NULL;
+    GLint ok = 1;
+    char log[2048] = "";
+
+    if (arb)
+    {
+        *(void **)&getiv = dlsym(RTLD_NEXT, "glGetObjectParameterivARB");
+        *(void **)&getLog = dlsym(RTLD_NEXT, "glGetInfoLogARB");
+    }
+    else
+    {
+        *(void **)&getiv = dlsym(RTLD_NEXT, link ? "glGetProgramiv" : "glGetShaderiv");
+        *(void **)&getLog = dlsym(RTLD_NEXT, link ? "glGetProgramInfoLog" : "glGetShaderInfoLog");
+    }
+    if (!getiv || !getLog)
+        return;
+    getiv(object, arb ? (link ? 0x8B82 : 0x8B81) : (link ? GL_LINK_STATUS : GL_COMPILE_STATUS), &ok);
+    if (ok)
+        return;
+    getLog(object, sizeof(log), NULL, log);
+    log_warn("Namco: shader %u %s failed: %s", object, link ? "link" : "compile", log);
+}
+
+#undef glCompileShader
+void glCompileShader(GLuint shader)
+{
+    static void (*real)(GLuint);
+    if (!real)
+        *(void **)&real = dlsym(RTLD_NEXT, "glCompileShader");
+    real(shader);
+    if (isNamcoEs1Game())
+        namcoShaderLog(shader, 0, 0);
+}
+
+#undef glLinkProgram
+void glLinkProgram(GLuint program)
+{
+    static void (*real)(GLuint);
+    if (!real)
+        *(void **)&real = dlsym(RTLD_NEXT, "glLinkProgram");
+    real(program);
+    if (isNamcoEs1Game())
+        namcoShaderLog(program, 1, 0);
+}
+
+#undef glCompileShaderARB
+void glCompileShaderARB(GLuint shader)
+{
+    static void (*real)(GLuint);
+    if (!real)
+        *(void **)&real = dlsym(RTLD_NEXT, "glCompileShaderARB");
+    real(shader);
+    if (isNamcoEs1Game())
+        namcoShaderLog(shader, 0, 1);
+}
+
+#undef glLinkProgramARB
+void glLinkProgramARB(GLuint program)
+{
+    static void (*real)(GLuint);
+    if (!real)
+        *(void **)&real = dlsym(RTLD_NEXT, "glLinkProgramARB");
+    real(program);
+    if (isNamcoEs1Game())
+        namcoShaderLog(program, 1, 1);
+}
+
+// Tank! Tank! Tank!'s assembly programs, written for NVIDIA's extended
+// profiles, which Mesa rejects: rewritten as plain ARB ones.
+#undef glProgramStringARB
+void glProgramStringARB(GLenum target, GLenum format, GLsizei len, const void *string)
+{
+    static void (*real)(GLenum, GLenum, GLsizei, const void *);
+    char *translated = NULL;
+
+    if (!real)
+        *(void **)&real = dlsym(RTLD_NEXT, "glProgramStringARB");
+    if (isNamcoEs1Game() && string && len > 0)
+        translated = namcoEs1ArbTranslate(string, len);
+    if (translated)
+    {
+        real(target, format, (GLsizei)strlen(translated), translated);
+        free(translated);
+        return;
+    }
+    real(target, format, len, string);
+}
+
+// The same through ARB_shader_objects (Dead Heat), whose handles are GLuint
+// on Linux.
+#undef glShaderSourceARB
+void glShaderSourceARB(GLuint shader, GLsizei count, const GLchar *const *string, const GLint *length)
+{
+    static ShaderSourceFn real;
+    if (!real)
+        real = (ShaderSourceFn)dlsym(RTLD_NEXT, "glShaderSourceARB");
+    patchedShaderSource(real, shader, count, string, length);
+}
+#endif
 
 /**
  *	The following 3 functions are replacements for SRTV and OR2

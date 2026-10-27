@@ -5,6 +5,14 @@
 #include <unistd.h>
 
 #include "libcShared.h"
+#ifdef __linux__
+#include <limits.h>
+#include "../rawthrills/rawthrills.h"
+#include "../namco/namcoEs1.h"
+#include "../namco/namcoN2.h"
+#include "../teamplay/teamplay.h"
+#include "../globalvr/gvr.h"
+#endif
 #include "../config/config.h"
 #include "loader/elfLoader/symbolResolver.hpp"
 
@@ -277,6 +285,16 @@ int system(const char *command)
     if (_system == NULL)
         _system = (int (*)(const char *))dlsym(RTLD_NEXT, "system");
 
+#ifdef __linux__
+    char rtCommand[PATH_MAX * 2];
+    command = rtRedirectCommand(command, rtCommand, sizeof(rtCommand));
+    if (namcoEs1DropCommand(command) || teamplayDropCommand(command))
+        return 0;
+    int n2Status;
+    if (namcoN2Command(command, &n2Status))
+        return n2Status;
+#endif
+
     if (strcmp(command, "lsmod | grep basebd > /dev/null") == 0)
         return 0;
 
@@ -388,5 +406,28 @@ float powf(float base, float exponent)
 int iopl(int level)
 {
     return 0;
+}
+
+// America's Army reaches its cabinet's I/O daemon over TCP: the loader's.
+int connect(int fd, const struct sockaddr *addr, socklen_t length)
+{
+    static int (*_connect)(int, const struct sockaddr *, socklen_t) = NULL;
+    if (_connect == NULL)
+        _connect = REAL_FUNC(connect);
+    if (isGvrGame())
+        return gvrLinkConnect(fd, addr, length, _connect);
+    return _connect(fd, addr, length);
+}
+
+// Teamplay and Global VR games lock their memory, which as root (Batocera)
+// would pin the whole process in RAM: SDL's and the GPU driver's mappings too.
+int mlockall(int flags)
+{
+    static int (*_mlockall)(int) = NULL;
+    if (isTeamplayGame() || isGvrGame())
+        return 0;
+    if (_mlockall == NULL)
+        _mlockall = REAL_FUNC(mlockall);
+    return _mlockall(flags);
 }
 #endif
