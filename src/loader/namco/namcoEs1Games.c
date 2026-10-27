@@ -28,6 +28,10 @@ static const char *const gundamLinks[] = {
 // WMMT4's cabinet on the shop's LAN: 192.168.92.11/24 (the content router
 // check wants that network).
 static const uint8_t wmmt4Eth0[] = {192, 168, 92, 11, 255, 255, 255, 0};
+// The Japanese default ghosts (the ghost battles' opponents), missing from
+// the 1.10.18 dump: the base ones, same format.
+static const char *const wmmt4FileFallbacks[] = {"data/Common/DefaultTarget/DEFAULT_GHOST_JP.BIN",
+                                                 "data/Common/DefaultTarget/DEFAULT_GHOST.BIN", NULL};
 
 static const NamcoEs1Game games[] = {
     {
@@ -231,6 +235,7 @@ static const NamcoEs1Game games[] = {
         .panel = namcoEs1Wmmt4Panel,
         .commandOutput = namcoEs1Wmmt4CommandOutput,
         .eth0 = wmmt4Eth0,
+        .fileFallbacks = wmmt4FileFallbacks,
     },
 };
 

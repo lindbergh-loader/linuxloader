@@ -1,0 +1,170 @@
+syntax = "proto2";
+package v388.protobuf;
+import "v388.proto";
+message PlaceListQuery {
+  optional uint32 region_id = 1;
+}
+message GhostListQuery {
+  required uint32 car_id = 1;
+  optional uint32 area = 2;
+}
+message GhostTrailQuery {
+  required uint32 car_id = 1;
+  optional uint32 area = 2;
+  optional uint64 trail_id = 3;
+  optional uint32 foreign = 4;
+}
+message CarSummaryQuery {
+  optional uint32 region_id = 1;
+  optional uint32 ghost_level = 2;
+  optional uint32 manufacturer = 3;
+  optional uint32 model = 4;
+  optional string name = 5;
+  optional string search_code = 6;
+}
+message GhostSummaryQuery {
+  optional uint32 region_id = 1;
+  optional uint32 ghost_level = 2;
+  optional uint32 area = 3;
+  optional uint32 foreign = 4;
+}
+message CarSummaryCountQuery {
+}
+message FileListQuery {
+}
+message GhostCompetitionTargetQuery {
+  required uint32 competition_id = 1;
+  optional uint32 period_id = 2;
+}
+message ActiveTeamListQuery {
+}
+message LockCrownRequest {
+  optional uint32 car_id = 1;
+  optional uint32 area = 2;
+  required uint32 lock_time = 3;
+}
+message LockCrownResponse {
+  required .v388.protobuf.ErrorCode error = 1;
+}
+message Crown {
+  required uint32 car_id = 1;
+  required uint32 area = 2;
+  optional uint32 unlock_at = 3;
+  optional .v388.protobuf.Car car = 4;
+}
+message CrownListQuery {
+  optional uint32 car_id = 1;
+  optional uint32 area = 2;
+}
+message CrownList {
+  repeated .v388.protobuf.Crown crowns = 1;
+}
+message RankingQuery {
+  optional .v388.protobuf.RankingType ranking_type = 1;
+}
+message Ranking {
+  message Entry {
+    required uint32 rank = 1;
+    required uint32 result = 2;
+    required uint32 car_id = 3;
+    required string name = 4;
+    required uint32 region_id = 5;
+    required uint32 model = 6;
+    required uint32 visual_model = 7;
+    required uint32 default_color = 8;
+    required uint32 tune_power = 9;
+    required uint32 tune_handling = 10;
+    required uint32 title = 11;
+    required uint32 level = 12;
+  }
+  message List {
+    required .v388.protobuf.RankingType ranking_type = 1;
+    repeated .v388.protobuf.Ranking.Entry top_records = 2;
+  }
+  repeated .v388.protobuf.Ranking.List lists = 1;
+}
+enum RankingType {
+  RANKING_TA_C1IN = 0;
+  RANKING_TA_C1OUT = 1;
+  RANKING_TA_RINGLEFT = 2;
+  RANKING_TA_RINGRIGHT = 3;
+  RANKING_TA_WANGANEAST = 4;
+  RANKING_TA_WANGANWEST = 5;
+  RANKING_TA_K1_DOWN = 6;
+  RANKING_TA_K1_UP = 7;
+  RANKING_TA_YAESUIN = 8;
+  RANKING_TA_YAESUOUT = 9;
+  RANKING_TA_YOKOHAMAIN = 10;
+  RANKING_TA_YOKOHAMAOUT = 11;
+  RANKING_TA_NAGOYA = 12;
+  RANKING_TA_OSAKA = 13;
+  RANKING_TA_FUKUOKA = 14;
+  RANKING_TA_HAKONEFOR = 15;
+  RANKING_TA_HAKONEBACK = 16;
+  RANKING_TA_TOKYOALL = 17;
+  RANKING_TA_KANAGAWAALL = 18;
+  RANKING_VS_STAR = 100;
+  RANKING_MAXI_COIN = 101;
+}
+service Rpc {
+  rpc register_system_info (.v388.protobuf.RegisterSystemInfoRequest) returns (.v388.protobuf.RegisterSystemInfoResponse);
+  rpc register_system_stats (.v388.protobuf.RegisterSystemStatsRequest) returns (.v388.protobuf.RegisterSystemStatsResponse);
+  rpc register_ghost_trail (.v388.protobuf.RegisterGhostTrailRequest) returns (.v388.protobuf.RegisterGhostTrailResponse);
+  rpc load_user (.v388.protobuf.LoadUserRequest) returns (.v388.protobuf.LoadUserResponse);
+  rpc update_user_lock (.v388.protobuf.UpdateUserLockRequest) returns (.v388.protobuf.UpdateUserLockResponse);
+  rpc load_car (.v388.protobuf.LoadCarRequest) returns (.v388.protobuf.LoadCarResponse);
+  rpc create_car (.v388.protobuf.CreateCarRequest) returns (.v388.protobuf.CreateCarResponse);
+  rpc load_game_history (.v388.protobuf.LoadGameHistoryRequest) returns (.v388.protobuf.LoadGameHistoryResponse);
+  rpc update_car (.v388.protobuf.UpdateCarRequest) returns (.v388.protobuf.UpdateCarResponse);
+  rpc save_game_result (.v388.protobuf.SaveGameResultRequest) returns (.v388.protobuf.SaveGameResultResponse);
+  rpc save_multi_game_result (.v388.protobuf.SaveMultiGameResultRequest) returns (.v388.protobuf.SaveMultiGameResultResponse);
+  rpc save_charge (.v388.protobuf.SaveChargeRequest) returns (.v388.protobuf.SaveChargeResponse);
+  rpc load_revenges (.v388.protobuf.LoadRevengesRequest) returns (.v388.protobuf.LoadRevengesResponse);
+  rpc load_ghost_battle_history (.v388.protobuf.LoadGhostBattleHistoryRequest) returns (.v388.protobuf.LoadGhostBattleHistoryResponse);
+  rpc load_ghost_battle_info (.v388.protobuf.LoadGhostBattleInfoRequest) returns (.v388.protobuf.LoadGhostBattleInfoResponse);
+  rpc load_ghost_competition_info (.v388.protobuf.LoadGhostCompetitionInfoRequest) returns (.v388.protobuf.LoadGhostCompetitionInfoResponse);
+  rpc load_time_attack_record (.v388.protobuf.LoadTimeAttackRecordRequest) returns (.v388.protobuf.LoadTimeAttackRecordResponse);
+  rpc save_terminal_result (.v388.protobuf.SaveTerminalResultRequest) returns (.v388.protobuf.SaveTerminalResultResponse);
+  rpc ping (.v388.protobuf.PingRequest) returns (.v388.protobuf.PingResponse);
+  rpc load_team_information (.v388.protobuf.LoadTeamInformationRequest) returns (.v388.protobuf.LoadTeamInformationResponse);
+  rpc create_user (.v388.protobuf.CreateUserRequest) returns (.v388.protobuf.CreateUserResponse);
+  rpc ask_access_code (.v388.protobuf.AskAccessCodeRequest) returns (.v388.protobuf.AskAccessCodeResponse);
+  rpc prepare_car_succession (.v388.protobuf.PrepareCarSuccessionRequest) returns (.v388.protobuf.PrepareCarSuccessionResponse);
+  rpc succeed_car (.v388.protobuf.SucceedCarRequest) returns (.v388.protobuf.SucceedCarResponse);
+  rpc register_opponent_ghost (.v388.protobuf.RegisterOpponentGhostRequest) returns (.v388.protobuf.RegisterOpponentGhostResponse);
+  rpc check_team_name (.v388.protobuf.CheckTeamNameRequest) returns (.v388.protobuf.CheckTeamNameResponse);
+  rpc create_team (.v388.protobuf.CreateTeamRequest) returns (.v388.protobuf.CreateTeamResponse);
+  rpc search_team (.v388.protobuf.SearchTeamRequest) returns (.v388.protobuf.SearchTeamResponse);
+  rpc join_team (.v388.protobuf.JoinTeamRequest) returns (.v388.protobuf.JoinTeamResponse);
+  rpc approve_team_applicants (.v388.protobuf.ApproveTeamApplicantsRequest) returns (.v388.protobuf.ApproveTeamApplicantsResponse);
+  rpc leave_team (.v388.protobuf.LeaveTeamRequest) returns (.v388.protobuf.LeaveTeamResponse);
+  rpc dissolve_team (.v388.protobuf.DissolveTeamRequest) returns (.v388.protobuf.DissolveTeamResponse);
+  rpc load_team_members (.v388.protobuf.LoadTeamMembersRequest) returns (.v388.protobuf.LoadTeamMembersResponse);
+  rpc load_team_applicants (.v388.protobuf.LoadTeamApplicantsRequest) returns (.v388.protobuf.LoadTeamApplicantsResponse);
+  rpc update_team_stickers (.v388.protobuf.UpdateTeamStickersRequest) returns (.v388.protobuf.UpdateTeamStickersResponse);
+  rpc update_team (.v388.protobuf.UpdateTeamRequest) returns (.v388.protobuf.UpdateTeamResponse);
+  rpc grant_car_right (.v388.protobuf.GrantCarRightRequest) returns (.v388.protobuf.GrantCarRightResponse);
+  rpc get_team_campaign_status (.v388.protobuf.GetTeamCampaignStatusRequest) returns (.v388.protobuf.GetTeamCampaignStatusResponse);
+  rpc pre_apply_team_campaign (.v388.protobuf.PreApplyTeamCampaignRequest) returns (.v388.protobuf.PreApplyTeamCampaignResponse);
+  rpc apply_team_campaign (.v388.protobuf.ApplyTeamCampaignRequest) returns (.v388.protobuf.ApplyTeamCampaignResponse);
+  rpc load_car_campaign_info (.v388.protobuf.LoadCarCampaignInfoRequest) returns (.v388.protobuf.LoadCarCampaignInfoResponse);
+  rpc save_car_campaign_info (.v388.protobuf.SaveCarCampaignInfoRequest) returns (.v388.protobuf.SaveCarCampaignInfoResponse);
+  rpc accept_car_campaign (.v388.protobuf.AcceptCarCampaignRequest) returns (.v388.protobuf.AcceptCarCampaignResponse);
+  rpc load_ghost_competition_ranking (.v388.protobuf.LoadGhostCompetitionRankingRequest) returns (.v388.protobuf.LoadGhostCompetitionRankingResponse);
+  rpc save_face_recognition_result (.v388.protobuf.SaveFaceRecognitionResultRequest) returns (.v388.protobuf.SaveFaceRecognitionResultResponse);
+  rpc lock_crown (.v388.protobuf.LockCrownRequest) returns (.v388.protobuf.LockCrownResponse);
+}
+service Resource {
+  rpc place_list (.v388.protobuf.PlaceListQuery) returns (.v388.protobuf.PlaceList);
+  rpc ghost_list (.v388.protobuf.GhostListQuery) returns (.v388.protobuf.GhostList);
+  rpc ghost_trail (.v388.protobuf.GhostTrailQuery) returns (.v388.protobuf.GhostTrail);
+  rpc car_summary (.v388.protobuf.CarSummaryQuery) returns (.v388.protobuf.CarSummary);
+  rpc ghost_summary (.v388.protobuf.GhostSummaryQuery) returns (.v388.protobuf.GhostSummary);
+  rpc car_summary_count (.v388.protobuf.CarSummaryCountQuery) returns (.v388.protobuf.CarSummaryCount);
+  rpc file_list (.v388.protobuf.FileListQuery) returns (.v388.protobuf.FileList);
+  rpc ghost_competition_target (.v388.protobuf.GhostCompetitionTargetQuery) returns (.v388.protobuf.GhostCompetitionTarget);
+  rpc active_team_list (.v388.protobuf.ActiveTeamListQuery) returns (.v388.protobuf.ActiveTeamList);
+  rpc crown_list (.v388.protobuf.CrownListQuery) returns (.v388.protobuf.CrownList);
+  rpc ranking (.v388.protobuf.RankingQuery) returns (.v388.protobuf.Ranking);
+}
+

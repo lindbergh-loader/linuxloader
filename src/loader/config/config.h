@@ -375,6 +375,9 @@ typedef struct
     int touchCursorHeight;
     int mj4EnabledAtT;
     int enableNetworkPatches;
+    // WMMT4: the loader's own game server (card, cars, progress) instead of
+    // the dump's offline mode (namco/namcoEs1Wmmt4Server.c).
+    int wmmt4Server;
     char idIpSeat1[16];
     char idIpSeat2[16];
     char nicName[20];

@@ -2,7 +2,9 @@
 
 State: **2026-10-27.** Plays on the desktop (AMD, Mesa): attract, menus and
 races, confirmed on screen by the user ("in game it's perfect", the menus
-after the NV_fence emulation), offline. Not yet run on Batocera.
+after the NV_fence emulation). Online with the loader's own server: the
+Banapassport card, new cars, story, time attack and ghost battles saved
+and loaded again (driven on a virtual display). Not yet run on Batocera.
 
 - Dump: `<games>/Wangan Midnight Maximum Tune 4/WMN4/`, the cabinet's
   `/opt/arcade/exec` (`WMN4r` at its top, `data/`, `save/`), 39 GB.
@@ -21,8 +23,11 @@ after the NV_fence emulation), offline. Not yet run on Batocera.
   a virtual display of its own (`:99`, silent, out of the desktop's way;
   keys can be sent with `DISPLAY=:99 xdotool`).
 - Code: `namco/namcoEs1Wmmt4.c` (the game's hooks), `namcoEs1Wmmt4Terminal.c`
-  (the terminal's heartbeat), the entry in `namcoEs1Games.c`; gp4 shaders
-  in `namcoEs1ArbProgram.c`.
+  (the terminal's heartbeat), `namcoEs1Wmmt4Net.c`, `namcoEs1Wmmt4Server.c`,
+  `namcoEs1Wmmt4Rpc.c`, `namcoEs1Wmmt4Pb.c` (the server),
+  `namcoEs1Wmmt4Card.c` (the card reader), the entry in `namcoEs1Games.c`;
+  gp4 shaders in `namcoEs1ArbProgram.c`. The protocol, extracted from the
+  descriptors in `WMN4r`: `docs/wmmt4-proto/`.
 
 ## Booting, in order
 
@@ -96,6 +101,65 @@ motor powered (`0x8367aa0`/`0x8367ac0`, the board's motor power too); its
 self-check (`0x8367ee0`) completes the driver's. `NAMCO_FFB_TRACE=1` logs
 the output every second.
 
+## Online: the loader's server
+
+The game is online when its three services answer (offline it shows "IC
+card R/W" errors and plays without cards). The loader is all three, in
+the process ([Network] `WMMT4_SERVER = 0` leaves the game offline):
+
+- Names (`naominet.jp`, `v388-front.mucha-prd.nbgi-amnet.jp`, `*.loc`...)
+  resolve to `192.168.92.254` (loopback addresses are refused by ALL.Net's
+  client: init -97), whose connections go to the loader's listeners: plain
+  HTTP (ALL.Net) and TLS. The TLS server uses the game's own OpenSSL 0.9.8
+  (through `dlsym`) with an embedded self-signed certificate; the game's
+  certificate check is off (`SSL_CTX_set_verify`).
+- **ALL.Net** (`PowerOn`, base64 of a zlib stream of key=value, inflated by
+  the game's zlib): `stat=1`, the game server's URI
+  `https://192.168.92.254:9002`, place `JPN0FFF0`.
+- **Mucha** (curl, HTTPS, key=value): answered at `curl_easy_perform`, the
+  body read through the game's `CURLOPT_READFUNCTION`. `boardauth.do` and
+  `updatacheck.do`; the game's downloader then logs `MUCHA_download_request():
+  failed: -3` once, with no effect.
+- **The game server** (protobuf RPCs `POST /method/<name>`, resources
+  `GET /resource/<name>`), after Bayshore MT4's handlers
+  (github.com/FestoROG-XS/bayshore-mt4), kept in `save/server/`:
+  `user_<id>.pb`, `car_<id>.pb` (a `LoadCarResponse`), `team_<id>.pb`,
+  `ta.pb` (time attack records), `ids.pb`. Deleting `save/server/` starts
+  afresh. All the service's methods are answered: users and cars, game
+  results (story, time attack, versus, ghost battles), time attack
+  records and rankings, game history, car succession (a 3DX+ car), teams
+  (create, search, join, approve, leave, dissolve, leader change), and
+  neutral answers where no data exists (ghost competition closed, no car
+  or team campaign). `WMMT4_SERVER_TRACE=1` logs each request and keeps the
+  last request of each method in `save/server/trace/<method>.pb`
+  (`protoc --decode_raw`).
+- Settings: `mOfflineMode` and `mIcCardRw` are read as off and on (the
+  generic setting readers `0x8144b90`/`0x8144600`); `Setting.lua` is not
+  touched (its header carries a checksum).
+
+### Banapassport card
+
+The reader is the game's BngRw (`0x8ac3e40`...): attached, a card always
+on it when the game waits for a touch. The card's identity, chip id and
+serial, is drawn once and kept in `save/server/card.ini` (access code
+`307...`); its NBGIC header is Blowfish-encrypted with the game's libcrypto.
+A new card's player makes a car (maker, model, colour, AT/MT, name), kept
+on the card from then on.
+
+### Ghost battles
+
+The game races other players' ghosts from the server, by ghost level, and
+falls back on its default ghosts (`DEFAULT_GHOST_JP.BIN`) for a level
+without one. That table is missing from this dump and loaded only by the
+English and Chinese locales anyway (a Japanese server gives every level):
+the JP locale crashed on the first empty level (`0x805aa0b`, a NULL
+table). The loader loads it whatever the locale (`je` at `0x8432bce`
+skipped) and reads `DEFAULT_GHOST.BIN`, same format, in its place
+(`fileFallbacks`). `ghost_summary` lists a ghost per level 1..10 (the
+cars kept here, under ids of their own): an empty list leaves levels with
+no ghost at all (`std::out_of_range`). The opponents raced are the
+default ones.
+
 ## Batocera
 
 The rom goes in `namcoes3` as a squashfs of the `WMN4/` directory (its
@@ -103,7 +167,8 @@ The rom goes in `namcoes3` as a squashfs of the `WMN4/` directory (its
 "maximum tune 4", "wmmt4" or "wmn4"): left stick or wheel, R2 gas, L2
 brake, b Enter, y view, x intrude, L1/R1 shift down/up. Batocera has no
 32-bit libcurl: a shim beside linuxloader (`wmmt4/libcurl.so.4`, its
-source and README in the rgs tree) is offered to this game only.
+source and README in the rgs tree) is offered to this game only, the loader
+answering the transfers itself.
 
 ## Debugging
 
@@ -113,3 +178,4 @@ source and README in the rgs tree) is offered to this game only.
   `<directory>/grab` saves the next one as `grab.ppm`. On a virtual
   display (software rendering) many frames come out black, read back or
   captured from the window: take several.
+- `WMMT4_SERVER_TRACE=1`: the server's requests (above).

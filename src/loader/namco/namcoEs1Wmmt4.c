@@ -27,6 +27,7 @@
 #include <unistd.h>
 
 #include "namcoEs1.h"
+#include "namcoEs1Wmmt4Server.h"
 #include "../common/importHook.h"
 #include "../config/config.h"
 #include "../graphics/shaderPatches.h"
@@ -53,6 +54,25 @@ static void detour(uint32_t address, const uint8_t *expected, size_t n, void *re
     }
     target[0] = 0xe9;
     *(int32_t *)(target + 1) = (int32_t)((uint8_t *)replacement - (target + 5));
+}
+
+// Overwrite code with other bytes, if it is the expected one.
+static void patch(uint32_t address, const uint8_t *expected, const uint8_t *replacement, size_t n)
+{
+    uint8_t *target = (uint8_t *)(uintptr_t)address;
+    uintptr_t page = address & ~(uintptr_t)0xfff;
+
+    if (memcmp(target, expected, n) != 0)
+    {
+        log_error("WMMT4: unexpected code at %#x, not patched", address);
+        return;
+    }
+    if (mprotect((void *)page, (address + n - page + 0xfff) & ~(uintptr_t)0xfff, PROT_READ | PROT_WRITE | PROT_EXEC) != 0)
+    {
+        log_error("WMMT4: cannot make %#x writable", address);
+        return;
+    }
+    memcpy(target, replacement, n);
 }
 
 // ---------------------------------------------------------------------------
@@ -982,6 +1002,57 @@ static void installFfb(void)
 }
 
 // ---------------------------------------------------------------------------
+// The test menu's settings (save/setting00/Setting.lua, a checksummed file):
+// with the loader's server the cabinet is not in offline mode (mOfflineMode,
+// set in the dump) and has its card reader (mIcCardRw). They are read, with
+// the other yes/no settings, by two readers of the game's (one per copy of
+// the file), which store a byte: called, then the byte set for those two.
+
+typedef void (*SettingRead)(void *, uint8_t *, const char *);
+
+static void settingOverride(const char *key, uint8_t *setting)
+{
+    if (!key || !setting)
+        return;
+    if (!strcmp(key, "mOfflineMode"))
+        *setting = 0;
+    else if (!strcmp(key, "mIcCardRw"))
+        *setting = 1;
+}
+
+static SettingRead realReadSetting1, realReadSetting2;
+
+__attribute__((force_align_arg_pointer)) static void readSetting1(void *self, uint8_t *setting, const char *key)
+{
+    realReadSetting1(self, setting, key);
+    settingOverride(key, setting);
+}
+
+__attribute__((force_align_arg_pointer)) static void readSetting2(void *self, uint8_t *setting, const char *key)
+{
+    realReadSetting2(self, setting, key);
+    settingOverride(key, setting);
+}
+
+static void installSettings(void);
+
+// Sys::Network::SetOfflineMode(int), which the game calls with that
+// setting: online with the loader's server.
+static void (*realSetOffline)(int);
+
+__attribute__((force_align_arg_pointer)) static void setOffline(int offline)
+{
+    realSetOffline(getConfig()->wmmt4Server ? 0 : offline);
+}
+
+static void installSettings(void)
+{
+    static const uint8_t entry[] = {0x55, 0x89, 0xe5, 0x57, 0x56};
+    hookWithOriginal(0x08144b90, entry, sizeof(entry), (void *)readSetting1, &realReadSetting1);
+    hookWithOriginal(0x08144600, entry, sizeof(entry), (void *)readSetting2, &realReadSetting2);
+}
+
+// ---------------------------------------------------------------------------
 
 void namcoEs1Wmmt4Install(void)
 {
@@ -1004,6 +1075,11 @@ void namcoEs1Wmmt4Install(void)
     detour(0x0821c920, (const uint8_t[]){0x55}, 1, addressChanged);
     detour(0x0821d4f0, frameEntry, sizeof(frameEntry), interfaceUpdate);
     detour(0x080aa7d0, frameEntry, sizeof(frameEntry), networkUpdateState);
+    // The default ghosts (a ghost battle's opponents where the server gives
+    // none) are read from the "JP" table, loaded only by the English and
+    // Chinese locales (a Japanese server always gives them all): loaded
+    // whatever the locale (je skipped; the file: fileFallbacks).
+    patch(0x08432bce, (const uint8_t[]){0x74, 0x15}, (const uint8_t[]){0x90, 0x90}, 2);
     *(void **)&realOpenDisplay = hookExecutableImport("XOpenDisplay", (void *)openDisplay);
     *(void **)&realCreateWindow = hookExecutableImport("XCreateWindow", (void *)createWindow);
     *(void **)&realSetsockopt = hookExecutableImport("setsockopt", (void *)gameSetsockopt);
@@ -1019,7 +1095,16 @@ void namcoEs1Wmmt4Install(void)
     *(void **)&realMoveResizeWindow = hookExecutableImport("XMoveResizeWindow", (void *)moveResizeWindow);
     *(void **)&realGetLatestProfile = hookExecutableImport("cgGLGetLatestProfile", (void *)getLatestProfile);
     *(void **)&realCreateProgram = hookExecutableImport("cgCreateProgram", (void *)createProgram);
+    MH_Initialize(); // already done is fine
+    static const uint8_t setOfflineEntry[] = {0x55, 0x89, 0xe5, 0x83, 0xec, 0x08, 0xe8};
+    hookWithOriginal(0x080a5f40, setOfflineEntry, sizeof(setOfflineEntry), (void *)setOffline, &realSetOffline);
     installFfb();
+    if (getConfig()->wmmt4Server)
+    {
+        installSettings();
+        namcoEs1Wmmt4NetInstall();
+        namcoEs1Wmmt4CardInstall();
+    }
     namcoEs1Wmmt4StartTerminal(HASP_SERIAL);
     log_info("WMMT4: dongle serial %s", HASP_SERIAL);
 }
