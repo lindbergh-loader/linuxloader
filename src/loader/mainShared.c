@@ -82,6 +82,7 @@ char *games[] = {"a.elf",
                  "n_tank_release", // Namco ES1 (Tank! Tank! Tank!)
                  "n_gun_station_rel_opt_es1", // Namco ES1 (Gundam: Senjo no Kizuna)
                  "main",           // Namco N2 (Wangan Midnight Maximum Tune 3)
+                 "WMN4r",          // Namco ES1 (Wangan Midnight Maximum Tune 4)
                  "hlds_amd",       // Namco N2 (Counter Strike NEO, GoldSrc HLDS)
                  "med_pball",      // Teamplay (Crossfire Maximum Paintball)
                  "pt2s_g11",       // Teamplay (Police Trainer 2)
@@ -179,6 +180,7 @@ uint32_t cleanElfCRC32[] = {
     0x41ABDA0C, // Namco N2  | WMMT3 main (WM3100-3-NA-DAT0-A70)
     0x509A97C4, // Namco N2  | WMMT3DX+ main (W3P100-1-NA-DAT0-B02)
     0x66136EE9, // Namco ES1 | Tank! Tank! Tank! n_tank_release (rev 1.03.14)
+    0xF251B573, // Namco ES1 | Wangan Midnight Maximum Tune 4 WMN4r (rev 1.10.18)
     0x84777366, // Namco ES1 | Gundam: Senjo no Kizuna n_gun_station_rel_opt_es1 (REV3.57.07)
     0xC2AFF8D4, // Teamplay  | Crossfire Maximum Paintball med_pball
     0x210F3077, // Global VR | Puck Off game (v0710240921)

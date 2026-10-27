@@ -30,6 +30,7 @@ static const GameData gameData[] = {
     {TANKTANKTANK_ES1, "Tank! Tank! Tank!", "tanktanktank", "Namco ES1", "TANK100", "2009", "768x1360", WORKING, NAMCO_NA_JV, DRIVING, 1360, 768, -1, 0, 0, 0, 0, 0, 0, RED},
     {GUNDAM_KIZUNA_ES1, "Mobile Suit Gundam: Bonds of the Battlefield", "gundam-kizuna", "Namco ES1", "GKE1", "2016", "1024x768", NOT_WORKING, NAMCO_NA_JV, DIGITAL, 1024, 768, -1, 0, 0, 0, 0, 0, 0, RED},
     {DEADHEAT_ES1, "Dead Heat", "deadheat", "Namco ES1", "USDRIVE", "2011", "1360x768", WORKING, NAMCO_NA_JV, DRIVING, 1360, 768, -1, 0, 0, 0, 0, 0, 0, RED},
+    {WMMT4_ES1, "Wangan Midnight Maximum Tune 4", "wmmt4", "Namco ES1", "WMN4", "2011", "1360x768", WORKING, NAMCO_ES1_JAMMA, DRIVING, 1360, 768, -1, 0, 0, 0, 0, 0, 0, RED},
     {MAXIMUMHEAT3D_ES1, "Maximum Heat 3D", "maximumheat3d", "Namco ES1", "USDRIVE", "2011", "1360x768", WORKING, NAMCO_ES1_JAMMA, DRIVING, 1360, 768, -1, 0, 0, 0, 0, 0, 0, RED},
     {WMMT3_N2, "Wangan Midnight Maximum Tune 3", "wmmt3", "Namco N2", "WM3100", "2007", "640x480", WORKING, NAMCO_FCA_1, DRIVING, 640, 480, -1, 0, 0, 0, 0, 0, 0, RED},
     {CROSSFIRE_TEAMPLAY, "Crossfire Maximum Paintball", "crossfire", "Teamplay", "TPL-CF", "2003", "512x384", WORKING, NO_JVS_IO, SHOOTING, 512, 384, -1, 0, 0, 0, 0, 0, 0, RED},

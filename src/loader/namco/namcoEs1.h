@@ -51,6 +51,9 @@ int namcoEs1DropCommand(const char *command);
 const char *namcoEs1CommandOutput(const char *command);
 // The network ones answered instead (networkCommands, see namcoEs1Network.c).
 void namcoEs1NetworkCommand(const char *command);
+// WMMT4's shop terminal, announcing itself on the cabinet LAN with the
+// drive's serial (namcoEs1Wmmt4Terminal.c).
+void namcoEs1Wmmt4StartTerminal(const char *serial);
 // The host's first interface with an IPv4 address, as the game's eth0
 // (127.0.0.1 without one).
 void namcoEs1HostInterface(unsigned char address[4], unsigned char mask[4], unsigned char mac[6]);
