@@ -123,7 +123,7 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux" AND NOT MINGW AND NOT CMAKE_C_COMPILER MATC
     target_compile_options(segaapi PRIVATE ${LIBSEGAAPI_C_FLAGS})
 
     # linuxloader.so
-    set(LINUX_LOADER_SO_LINKER_FLAGS -m32 -Wl,-z,defs -rdynamic -static-libstdc++ -static-libgcc -lc -ldl -lGL -lglut -lX11 -lXcursor -lSDL3 -lSDL3_ttf -lSDL3_image -ludev -lm -lpthread -shared -lstdc++ -nostdlib)
+    set(LINUX_LOADER_SO_LINKER_FLAGS -m32 -Wl,-z,defs -rdynamic -static-libstdc++ -static-libgcc -lc -ldl -lGL -lglut -lX11 -lXcursor -lSDL3 -lSDL3_ttf -lSDL3_image -ludev -lm -lpthread -shared -lstdc++ -lgcc -nostdlib)
     set(LINUX_LOADER_SO_C_FLAGS -g -fPIC -m32 -mincoming-stack-boundary=2 -Wall -Wno-unused-variable -Wno-unused-function -D_GNU_SOURCE -Wno-format-truncation -Wno-strict-aliasing -Wno-discarded-qualifiers -Wno-stringop-truncation -Wno-format-overflow)
     file(GLOB LINUX_LOADER_OBJS
         src/loader/init.c
