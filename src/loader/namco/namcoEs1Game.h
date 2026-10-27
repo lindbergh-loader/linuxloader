@@ -247,6 +247,9 @@ typedef struct
 // table without them).
 void namcoEs1GundamInstall(void) __attribute__((weak));
 void namcoEs1GundamPanel(JVSIO *io) __attribute__((weak));
+void namcoEs1Wmmt4Install(void) __attribute__((weak));
+void namcoEs1Wmmt4Panel(JVSIO *io) __attribute__((weak));
+const char *namcoEs1Wmmt4CommandOutput(const char *command) __attribute__((weak));
 
 const NamcoEs1Game *namcoEs1GetGame(uint32_t crc32);
 const NamcoEs1Game *namcoEs1GetGameByFileCrc(uint32_t fileCrc32);

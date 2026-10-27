@@ -62,6 +62,9 @@ static const char *gundamCommandOutput(const char *command)
         return "192.168.92.11\n";
     return NULL;
 }
+// WMMT4's cabinet on the shop's LAN: 192.168.92.11/24 (the content router
+// check wants that network).
+static const uint8_t wmmt4Eth0[] = {192, 168, 92, 11, 255, 255, 255, 0};
 
 static const NamcoEs1Game games[] = {
     {
@@ -250,6 +253,29 @@ static const NamcoEs1Game games[] = {
         .ffb = {.instance = 0x08f9e920, .effectsField = 0x48, .centerOffsetField = 0x2c, .springRange = 500, .viscosityRange = 63, .reflectRange = 63},
         .soundEmulation = 1,
         .windowX11 = 1,
+    },
+    {
+        // Wangan Midnight Maximum Tune 4 (WMN4r, rev 1.10.18): stripped, its
+        // own X11/GLX window, the HASP HL, JVIO and network diagnostic linked
+        // in (namcoEs1Wmmt4.c).
+        .crc32 = WMMT4_ES1,
+        .fileCrc32 = 0xf251b573,
+        .jvsDevice = "/dev/ttyS2",
+        .jvsDeviceAlias = "/dev/tnt0",
+        // Its steering board ("Str2", the game's STR400), at 19200 baud: as
+        // Maximum Heat 3D's, reporting on its own, self-check included.
+        .kickbackDevice = "/dev/ttyS0",
+        .kickbackReportsUnprompted = 1,
+        .kickbackVolunteersSelfCheck = 1,
+        .kickbackPowerGpo = 0x80,     // cMOTOR_BIT
+        .rootPath = "/opt/arcade/exec",
+        .keyboardAnalog = 1,
+        .soundEmulation = 1,
+        .windowX11 = 1,
+        .install = namcoEs1Wmmt4Install,
+        .panel = namcoEs1Wmmt4Panel,
+        .commandOutput = namcoEs1Wmmt4CommandOutput,
+        .eth0 = wmmt4Eth0,
     },
 };
 

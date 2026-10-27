@@ -117,7 +117,12 @@ int initJVS()
         io.capabilities.commandVersion = 0x31;
         io.capabilities.jvsVersion = 0x31;
         io.capabilities.commsVersion = 0x31;
-        strcpy(io.capabilities.name, "namco ltd.;ES1-JAMMA;Ver1.00;USA,Driving");
+        // WMMT4's master wants an NA-JV (its I/O test screen's name), with
+        // the same profile.
+        if (getConfig()->crc32 == WMMT4_ES1)
+            strcpy(io.capabilities.name, "namco ltd.;NA-JV;Ver4.00;JPN,Multipurpose.");
+        else
+            strcpy(io.capabilities.name, "namco ltd.;ES1-JAMMA;Ver1.00;USA,Driving");
     }
     break;
 
