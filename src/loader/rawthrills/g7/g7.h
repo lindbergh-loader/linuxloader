@@ -110,6 +110,7 @@ void g7CentipedeInstall(const G7Game *game);
 
 // Halo's hooks (g7Halo.c).
 void g7HaloInstall(const G7Game *game);
+void g7MinecraftInstall(const G7Game *game);
 const char *g7HaloMapPath(const char *path, char *buf);
 
 // The folder of the dongle's recorded answers (dump/), also where a game

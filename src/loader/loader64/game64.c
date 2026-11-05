@@ -20,10 +20,11 @@ static int isElf64(const char *path)
     return ok;
 }
 
-// A g7 executable in dir: game2 (the dump), else game.
+// A g7 executable in dir: game2 (the dump), gamedump.exec (TeknoParrot's
+// dump), else game.
 static int g7In(const char *gameDir, const char *dir, Game64 *g)
 {
-    static const char *const names[] = {"game2", "game"};
+    static const char *const names[] = {"game2", "gamedump.exec", "game"};
     for (size_t i = 0; i < sizeof(names) / sizeof(names[0]); i++)
     {
         char path[PATH_MAX];

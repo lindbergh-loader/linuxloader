@@ -3,6 +3,7 @@
 #include "g7.h"
 #include "g7HaloImports.h"
 #include "g7CentipedeImports.h"
+#include "g7MinecraftImports.h"
 
 #define COUNT(a) (sizeof(a) / sizeof((a)[0]))
 
@@ -40,6 +41,31 @@ static const G7Game games[] = {
         .defaultCabinet = 1,
         .factorySetupDone = 1,
         .install = g7CentipedeInstall,
+    },
+    {
+        // Minecraft Dungeons Arcade (gamedump.exec, TeknoParrot's dump of
+        // game).
+        .name = "Minecraft Dungeons Arcade",
+        .dynamic = 0x16d27a8,
+        .cabinetDir = "/pm/g7/minecraft",
+        .envPrefix = "MCD",
+        .imports = minecraftImports,
+        .importCount = COUNT(minecraftImports),
+        .hasp = {.login = 0xb66808, .logout = 0xb66b84, .encrypt = 0xb66cbd, .decrypt = 0xb66dcf, .free = 0xb6724f,
+                 .sessionInfo = 0xb6b340, .read = 0xb6c35c, .write = 0xb6c5bb},
+        .defaultCabinet = 1,
+        .factorySetupDone = 1,
+        // Command-line parser (0x42e0a0, "-f<w>x<h>" sets mode 2 and the
+        // size at 0x17a8b20 as Halo's): "push %r14; push %r13; push %r12".
+        // Without it the game opens a 1280x720 window, left in a corner
+        // where no window manager resizes it (Batocera).
+        .parseArgs = 0x42e0a0,
+        .parseArgsPrologue = 6,
+        .videoSettings = 0x17a8b20,
+        // Mixed far louder than the other games (its gameVolume adjustment
+        // alone, 70 in our image, is not enough).
+        .masterVolume = 40,
+        .install = g7MinecraftInstall,
     },
 };
 

@@ -8,3 +8,6 @@ tools/dongle-recording/*.o
 tools/dongle-recording/*.elf
 tools/dongle-recording/*.bin
 
+
+# local TeknoParrot license key (do not commit)
+docs/teknoparrot-key.reg
