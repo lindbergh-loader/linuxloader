@@ -284,6 +284,19 @@ static int haspCrypt(const char *what, uint32_t h, uint8_t *buf, uint32_t len)
     FILE *f = fopen(name, "rb");
     size_t got = 0;
     if (f) { got = fread(buf, 1, len, f); fclose(f); }
+    // G7_DONGLE_DUMPDIR: on a miss, capture the full input (ciphertext) so the
+    // real plaintext can be computed later from a key/dongle (debug).
+    if (!f)
+    {
+        const char *dd = getenv("G7_DONGLE_DUMPDIR");
+        if (dd)
+        {
+            char dp[PATH_MAX];
+            snprintf(dp, sizeof(dp), "%s/%s_%s_len%u.in", dd, what, hex[0] ? hex : "nohash", len);
+            FILE *df = fopen(dp, "wb");
+            if (df) { fwrite(buf, 1, len, df); fclose(df); }
+        }
+    }
     g7Log("%s len %u sha256 %s -> %s\n", what, len, hex, f ? (got == len ? "answered" : "size mismatch") : "no answer");
     return 0;
 }

@@ -3,6 +3,7 @@
 #include "g7.h"
 #include "g7HaloImports.h"
 #include "g7CentipedeImports.h"
+#include "g7MinecraftImports.h"
 
 #define COUNT(a) (sizeof(a) / sizeof((a)[0]))
 
@@ -40,6 +41,21 @@ static const G7Game games[] = {
         .defaultCabinet = 1,
         .factorySetupDone = 1,
         .install = g7CentipedeInstall,
+    },
+    {
+        // Minecraft Dungeons Arcade (gamedump.exec, TeknoParrot's dump of
+        // game).
+        .name = "Minecraft Dungeons Arcade",
+        .dynamic = 0x16d27a8,
+        .cabinetDir = "/pm/g7/minecraft",
+        .envPrefix = "MCD",
+        .imports = minecraftImports,
+        .importCount = COUNT(minecraftImports),
+        .hasp = {.login = 0xb66808, .logout = 0xb66b84, .encrypt = 0xb66cbd, .decrypt = 0xb66dcf, .free = 0xb6724f,
+                 .sessionInfo = 0xb6b340, .read = 0xb6c35c, .write = 0xb6c5bb},
+        .defaultCabinet = 1,
+        .factorySetupDone = 1,
+        .install = g7MinecraftInstall,
     },
 };
 
