@@ -187,9 +187,154 @@ static void *poller(void *arg)
     return NULL;
 }
 
+// ---------------------------------------------------------------------------
+// PC/SC card reader stub.
+//
+// The game reads its NFC cards through the PC/SC API (libpcsclite: SCard*).
+// On a cabinet (and under TeknoParrot, which stubs winscard) the reader is
+// present, so the card system comes up and the game is "authorized"; on a bare
+// Linux box with no reader those calls fail and the game shows "needs to be
+// authorized to dispense more cards".  So the loader presents a reader itself.
+//
+// This first cut reports one reader with no card inserted -- enough to bring
+// the card system up.  Injecting a card (for actual play) is a later step:
+// SCardGetStatusChange would report PRESENT with an ATR and SCardTransmit would
+// answer the NTAG reads.  On this Linux PC/SC's LONG/DWORD/SCARDCONTEXT are all
+// 64-bit (wintypes.h non-Apple branch).
+typedef long SC_LONG;
+typedef unsigned long SC_DWORD;
+typedef unsigned long SC_CTX;
+typedef unsigned long SC_CARD;
+#define SCARD_S_SUCCESS 0L
+#define SCARD_E_TIMEOUT 0x8010000AL
+#define SCARD_E_NO_SMARTCARD 0x8010000CL
+#define SCARD_E_INSUFFICIENT_BUFFER 0x80100008L
+#define SCARD_STATE_CHANGED 0x0002
+#define SCARD_STATE_EMPTY 0x0010
+#define SCARD_AUTOALLOCATE ((SC_DWORD) -1)
+
+typedef struct
+{
+    const char *szReader;
+    void *pvUserData;
+    SC_DWORD dwCurrentState;
+    SC_DWORD dwEventState;
+    SC_DWORD cbAtr;
+    unsigned char rgbAtr[33];
+} SC_READERSTATE;
+
+static const char scReaderName[] = "ACS ACR122U PICC Interface 00 00"; // one reader, double-null below
+
+static SC_LONG scEstablish(SC_DWORD scope, const void *r1, const void *r2, SC_CTX *ctx)
+{
+    (void)scope; (void)r1; (void)r2;
+    g7Log("minecraft: SCardEstablishContext (stub)\n");
+    if (ctx) *ctx = 1;
+    return SCARD_S_SUCCESS;
+}
+static SC_LONG scRelease(SC_CTX ctx) { (void)ctx; return SCARD_S_SUCCESS; }
+static SC_LONG scCancel(SC_CTX ctx) { (void)ctx; return SCARD_S_SUCCESS; }
+
+static SC_LONG scListReaders(SC_CTX ctx, const char *groups, char *readers, SC_DWORD *len)
+{
+    (void)ctx; (void)groups;
+    SC_DWORD need = sizeof scReaderName + 1; // name + its NUL + list-terminating NUL
+    if (!len) return SCARD_E_INSUFFICIENT_BUFFER;
+    if (readers && *len == SCARD_AUTOALLOCATE)
+    {
+        char *buf = malloc(need);
+        if (!buf) return SCARD_E_INSUFFICIENT_BUFFER;
+        memcpy(buf, scReaderName, sizeof scReaderName);
+        buf[sizeof scReaderName] = 0;
+        *(char **)readers = buf;
+        *len = need;
+        return SCARD_S_SUCCESS;
+    }
+    if (!readers || *len < need) { *len = need; return readers ? SCARD_E_INSUFFICIENT_BUFFER : SCARD_S_SUCCESS; }
+    memcpy(readers, scReaderName, sizeof scReaderName);
+    readers[sizeof scReaderName] = 0;
+    *len = need;
+    return SCARD_S_SUCCESS;
+}
+
+// No card present: report EMPTY once, then wait out the timeout so the poll
+// loop neither spins nor sees a phantom card.
+static SC_LONG scGetStatusChange(SC_CTX ctx, SC_DWORD timeout, SC_READERSTATE *states, SC_DWORD n)
+{
+    (void)ctx;
+    SC_LONG ret = SCARD_E_TIMEOUT;
+    for (SC_DWORD i = 0; i < n; i++)
+    {
+        SC_DWORD ev = SCARD_STATE_EMPTY;
+        if (!(states[i].dwCurrentState & SCARD_STATE_EMPTY))
+        {
+            ev |= SCARD_STATE_CHANGED;
+            ret = SCARD_S_SUCCESS;
+        }
+        states[i].dwEventState = ev;
+        states[i].cbAtr = 0;
+    }
+    if (ret == SCARD_E_TIMEOUT)
+        usleep((timeout == (SC_DWORD)-1 || timeout > 400 ? 400 : timeout) * 1000);
+    return ret;
+}
+static SC_LONG scConnect(SC_CTX ctx, const char *reader, SC_DWORD share, SC_DWORD proto,
+                         SC_CARD *card, SC_DWORD *active)
+{
+    (void)ctx; (void)reader; (void)share; (void)proto; (void)card; (void)active;
+    return SCARD_E_NO_SMARTCARD; // no card to connect to yet
+}
+static SC_LONG scDisconnect(SC_CARD card, SC_DWORD disp) { (void)card; (void)disp; return SCARD_S_SUCCESS; }
+static SC_LONG scTransmit(SC_CARD card, const void *spci, const unsigned char *sbuf, SC_DWORD slen,
+                          void *rpci, unsigned char *rbuf, SC_DWORD *rlen)
+{
+    (void)card; (void)spci; (void)sbuf; (void)slen; (void)rpci; (void)rbuf;
+    if (rlen) *rlen = 0;
+    return SCARD_E_NO_SMARTCARD;
+}
+
+// The game resolves SCard* through dlsym, so both the import slots and the
+// dlsym path must land on the stubs.
+static const struct { const char *name; uintptr_t slot; void *fn; } scard[] = {
+    {"SCardEstablishContext", 0x16d2c28, scEstablish},
+    {"SCardReleaseContext", 0x16d3600, scRelease},
+    {"SCardCancel", 0x16d2f70, scCancel},
+    {"SCardListReaders", 0x16d2af8, scListReaders},
+    {"SCardGetStatusChange", 0x16d3850, scGetStatusChange},
+    {"SCardConnect", 0x16d3d08, scConnect},
+    {"SCardDisconnect", 0x16d3c20, scDisconnect},
+    {"SCardTransmit", 0x16d3cd0, scTransmit},
+};
+
+static void *mcdDlsym(const char *name)
+{
+    for (size_t i = 0; i < sizeof scard / sizeof scard[0]; i++)
+        if (!strcmp(name, scard[i].name))
+        {
+            static int said[sizeof scard / sizeof scard[0]];
+            if (!said[i]++) g7Log("minecraft: dlsym %s -> PC/SC stub\n", name);
+            return scard[i].fn;
+        }
+    return NULL;
+}
+
+static void installPcsc(void)
+{
+    int ok = 0;
+    for (size_t i = 0; i < sizeof scard / sizeof scard[0]; i++)
+    {
+        *(void **)scard[i].slot = scard[i].fn;
+        if (*(void **)scard[i].slot == scard[i].fn) ok++;
+    }
+    g7GameDlsymHook = mcdDlsym;
+    g7Log("minecraft: PC/SC card reader stub installed (%d/%zu slots + dlsym hook)\n",
+          ok, sizeof scard / sizeof scard[0]);
+}
+
 void g7MinecraftInstall(const G7Game *game)
 {
     (void)game;
+    installPcsc();
     openKeyboards();
     if (!kbdCount)
     {

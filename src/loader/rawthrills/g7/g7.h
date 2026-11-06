@@ -109,4 +109,9 @@ void g7HaloInstall(const G7Game *game);
 void g7MinecraftInstall(const G7Game *game);
 const char *g7HaloMapPath(const char *path, char *buf);
 
+// A game's install hook may set this to override the game's dlsym() lookups
+// (e.g. to stub the PC/SC card reader): it returns a replacement function for
+// the name, or NULL to fall through to the real symbol.
+extern void *(*g7GameDlsymHook)(const char *name);
+
 #endif // G7_H

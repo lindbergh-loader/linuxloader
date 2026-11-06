@@ -494,8 +494,15 @@ static void setWMProperties(void *display, unsigned long window, void *name, voi
     realSetWMProperties(display, window, name, iconName, argv, argc, hints, wmHints, classHints);
 }
 
+void *(*g7GameDlsymHook)(const char *name);
 static void *gameDlsym(void *handle, const char *name)
 {
+    if (g7GameDlsymHook && name)
+    {
+        void *o = g7GameDlsymHook(name);
+        if (o)
+            return o;
+    }
     void *p = dlsym(handle, name);
     if (p && name && !strcmp(name, "XSetWMNormalHints"))
     {
