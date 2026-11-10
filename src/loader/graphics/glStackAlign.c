@@ -446,15 +446,6 @@ REALIGN void glDeleteRenderbuffersEXT(GLsizei n, const GLuint * renderbuffers)
         real(n, renderbuffers);
 }
 
-REALIGN void glDeleteTextures(GLsizei n, const GLuint * textures)
-{
-    static void (*real)(GLsizei, const GLuint *) = NULL;
-    if (real == NULL)
-        real = resolveNext("glDeleteTextures");
-    if (real)
-        real(n, textures);
-}
-
 REALIGN void glDepthFunc(GLenum func)
 {
     static void (*real)(GLenum) = NULL;

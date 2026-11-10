@@ -12,10 +12,10 @@ static const TeamplayRootAlias pt2RootAliases[] = {
     {NULL, NULL},
 };
 
-// Police Trainer 2 takes its clock's rate from the "cpu MHz" of
-// /proc/cpuinfo, out of its first 512 bytes split in at most 100 words: a
-// recent CPU has more ("Too many args. load failed") and no rate is read.
-// A Pentium 4's, with the host's TSC rate (see teamplay.c).
+// Police Trainer 2 and Star Trek: Voyager take their clock's rate from the
+// "cpu MHz" of /proc/cpuinfo, out of its first 512 bytes split in at most
+// 100 words: a recent CPU has more ("Too many args. load failed") and no
+// rate is read. A Pentium 4's, with the host's TSC rate (see teamplay.c).
 static const char pt2Cpuinfo[] =
     "processor\t: 0\n"
     "vendor_id\t: GenuineIntel\n"
@@ -30,6 +30,13 @@ static const char pt2Cpuinfo[] =
     "cpuid level\t: 2\n"
     "wp\t\t: yes\n"
     "flags\t\t: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ht tm pbe\n";
+
+// Star Trek: Voyager keeps its settings, hiscores, audits and logs on the
+// cabinet's /var/stv; the dump has them next to the game.
+static const TeamplayRootAlias stvRootAliases[] = {
+    {"/var/stv", "."},
+    {NULL, NULL},
+};
 
 static const TeamplayGame games[] = {
     {
@@ -74,6 +81,70 @@ static const TeamplayGame games[] = {
         .yOffset = -20.0f,
         .width = 360,
         .height = 240,
+    },
+    {
+        // Star Trek: Voyager, trek (src-e4), a glut game like Crossfire on a
+        // medium-resolution monitor (512x384). The cabinet's driver (ssv)
+        // runs it and, when it exits for the test switch, the service mode
+        // (stvserv). Its sound is stvsnd, started as pt2snd is
+        // (popen("./stvsnd /data/stv/arom/")). It paces its frames on the
+        // nvidia driver's vblank interrupts (/proc/interrupts), times them
+        // with the TSC and the "cpu MHz" of /proc/cpuinfo (two parsers: the
+        // first 512 bytes in at most 100 words, and 500 <= MHz <= 3000), and
+        // the board is the older /dev/mjf. The iButton check only sets a
+        // flag: a message over the game when it fails.
+        .crc32 = STAR_TREK_VOYAGER_TEAMPLAY,
+        .fileCrc32 = 0xdf39b8c7,
+        .soundDaemonCrc32 = 0x424ea60f, // stvsnd
+        .rootPath = "/home/jacko/stv",
+        .dataPath = "/data",
+        .rootAliases = stvRootAliases,
+        .cpuinfo = pt2Cpuinfo,
+        .cpuRangeCheck = 0x809d605,
+        .vblankCount = 0x8094268,
+        .iButtonCheck = 0x8056530,
+        // 384 lines (its glut_reshape gives the board the window's height,
+        // 240 or 384), x * 0.6931 - 150, y - 25 (0x80980a7), plus its gun
+        // calibration from the settings.
+        .xScale = 0.6930692792f,
+        .xOffset = -150.0f,
+        .yScale = 1.0f,
+        .yOffset = -25.0f,
+        .width = 512,
+        .height = 384,
+        .calibrationX = 0x8093370,
+        .calibrationY = 0x8093390,
+        .handOffProgram = "./stvserv",
+        .handOffStatus = 0x44,
+        .mjPath = "/dev/mjf",
+        .mjPacketSize = 0xa8,
+    },
+    {
+        // Star Trek: Voyager's service mode, stvserv: the game's code for the
+        // board, the clock and the video, without the iButton or the cpu
+        // check. The cabinet's driver runs the game again when it exits
+        // (saving, 0x43; 'x', 99...).
+        .crc32 = STAR_TREK_VOYAGER_SERVICE_TEAMPLAY,
+        .fileCrc32 = 0xb74fa374,
+        .soundDaemonCrc32 = 0x424ea60f, // stvsnd
+        .rootPath = "/home/jacko/stv",
+        .dataPath = "/data",
+        .rootAliases = stvRootAliases,
+        .cpuinfo = pt2Cpuinfo,
+        .vblankCount = 0x8056b48,
+        // As the game's (0x804c9b7).
+        .xScale = 0.6930692792f,
+        .xOffset = -150.0f,
+        .yScale = 1.0f,
+        .yOffset = -25.0f,
+        .width = 512,
+        .height = 384,
+        .calibrationX = 0x804d280,
+        .calibrationY = 0x804d2a0,
+        .handOffProgram = "./trek",
+        .handOffStatus = -1,
+        .mjPath = "/dev/mjf",
+        .mjPacketSize = 0xa8,
     },
 };
 
