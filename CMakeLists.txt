@@ -62,6 +62,7 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux" AND NOT MINGW AND NOT CMAKE_C_COMPILER MATC
         src/loader/teamplay/teamplayGames.c
         src/loader/globalvr/gvrGames.c
         src/loader/roxor/roxorGames.c
+        src/loader/cecropia/cecropiaGames.c
         src/loader/hostLinker.c)
 
     set_target_properties(linuxloader_exe PROPERTIES LINK_FLAGS "-m32")
@@ -121,6 +122,7 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux" AND NOT MINGW AND NOT CMAKE_C_COMPILER MATC
         src/loader/teamplay/*.c
         src/loader/globalvr/*.c
         src/loader/roxor/*.c
+        src/loader/cecropia/*.c
         src/loader/graphics/shaderWork/*.c
         src/glad/src/gl.c)
 

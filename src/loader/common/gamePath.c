@@ -1,5 +1,5 @@
 // Cabinet paths of the PC-based arcade systems (Raw Thrills, Namco ES1 and
-// N2, Teamplay, Global VR, Roxor), mapped to the host by the running game's system:
+// N2, Teamplay, Global VR, Roxor, Cecropia), mapped to the host by the running game's system:
 // the loader's file interposers (redirections/filesystemShared.c) and the
 // libc path calls below.
 
@@ -16,6 +16,7 @@
 #include "../teamplay/teamplay.h"
 #include "../globalvr/gvr.h"
 #include "../roxor/roxor.h"
+#include "../cecropia/cecropia.h"
 
 const char *gameRedirectPath(const char *path, char *buf, size_t size)
 {
@@ -29,6 +30,8 @@ const char *gameRedirectPath(const char *path, char *buf, size_t size)
         return gvrRedirectPath(path, buf, size);
     if (isRoxorGame())
         return roxorRedirectPath(path, buf, size);
+    if (isCecropiaGame())
+        return cecropiaRedirectPath(path, buf, size);
     if (isNamcoEs1Game())
         return namcoEs1RedirectPath(path, buf, size);
     if (isNamcoN2Game())
