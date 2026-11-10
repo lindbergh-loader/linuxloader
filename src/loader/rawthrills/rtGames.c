@@ -1470,6 +1470,16 @@ static const RtSymbol bbhproSymbols[] = {
 };
 static const RtStub bbhproStubs[] = {{"JammaLoop", 0}, {NULL, 0}};
 
+static const RtPathAlias sbbRootAliases[] = {{"/sbbuser", "sbbuser"}, {NULL, NULL}};
+static const RtSymbol sbbSymbols[] = {
+    {"JammaPoll", 0x0804c7d0},
+    {"JammaOp", 0x080a2c04},
+    {"JammaLoop", 0x080a413c},
+    {"PostInputEvent", 0x0804cd60},
+    {NULL, 0},
+};
+static const RtStub sbbStubs[] = {{"JammaLoop", 0}, {NULL, 0}};
+
 // Its settings, audits and hiscores, files of the cabinet's /tt, are in
 // save/ in the dump (see rtTt.c for its data).
 static const RtPathAlias ttPathAliases[] = {
@@ -1480,6 +1490,28 @@ static const RtPathAlias ttPathAliases[] = {
 };
 
 static const RtGame rtGames[] = {
+    {
+        .crc32 = SPONGEBOB_BOWLING_RT,
+        .fileCrc32 = 0xf96d95cc,
+        .rockeyTextStart = 0x0804ac90,
+        .rockeyTextSize = 0x5b930,
+        .rockeyTextXor = 0xc79b25eb,
+        .envelopeSelfSlot = -1,
+        .rootPath = "/g3",
+        .rootAliases = sbbRootAliases,
+        .symbols = sbbSymbols,
+        .stubs = sbbStubs,
+        .jammaPollSymbol = "JammaPoll",
+        .jammaPollPrologue = 6,
+        .jammaOpSymbol = "JammaOp",
+        .jammaOpPrologue = 8,
+        .jammaSwitches = jammaSwitches,
+        .postEventSymbol = "PostInputEvent",
+        .jammaTrackballX = 15,
+        .jammaTrackballY = 16,
+        .glutGameModeWindow = 1,
+        .frameAspect = {4, 3},
+    },
     {
         .crc32 = BIG_BUCK_HUNTER_PRO_RT,
         .fileCrc32 = 0x0a5b0341,
