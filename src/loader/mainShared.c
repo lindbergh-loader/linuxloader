@@ -88,6 +88,7 @@ char *games[] = {"a.elf",
                  "pt2s_g11",       // Teamplay (Police Trainer 2)
                  "armyops-bin",    // Global VR (America's Army)
                  "tuxracer",       // Roxor (Tux Racer)
+                 "decaf_Linux",    // Cecropia (The Act)
                  "END"};
 
 /**
@@ -186,6 +187,7 @@ uint32_t cleanElfCRC32[] = {
     0x210F3077, // Global VR | Puck Off game (v0710240921)
     0x1492D7CD, // Global VR | America's Army armyops-bin (1.0.1.082)
     0x4DF577F6, // Roxor     | Tux Racer tuxracer (4.1 ARCADE)
+    0xE98156F6, // Cecropia  | The Act decaf_Linux (release009g)
     0x0A5B0341, // Raw Thrills | Big Buck Hunter Pro game (v1.25, Rockey envelope)
     0xF96D95CC, // Raw Thrills | SpongeBob Bikini Bottom Bowling game (v1.05, Rockey envelope)
     0xFE266A17, // Namco N2  | Counter Strike NEO hlds_amd (code segment)
