@@ -75,9 +75,9 @@ void blitSetWidthandHeightSize()
         blitWidth = 640;
         blitHeight = 480;
     }
-    // Crossfire Maximum Paintball draws 512x384 (its medium-resolution
-    // monitor's size), whatever its window's size.
-    else if (gId == CROSSFIRE_TEAMPLAY)
+    // Crossfire Maximum Paintball and Star Trek: Voyager draw 512x384 (their
+    // medium-resolution monitor's size), whatever their window's size.
+    else if (gId == CROSSFIRE_TEAMPLAY || gId == STAR_TREK_VOYAGER_TEAMPLAY || gId == STAR_TREK_VOYAGER_SERVICE_TEAMPLAY)
     {
         blitWidth = 512;
         blitHeight = 384;

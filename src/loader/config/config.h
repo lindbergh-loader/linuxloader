@@ -61,6 +61,8 @@
 #define TUX_RACER_ROXOR 0xa27ceeb7                               // Roxor, Tux Racer 4.1 ARCADE (tuxracer)
 #define THE_ACT_CECROPIA 0x938fcfe5                              // Cecropia, The Act release009g (decaf_Linux)
 #define POLICE_TRAINER_2_TEAMPLAY 0xf1709a8e                     // Teamplay, pt2s_g11
+#define STAR_TREK_VOYAGER_TEAMPLAY 0x29632402                    // Teamplay, trek (src-e4)
+#define STAR_TREK_VOYAGER_SERVICE_TEAMPLAY 0x093b902f            // Teamplay, stvserv (src-e4)
 #define AFTER_BURNER_CLIMAX_SBLR 0xa3c246e2                       // DVP-0009
 #define AFTER_BURNER_CLIMAX_SBLR_REVA 0xe657b1c0                  // DVP-0009A
 #define AFTER_BURNER_CLIMAX_SBLR_REVB 0xdb9d8396                  // DVP-0009B

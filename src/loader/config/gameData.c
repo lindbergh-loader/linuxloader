@@ -36,6 +36,8 @@ static const GameData gameData[] = {
     {WMMT3_N2, "Wangan Midnight Maximum Tune 3", "wmmt3", "Namco N2", "WM3100", "2007", "640x480", WORKING, NAMCO_FCA_1, DRIVING, 640, 480, -1, 0, 0, 0, 0, 0, 0, RED},
     {CROSSFIRE_TEAMPLAY, "Crossfire Maximum Paintball", "crossfire", "Teamplay", "TPL-CF", "2003", "512x384", WORKING, NO_JVS_IO, SHOOTING, 512, 384, -1, 0, 0, 0, 0, 0, 0, RED},
     {POLICE_TRAINER_2_TEAMPLAY, "Police Trainer 2", "police-trainer-2", "Teamplay", "TPL-PT2", "2003", "640x480", WORKING, NO_JVS_IO, SHOOTING, 640, 480, -1, 0, 0, 0, 0, 0, 0, RED},
+    {STAR_TREK_VOYAGER_TEAMPLAY, "Star Trek: Voyager", "star-trek-voyager", "Teamplay", "TPL-STV", "2002", "640x480", NOT_WORKING, NO_JVS_IO, SHOOTING, 640, 480, -1, 0, 0, 0, 0, 0, 0, RED},
+    {STAR_TREK_VOYAGER_SERVICE_TEAMPLAY, "Star Trek: Voyager Service Mode", "star-trek-voyager", "Teamplay", "TPL-STV", "2002", "640x480", NOT_WORKING, NO_JVS_IO, SHOOTING, 640, 480, -1, 0, 0, 0, 0, 0, 0, YELLOW},
     {AMERICAS_ARMY_GVR, "America's Army", "americas-army", "Global VR", "GVR-AA", "2007", "640x480", WORKING, NO_JVS_IO, SHOOTING, 640, 480, -1, 0, 0, 0, 0, 0, 0, RED},
     {PUCK_OFF_GVR, "Puck Off", "puck-off", "Global VR", "GVR-PO", "2007", "640x480", WORKING, NO_JVS_IO, DIGITAL, 640, 480, -1, 0, 0, 0, 0, 0, 0, RED},
     {TUX_RACER_ROXOR, "Tux Racer", "tux-racer", "Roxor", "RXR-TUX", "2002", "640x480", WORKING, NO_JVS_IO, DIGITAL, 640, 480, -1, 0, 0, 0, 0, 0, 0, RED},

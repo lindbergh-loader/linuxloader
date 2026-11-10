@@ -181,6 +181,11 @@ void bridgeGlutDisplayFunc(void (*callback)(void))
 
 void bridgeGlutReshapeFunc(void (*callback)(int, int))
 {
+    // Star Trek: Voyager (and its service mode) sets its viewport and
+    // projection there: once, at its monitor's size (the frame scaled), which
+    // it also gives the gun board (240 or 384 lines).
+    if (gId == STAR_TREK_VOYAGER_TEAMPLAY || gId == STAR_TREK_VOYAGER_SERVICE_TEAMPLAY)
+        callback(blitWidth, blitHeight);
 }
 
 void bridgeGlutVisibilityFunc(void (*callback)(int))

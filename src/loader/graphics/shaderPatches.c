@@ -1228,6 +1228,61 @@ GLboolean gl_IsProgramNV(GLuint program)
     return glad_glIsProgramARB(program);
 }
 
+#ifdef __linux__
+// Star Trek: Voyager (and its service mode) names its textures itself, from
+// 1, without glGenTextures: it would bind the loader's (the scaled frame's,
+// the crosshairs'). Its names stand for names of the GL's own.
+static int gameNamesTextures(void)
+{
+    return gId == STAR_TREK_VOYAGER_TEAMPLAY || gId == STAR_TREK_VOYAGER_SERVICE_TEAMPLAY;
+}
+
+static GLuint *gameTextureNames;
+static GLuint gameTextureCount;
+
+static GLuint gameTextureName(GLuint texture, int create)
+{
+    if (!gameNamesTextures() || texture == 0)
+        return texture;
+    if (texture >= gameTextureCount)
+    {
+        if (!create)
+            return 0;
+        GLuint count = texture + 1024;
+        GLuint *names = realloc(gameTextureNames, count * sizeof(*names));
+        if (!names)
+            return texture;
+        memset(names + gameTextureCount, 0, (count - gameTextureCount) * sizeof(*names));
+        gameTextureNames = names;
+        gameTextureCount = count;
+    }
+    if (!gameTextureNames[texture] && create)
+        glad_glGenTextures(1, &gameTextureNames[texture]);
+    return gameTextureNames[texture];
+}
+
+#undef glDeleteTextures
+void glDeleteTextures(GLsizei n, const GLuint *textures)
+{
+    if (!glad_glDeleteTextures)
+        return;
+    if (!gameNamesTextures())
+    {
+        glad_glDeleteTextures(n, textures);
+        return;
+    }
+    for (GLsizei i = 0; i < n; i++)
+    {
+        GLuint name = gameTextureName(textures[i], 0);
+        if (name)
+        {
+            glad_glDeleteTextures(1, &name);
+            gameTextureNames[textures[i]] = 0;
+        }
+    }
+}
+#endif
+
 /**
  *   This function hook fixed the LOD (Level of Detail) for VF5 textures with Mesa
  */
@@ -1237,6 +1292,7 @@ void glBindTexture(GLenum target, GLuint texture)
 {
     // void (*_glBindTexture)(GLenum target, GLuint texture) = dlsym(RTLD_NEXT, "glBindTexture");
     // _glBindTexture(target, texture);
+    texture = gameTextureName(texture, 1);
 #else
 void bridgeglBindTexture(GLenum target, GLuint texture)
 {
