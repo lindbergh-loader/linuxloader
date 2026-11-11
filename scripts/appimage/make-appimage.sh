@@ -96,8 +96,6 @@ cp libsegaapi.so $OUTPUT_FOLDER/usr/lib
 cp linuxloader.so $OUTPUT_FOLDER/usr/lib
 cp libposixtime.so $OUTPUT_FOLDER/usr/lib
 cp linuxloader $OUTPUT_FOLDER/usr/bin
-# Before linuxdeploy, so its SDL3/libstdc++ dependencies are bundled too.
-cp inputmaps $OUTPUT_FOLDER/usr/bin
 mkdir -p $OUTPUT_FOLDER/usr/lib/dri
 cp /usr/lib/i386-linux-gnu/dri/libdril_dri.so $OUTPUT_FOLDER/usr/lib/dri/libdril_dri.so
 cp /usr/share/vulkan/icd.d/* $OUTPUT_FOLDER/usr/share/vulkan/icd.d
