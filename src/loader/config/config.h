@@ -60,6 +60,7 @@
 #define AMERICAS_ARMY_GVR 0x1af79b17                             // Global VR, 1.0.1.082 (armyops-bin)
 #define TUX_RACER_ROXOR 0xa27ceeb7                               // Roxor, Tux Racer 4.1 ARCADE (tuxracer)
 #define THE_ACT_CECROPIA 0x938fcfe5                              // Cecropia, The Act release009g (decaf_Linux)
+#define GOLD_CAPTAIN_IGS 0x6d6ff885                              // IGS, Gold Captain E2000 v1 e65 (GoldCaptain)
 #define POLICE_TRAINER_2_TEAMPLAY 0xf1709a8e                     // Teamplay, pt2s_g11
 #define STAR_TREK_VOYAGER_TEAMPLAY 0x29632402                    // Teamplay, trek (src-e4)
 #define STAR_TREK_VOYAGER_SERVICE_TEAMPLAY 0x093b902f            // Teamplay, stvserv (src-e4)
