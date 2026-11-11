@@ -761,6 +761,23 @@ int XResizeWindow(Display *display, Window w, unsigned int width, unsigned int h
     return ownXWindow() ? _XResizeWindow(display, w, width, height) : 0;
 }
 
+void (*x11WindowAttributesFilter)(unsigned long window, void *attributes);
+
+// The real attributes, as a system's filter has them (IGS: the size its
+// Ogre games draw at, see igsX11.c).
+Status XGetWindowAttributes(Display *display, Window w, XWindowAttributes *attributes)
+{
+    static Status (*_XGetWindowAttributes)(Display *, Window, XWindowAttributes *);
+    Status status;
+
+    if (!_XGetWindowAttributes)
+        *(void **)&_XGetWindowAttributes = dlsym(RTLD_NEXT, "XGetWindowAttributes");
+    status = _XGetWindowAttributes(display, w, attributes);
+    if (status && x11WindowAttributesFilter)
+        x11WindowAttributesFilter(w, attributes);
+    return status;
+}
+
 int XConfigureWindow(Display *display, Window w, unsigned int valueMask, XWindowChanges *values)
 {
     int (*_XConfigureWindow)(Display *, Window, unsigned int, XWindowChanges *) = dlsym(RTLD_NEXT, "XConfigureWindow");

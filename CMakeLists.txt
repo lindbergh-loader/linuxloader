@@ -63,6 +63,7 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux" AND NOT MINGW AND NOT CMAKE_C_COMPILER MATC
         src/loader/globalvr/gvrGames.c
         src/loader/roxor/roxorGames.c
         src/loader/cecropia/cecropiaGames.c
+        src/loader/igs/igsGames.c
         src/loader/hostLinker.c)
 
     set_target_properties(linuxloader_exe PROPERTIES LINK_FLAGS "-m32")
@@ -123,13 +124,26 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux" AND NOT MINGW AND NOT CMAKE_C_COMPILER MATC
         src/loader/globalvr/*.c
         src/loader/roxor/*.c
         src/loader/cecropia/*.c
+        src/loader/igs/*.c
+        src/loader/igs/*.cpp
         src/loader/graphics/shaderWork/*.c
         src/glad/src/gl.c)
+    # Dear ImGui (MIT), for overlays drawn over a game (Hero of Robots' card binder)
+    list(APPEND LINUX_LOADER_OBJS
+        src/imgui/imgui.cpp
+        src/imgui/imgui_draw.cpp
+        src/imgui/imgui_tables.cpp
+        src/imgui/imgui_widgets.cpp
+        src/imgui/imgui_impl_opengl3.cpp)
 
     add_library(linuxloader SHARED ${LINUX_LOADER_OBJS})
     set_target_properties(linuxloader PROPERTIES PREFIX "")
     target_link_libraries(linuxloader ${LINUX_LOADER_SO_LINKER_FLAGS} xdiff minhook dl)
-    target_compile_options(linuxloader PRIVATE ${LINUX_LOADER_SO_C_FLAGS})
+    target_compile_options(linuxloader PRIVATE "$<$<COMPILE_LANGUAGE:C>:${LINUX_LOADER_SO_C_FLAGS}>")
+    target_compile_options(linuxloader PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:-g;-fPIC;-m32;-mincoming-stack-boundary=2;-Wall;-D_GNU_SOURCE;-fno-exceptions;-fno-rtti>")
+    target_compile_definitions(linuxloader PRIVATE IMGUI_DISABLE_DEMO_WINDOWS IMGUI_DISABLE_DEBUG_TOOLS
+        OVERLAY_FONT_PATH=${PROJECT_SOURCE_DIR}/src/fonts/cozette.ttf)
+    target_include_directories(linuxloader PRIVATE ${PROJECT_SOURCE_DIR}/src/imgui)
 
     # The 64-bit games (the Raw Thrills g7 dumps, the Unity games), which
     # linuxloader hands to linuxloader64: it starts them with
