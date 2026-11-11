@@ -20,6 +20,9 @@ extern "C"
     // result): NULL, none; the filter's string stays valid until its next
     // call.
     extern const char *(*cgCompiledProgramFilter)(const char *program);
+    // A system's choice of profile and compiler arguments for a program Cg
+    // is asked to compile (cgCreateProgram's): NULL, as asked.
+    extern int (*cgCreateProgramFilter)(int profile, const char ***args);
     void gl_ProgramStringARB(int vertex_prg, int program_fmt, int program_len, char *program);
     void gl_ShaderSourceARB(uint32_t shaderObj, int count, const char **const string, const int *length);
     void *gl_XGetProcAddressARB(const unsigned char *procName);

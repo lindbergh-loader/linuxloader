@@ -238,6 +238,8 @@ int sharedOpen(const char *pathname, int flags, ...)
     // Raw Thrills: OSS sound device and cabinet paths.
     if (ossDspIsPath(pathname))
         return ossDspOpen(flags);
+    if (ossMixerIsPath(pathname))
+        return ossMixerOpen();
     // Namco: the JVS I/O board's serial port.
     if (namcoEs1JvsIsPath(pathname))
         return namcoEs1JvsOpen(_open);
@@ -738,6 +740,8 @@ int sharedClose(int fd)
 #ifdef __linux__
     if (ossDspIsFd(fd))
         ossDspClose();
+    if (ossMixerIsFd(fd))
+        ossMixerClose();
     if (namcoEs1JvsIsFd(fd))
         namcoEs1JvsClose();
     if (namcoEs1KickbackIsFd(fd))
@@ -1044,6 +1048,8 @@ int sharedIoctl(int fd, unsigned long int request, ...)
 #ifdef __linux__
     if (ossDspIsFd(fd))
         return ossDspIoctl(request, argp);
+    if (ossMixerIsFd(fd))
+        return ossMixerIoctl(request, argp);
     if (namcoEs1JvsIsFd(fd))
         return namcoEs1JvsIoctl(request, argp);
     if (namcoEs1KickbackIsFd(fd))

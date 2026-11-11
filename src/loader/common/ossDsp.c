@@ -2,7 +2,8 @@
 // systems: the Raw Thrills g5 engine's JPS sound engine, the OSS backend of
 // the OpenAL the Namco ES1 games ship, the Teamplay and Global VR games.
 // The games only use the basic OSS API: format/channels/rate setup, fragment
-// setup, GETOSPACE, mixer volume ioctls and blocking writes.
+// setup, GETOSPACE, mixer volume ioctls and blocking writes. The IGS games
+// open /dev/mixer too: see ossMixerIsPath.
 
 #include <dlfcn.h>
 #include <errno.h>
@@ -20,6 +21,7 @@
 #include "../namco/namcoEs1.h"
 #include "../teamplay/teamplay.h"
 #include "../globalvr/gvr.h"
+#include "../igs/igs.h"
 #include "../log/log.h"
 
 #define DSP_FRAGMENTS 4
@@ -76,7 +78,7 @@ static int fragmentSize = DSP_FRAGMENT_SIZE;
 
 int ossDspIsPath(const char *path)
 {
-    return (isRawThrillsGame() || isNamcoEs1Game() || isTeamplayGame() || isGvrGame()) && path && strcmp(path, "/dev/dsp") == 0;
+    return (isRawThrillsGame() || isNamcoEs1Game() || isTeamplayGame() || isGvrGame() || isIgsGame()) && path && strcmp(path, "/dev/dsp") == 0;
 }
 
 int ossDspIsFd(int fd)
@@ -134,6 +136,68 @@ void ossDspClose(void)
 {
     dspStop();
     dspFd = -1;
+}
+
+// OSS /dev/mixer, for the IGS games: they play no sound unless it opens
+// (Gold Captain) or exit unless it answers its devices (Pirate Revenge). A
+// master and a PCM volume, kept and read back; the sound itself is not
+// scaled.
+static int mixerFd = -1;
+static int mixerVolumes[SOUND_MIXER_NRDEVICES];
+
+int ossMixerIsPath(const char *path)
+{
+    return isIgsGame() && path && strcmp(path, "/dev/mixer") == 0;
+}
+
+int ossMixerIsFd(int fd)
+{
+    return fd >= 0 && fd == mixerFd;
+}
+
+int ossMixerOpen(void)
+{
+    if (mixerFd >= 0)
+        return mixerFd;
+    for (int i = 0; i < SOUND_MIXER_NRDEVICES; i++)
+        mixerVolumes[i] = 100 | 100 << 8;
+    mixerFd = open("/dev/null", O_RDWR | O_CLOEXEC);
+    return mixerFd;
+}
+
+void ossMixerClose(void)
+{
+    mixerFd = -1;
+}
+
+int ossMixerIoctl(unsigned long request, void *arg)
+{
+    int *value = arg;
+    unsigned int device = _IOC_NR(request);
+
+    if (!value || _IOC_TYPE(request) != 'M')
+        return 0;
+    switch (request)
+    {
+    case SOUND_MIXER_READ_DEVMASK:
+    case SOUND_MIXER_READ_STEREODEVS:
+        *value = SOUND_MASK_VOLUME | SOUND_MASK_PCM;
+        return 0;
+    case SOUND_MIXER_READ_RECMASK:
+    case SOUND_MIXER_READ_RECSRC:
+    case SOUND_MIXER_READ_CAPS:
+        *value = 0;
+        return 0;
+    }
+    if (device < SOUND_MIXER_NRDEVICES)
+    {
+        // MIXER_WRITE is read-write: the volume set is handed back.
+        if (_IOC_DIR(request) & _IOC_WRITE)
+            mixerVolumes[device] = *value;
+        else
+            *value = mixerVolumes[device];
+    }
+    return 0;
 }
 
 static int bufferSize(void)

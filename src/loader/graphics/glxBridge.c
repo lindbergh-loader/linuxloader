@@ -19,6 +19,7 @@
 #include "sdlCalls.h"
 #include "../log/log.h"
 #include "../namco/namcoEs1.h"
+#include "../igs/igs.h"
 
 #include <math.h>
 #include <stdlib.h>
@@ -511,6 +512,7 @@ void glXSwapBuffers(Display *dpy, GLXDrawable drawable)
         // own GLX context and swap; pass straight through to the real GLX.
         void (*_glXSwapBuffers)(Display *, GLXDrawable) = dlsym(RTLD_NEXT, "glXSwapBuffers");
         namcoEs1BeforeSwap(dpy, drawable);
+        igsBeforeSwap();
         if (_glXSwapBuffers)
             _glXSwapBuffers(dpy, drawable);
         return;

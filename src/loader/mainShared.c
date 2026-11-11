@@ -12,6 +12,7 @@
 #include "namco/namcoN2.h"
 #include "hostLinker.h"
 #include "globalvr/gvrGame.h"
+#include "igs/igsGame.h"
 #endif
 #include <ctype.h>
 #include <libgen.h>
@@ -1257,6 +1258,12 @@ int parseArgs(int argc, char *argv[], char *command, char *originalDir, char *ga
     namcoN2PrepareCommand(command, MAX_PATH_LENGTH, elfCrc);
     // Teamplay and Global VR dumps may have lost their executable mode (see hostLinker.c).
     hostLinkerPrepareCommand(command, MAX_PATH_LENGTH, elfCrc);
+    const IgsGame *igs = igsGetGameByFileCrc(elfCrc);
+    if (igs && igs->arguments && strlen(command) + strlen(igs->arguments) + 2 <= MAX_PATH_LENGTH)
+    {
+        strcat(command, " ");
+        strcat(command, igs->arguments);
+    }
 #endif
 
 #ifdef __linux__

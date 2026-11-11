@@ -671,6 +671,7 @@ void srtvElfShaderPatcher()
  * game instead of an empty one.
  */
 const char *(*cgCompiledProgramFilter)(const char *program);
+int (*cgCreateProgramFilter)(int profile, const char ***args);
 
 #ifdef __linux__
 char *cgGetProgramString(char *program, int e)
@@ -929,6 +930,8 @@ char *bridgeCgCreateProgram(uint32_t context, int program_type, const char *prog
         (char *(*)(uint32_t, int, const char *, int, const char *, const char **))real_cgCreateProgram;
 #endif
 
+    if (cgCreateProgramFilter)
+        profile = cgCreateProgramFilter(profile, &args);
     if (getConfig()->GPUVendor == NVIDIA_GPU)
     {
         if ((gId != LETS_GO_JUNGLE_SBLU && gId != LETS_GO_JUNGLE_SBLU_REVA && gId != LETS_GO_JUNGLE_SBNR_SPECIAL) ||

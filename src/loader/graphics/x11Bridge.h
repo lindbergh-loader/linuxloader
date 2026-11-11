@@ -121,3 +121,8 @@ extern "C" {
 }
 #endif
 #endif
+#ifdef __linux__
+// What a system changes in the attributes XGetWindowAttributes gives back
+// (window: a Window, attributes: its XWindowAttributes), NULL: nothing.
+extern void (*x11WindowAttributesFilter)(unsigned long window, void *attributes);
+#endif

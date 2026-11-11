@@ -25,6 +25,7 @@
 #include "globalvr/gvr.h"
 #include "roxor/roxor.h"
 #include "cecropia/cecropia.h"
+#include "igs/igs.h"
 #include "common/desktopInput.h"
 #endif
 
@@ -210,6 +211,33 @@ void initMain(char *configPath, char *controlsPath)
         if (MH_Initialize() != MH_OK || cecropiaInit() != 0 || MH_EnableHook(MH_ALL_HOOKS) != MH_OK)
         {
             log_error("The Act: cannot install the cabinet's hardware");
+            exit(1);
+        }
+        printf("\n");
+        return;
+    }
+
+    // IGS games (Gold Captain) keep their own window too (a static SDL 1.2):
+    // none of the Lindbergh hardware; their PLX card and the IGS036 behind
+    // it are the loader's, fed from evdev or the desktop (see igs/igsIo.c).
+    if (isIgsGame())
+    {
+        printf("\nLinux Loader\nBy the Linux Loader Development Team 2026\n\n");
+        printf("  GAME:        %s\n", getGameName());
+        printf("  GAME ID:     %s\n", getGameId());
+        initJVS();
+        if (getConfig()->inputMode == 2)
+        {
+            if (initEvdevControllers(&controllers) != 0)
+                exit(1);
+            for (int i = 0; i < controllers.count; i++)
+                if (controllers.controller[i].inUse)
+                    printf("  CONTROLLER:  %s\n", controllers.controller[i].name);
+        }
+        desktopStartQuitWatch();
+        if (MH_Initialize() != MH_OK || igsInit() != 0 || MH_EnableHook(MH_ALL_HOOKS) != MH_OK)
+        {
+            log_error("IGS: cannot install the cabinet's hardware");
             exit(1);
         }
         printf("\n");
