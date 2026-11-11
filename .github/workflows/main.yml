@@ -8,24 +8,30 @@ on:
     paths-ignore:
       - '**.md'
       - '.github/ISSUE_TEMPLATE/*'
-      - '.docs/changelog'
+      - 'docs/changelog'
 
 jobs:
-  prepare-source:
-    name: ⚙️ Prepare Source
+  build-and-release:
+    name: 🛠️ Build and Release
     runs-on: ubuntu-22.04
-    outputs:
-      release_version: ${{ steps.get_version.outputs.RELEASE_VERSION }}
-      release_tag: ${{ steps.get_version.outputs.RELEASE_TAG }}
+    timeout-minutes: 90
+    permissions:
+      contents: write   # gh release create
     steps:
+      # Linux and Windows are built in a single job on purpose. Both are
+      # produced on an Ubuntu runner, and keeping them together means one
+      # checkout and one apt install instead of two - the AppImage package
+      # list is a superset of the Windows one. It also means the binaries
+      # never leave the workspace, so no Actions artifact storage is used.
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Extract Version and Update version.h
+      - name: Extract Version
         id: get_version
         run: |
           CHANGELOG_FILE="./docs/changelog"
-          VERSION_FILE="src/loader/version.h"
           if [[ ! -f "$CHANGELOG_FILE" ]]; then
             echo "Error: Changelog file '$CHANGELOG_FILE' not found."
             exit 1
@@ -36,62 +42,99 @@ jobs:
             exit 1
           fi
           echo "Found version: $VERSION"
-          MAJOR=$(echo $VERSION | cut -d. -f1)
-          MINOR=$(echo $VERSION | cut -d. -f2)
-          UPDATE=$(echo $VERSION | cut -d. -f3)
-          if [ -z "$UPDATE" ]; then
-            UPDATE=0
-          fi
-          if [[ ! -f "$VERSION_FILE" ]]; then
-            echo "Error: Version file '$VERSION_FILE' not found."
-            exit 1
-          fi
-          sed -i "s/\(#define MAJOR_VERSION \).*/\1$MAJOR/" "$VERSION_FILE"
-          sed -i "s/\(#define MINOR_VERSION \).*/\1$MINOR/" "$VERSION_FILE"
-          sed -i "s/\(#define UPDATE_VERSION \).*/\1$UPDATE/" "$VERSION_FILE"
-          echo "Updated $VERSION_FILE with version $MAJOR.$MINOR.$UPDATE"
           echo "RELEASE_VERSION=$VERSION" >> $GITHUB_OUTPUT
           echo "RELEASE_TAG=v$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Upload version.h artifact
-        uses: actions/upload-artifact@v4
+      - name: Stamp version.h
+        run: scripts/set-version.sh "${{ steps.get_version.outputs.RELEASE_VERSION }}"
+
+      - name: Cache APT packages
+        uses: actions/cache@v4
         with:
-          name: version-file
-          path: src/loader/version.h
+          path: /var/cache/apt/archives
+          key: ${{ runner.os }}-apt-${{ hashFiles('**/install-packages.sh') }}
+          restore-keys: |
+            ${{ runner.os }}-apt-
 
-  linux-build:
-    name: 🐧 Linux Build
-    needs: prepare-source
-    uses: "./.github/workflows/linux-build.yml"
+      - name: Install Packages
+        run: scripts/appimage/install-packages.sh
 
-  windows-build:
-    name: 🪟 Windows Build
-    needs: prepare-source
-    uses: "./.github/workflows/windows-build.yml"
+      # Runs before install-mesa.sh so it captures the STOCK Ubuntu mesa, which
+      # is what the lib32ID set is meant to contain - deliberately older than
+      # the pinned stack installed in the next step.
+      - name: Pack ID Libs
+        run: scripts/appimage/id-libs.sh
 
-  create-release:
-    name: 📤 Create Release and Notify
-    needs: [linux-build, windows-build, prepare-source]
-    runs-on: ubuntu-22.04
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+      - name: Install Pinned Mesa
+        run: scripts/appimage/install-mesa.sh
 
-      - name: Download Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: ./artifacts/
+      - name: Build Deps
+        run: scripts/appimage/build-deps.sh
 
-      - name: Display Downloaded Artifacts
-        run: find ./artifacts/
+      - name: Compile Build for Linux
+        shell: bash
+        run: |
+          scripts/linux/make-linux.sh
+          scripts/appimage/make-appimage.sh
+
+      # The AppImage must be built on 22.04: it fixes the glibc baseline at
+      # 2.35 for end users, and the pinned kisak packages are jammy builds.
+      # But jammy's mingw-w64 is GCC 10, while windows-build.sh needs GCC 13
+      # (it copies libgcc_s_dw2-1.dll out of .../i686-w64-mingw32/13-win32/).
+      # So the cross-compile runs in a 24.04 container over the same
+      # workspace - which also keeps this a single job, with no build output
+      # passing through Actions artifact storage.
+      - name: Compile Build for Windows
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # A bind mount cannot be used here. Under `act` this job is itself a
+          # container, so $PWD names a path that only exists inside it - the
+          # host Docker daemon would mount an empty directory and the build
+          # would quietly produce nothing. Streaming the workspace in and the
+          # artifact out through the daemon makes no assumption about paths
+          # being shared, so it behaves the same on a runner and under act.
+          CID=$(docker run -d ubuntu:24.04 sleep infinity)
+          trap 'docker rm -f "$CID" >/dev/null 2>&1 || true' EXIT
+
+          # Create the workdir explicitly: `docker run -w` does not reliably
+          # create a missing path (podman refuses outright).
+          docker exec "$CID" mkdir -p /src
+
+          tar -cf - \
+            --exclude=./.git \
+            --exclude=./build-linux \
+            --exclude=./build-win32 \
+            --exclude=./build-inputmaps-linux \
+            --exclude=./build-inputmaps-win32 \
+            . | docker exec -i "$CID" tar -xf - -C /src
+
+          docker exec -w /src "$CID" bash -c '
+            set -e
+            scripts/windows/install-packages.sh
+            scripts/windows/windows-build.sh
+          '
+
+          docker cp "$CID:/src/linuxloader-win32.zip" ./linuxloader-win32.zip
+          test -s linuxloader-win32.zip
+
+      # The inputmaps helper is built by make-linux.sh / windows-build.sh;
+      # fail here rather than publish a release that silently lacks it.
+      - name: Verify inputmaps is packaged
+        shell: bash
+        run: |
+          set -euo pipefail
+          tar -tzf linuxloader-linux.tar.gz | grep -x './inputmaps' >/dev/null
+          unzip -l linuxloader-win32.zip | grep ' inputmaps.exe$' >/dev/null
+          ./linuxloader.AppImage --appimage-extract 'usr/bin/inputmaps' >/dev/null
+          test -x squashfs-root/usr/bin/inputmaps
+          rm -rf squashfs-root
 
       - name: Parse Changelog and Save to File
         id: changelog
         run: |
-            VERSION='${{ needs.prepare-source.outputs.release_version }}'
+            VERSION='${{ steps.get_version.outputs.RELEASE_VERSION }}'
             awk -v version="$VERSION" '
               $0 ~ "^## \\[" version "\\]" { in_section=1; next }
               /^## / && in_section { exit }
@@ -109,35 +152,39 @@ jobs:
           && sudo apt-get update \
           && sudo apt-get install gh -y
 
+      # Assets are uploaded straight from the workspace. Release assets are not
+      # metered against the Actions artifact storage quota.
       - name: Create Release with GitHub CLI
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && !env.ACT
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create ${{ needs.prepare-source.outputs.release_tag }} \
-            --title "Build ${{ needs.prepare-source.outputs.release_tag }}" \
+          gh release create ${{ steps.get_version.outputs.RELEASE_TAG }} \
+            --title "Build ${{ steps.get_version.outputs.RELEASE_TAG }}" \
             --notes-file ${{ steps.changelog.outputs.notes_file }} \
-            ./artifacts/linux-build/linuxloader-linux.tar.gz \
-            ./artifacts/linux-appimage/linuxloader.AppImage \
-            ./artifacts/windows-build/linuxloader-win32.zip
+            ./linuxloader-linux.tar.gz \
+            ./linuxloader.AppImage \
+            ./linuxloader-win32.zip
 
       - name: Notify Discord of New Release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && !env.ACT
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Fetch the asset details
-          ASSETS_JSON=$(gh release view ${{ needs.prepare-source.outputs.release_tag }} --json assets)
-          
+          ASSETS_JSON=$(gh release view ${{ steps.get_version.outputs.RELEASE_TAG }} --json assets)
+
           # Extract each URL
           ZIP_URL=$(echo "$ASSETS_JSON" | jq -r '.assets[] | select(.name=="linuxloader-win32.zip") | .url')
           APPIMAGE_URL=$(echo "$ASSETS_JSON" | jq -r '.assets[] | select(.name=="linuxloader.AppImage") | .url')
           TAR_URL=$(echo "$ASSETS_JSON" | jq -r '.assets[] | select(.name=="linuxloader-linux.tar.gz") | .url')
-          
+
           # Get the changelog body (no need to escape it for jq)
           CHANGELOG_BODY=$(cat ${{ steps.changelog.outputs.notes_file }} | head -c 2000)
-          
+
           # Use jq to build the JSON payload and pipe it to curl
           jq -n \
-            --arg content "A new LinuxLoader build **v${{ needs.prepare-source.outputs.release_version }}** has been released!" \
+            --arg content "A new LinuxLoader build **v${{ steps.get_version.outputs.RELEASE_VERSION }}** has been released!" \
             --arg changelog "$CHANGELOG_BODY" \
             --arg zip_url "$ZIP_URL" \
             --arg appimage_url "$APPIMAGE_URL" \
