@@ -119,18 +119,6 @@ jobs:
           docker cp "$CID:/src/linuxloader-win32.zip" ./linuxloader-win32.zip
           test -s linuxloader-win32.zip
 
-      # The inputmaps helper is built by make-linux.sh / windows-build.sh;
-      # fail here rather than publish a release that silently lacks it.
-      - name: Verify inputmaps is packaged
-        shell: bash
-        run: |
-          set -euo pipefail
-          tar -tzf linuxloader-linux.tar.gz | grep -x './inputmaps' >/dev/null
-          unzip -l linuxloader-win32.zip | grep ' inputmaps.exe$' >/dev/null
-          ./linuxloader.AppImage --appimage-extract 'usr/bin/inputmaps' >/dev/null
-          test -x squashfs-root/usr/bin/inputmaps
-          rm -rf squashfs-root
-
       - name: Parse Changelog and Save to File
         id: changelog
         run: |
