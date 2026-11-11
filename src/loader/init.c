@@ -17,6 +17,7 @@
 #include "config/config.h"
 #include "../minhook/include/MinHook.h"
 #include "log/log.h"
+#include "version.h"
 
 #if defined(__linux__)
 #include "input/evdevInput.h"
@@ -143,7 +144,7 @@ void initMain(char *configPath, char *controlsPath)
     securityBoardSetDipResolution(getConfig()->width, getConfig()->height);
     log_info("Security board dip resolution set");
 
-    printf("\nLinux Loader\nBy the Linux Loader Development Team 2026\n\n");
+    printf("\nLinux Loader Development Version %d.%d.%d\nBy the Linux Loader Development Team 2026\n\n", MAJOR_VERSION, MINOR_VERSION, UPDATE_VERSION);
     printf("  GAME:        %s\n", getGameName());
     printf("  GAME ID:     %s\n", getGameId());
     printf("  DVP:         %s\n", getDvpName());

@@ -510,6 +510,13 @@ void bridgeglViewport(GLint x, GLint y, GLsizei width, GLsizei height)
         }
     }
 #endif
+
+    // VF5's height fog is rebuilt per pixel on Mesa (see VF5_HEIGHT_FOG in shaderWork/vf5.c) and needs the real
+    // viewport; the game's own env[0] only ever holds the main scene's size. env[24] is unused by the game.
+    if (gGrp == GROUP_VF5 && getConfig()->GPUVendor != NVIDIA_GPU && glad_glProgramEnvParameter4fARB && width > 0 &&
+        height > 0)
+        glad_glProgramEnvParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, 24, 1.0f / width, 1.0f / height, (float)x, (float)y);
+
     return glad_glViewport(x, y, width, height);
 }
 

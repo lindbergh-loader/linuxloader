@@ -263,12 +263,6 @@ int eepromSettingsInit( FILE *eeprom)
 {
     buildCrc32Table();
 
-    eeprom = fopen("eeprom.bin", "r+b");
-    if (eeprom == NULL)
-    {
-        printf("eeprom.bin cannot be opened, let's create a new one.\n");
-        eeprom = fopen("eeprom.bin", "w+b");
-    }
     fseek(eeprom, 0, SEEK_END);
     int size = ftell(eeprom);
     fseek(eeprom, 0, SEEK_SET);

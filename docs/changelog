@@ -1,6 +1,21 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [3.0.15]
+### Added
+    - Added mmap64 to the windows port for VF5 Terminal.
+    - Added map of semget/semop/semtimedop/semctl to the windows port for segaboot.
+    - Rambo custom crosshairs now show in parts of the game like the bow scene.
+### Fixed
+    - Light gun border missing its right side in certain cases.
+    - HOD4 Special (DVP-0010 and DVP-0010B) title movies in attract mode stuttering and playing at double speed. (Needs Testing)
+    - Outrun 2 Chihiro mode fixed.
+    - Fixed a bug in the CPU clock setting for HOD4 games when the CPU speed was higher than 4.29Ghz
+    - Fixed a bug in Rambo with AMD GPUs in windows and AMD and Intel GPUs in linux that flickers in gray.
+    - Fixed an issue with the blitting in ABC that threw OpenGL errors with older nvidia GPUs.
+    - Fixed the path passed to open the eepron in the config file was not used.
+    - Fixed Always Off Crosshairs in GSEvo.
+    - Fixed a shader patch bug in VF5 that made the RUINS stage render without textures with AMD/Intel GPUs in linux.
 
 ## [3.0.14]
 ### Added

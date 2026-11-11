@@ -13,8 +13,11 @@
 #endif
 #include <fcntl.h>
 #include <libgen.h>
+#include <ctype.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 #include "../elfLoader/glHooks.hpp"
@@ -33,6 +36,7 @@
 #include "shaderWork/lgj.h"
 #include "shaderWork/mj4.h"
 #include "shaderWork/or2.h"
+#include "shaderWork/rambo.h"
 #include "shaderWork/rtuned.h"
 #include "shaderWork/srtv.h"
 #include "shaderWork/vf5.h"
@@ -545,8 +549,19 @@ void gl_ProgramStringARB(int target, int program_fmt, int program_len, char *pro
 
     if (gId == GHOST_SQUAD_EVOLUTION_SBNJ)
     {
-        //   Patch to prevent speckles in the final render.
-        if (target == GL_FRAGMENT_PROGRAM_ARB && getConfig()->GPUVendor == INTEL_GPU)
+        //   Patch to prevent speckles in the final render. Only the older Intel Windows drivers need it: Mesa
+        //   never showed the speckles, and on the newer Intel driver (igxe3icd32, GL on top of Intel's Vulkan
+        //   driver) dropping the depth write makes the characters see-through.
+        static int dropDepthWrite = -1;
+        if (dropDepthWrite < 0)
+        {
+#ifdef __linux__
+            dropDepthWrite = 0;
+#else
+            dropDepthWrite = getConfig()->GPUVendor == INTEL_GPU && GetModuleHandleA("igxe3icd32.dll") == NULL;
+#endif
+        }
+        if (target == GL_FRAGMENT_PROGRAM_ARB && dropDepthWrite)
             newProgram = replaceInBlock(program, gsevoIntelFs, gsevoIntelFsCount, "", "");
 
         if (addr == (void *)0x8179fab)
@@ -626,6 +641,18 @@ void gl_ProgramStringARB(int target, int program_fmt, int program_len, char *pro
             newProgram = replaceInBlock(program, rtunedFsMesa, rtunedFsMesaCount, "", "");
         }
     }
+#ifndef __linux__
+    else if (gGrp == GROUP_RAMBO)
+    {
+        // Intel's Windows ARB compiler crashes on the skinning vertex programs, see ramboIntelVs().
+        if (target == GL_VERTEX_PROGRAM_ARB && getConfig()->GPUVendor == INTEL_GPU)
+        {
+            char *split = ramboIntelVs(program);
+            if (split != NULL)
+                newProgram = split;
+        }
+    }
+#endif
     else if (gId == MJ4_SBPN_REVG || gId == MJ4_EVO_SBTA)
     {
         if (target == GL_VERTEX_PROGRAM_ARB)
@@ -1054,7 +1081,10 @@ void *gl_XGetProcAddressARB(const unsigned char *procName)
     }
 
 #ifdef __linux__
-    return glRealignWrap((void *)glXGetProcAddressARB(procName));
+    /* Everything reaching here is called by the game straight out of its own
+     * frame with a stack that is not ABI-aligned, so hand back a realigning
+     * trampoline instead of the driver's entry point. */
+    return glRealignWrap(glXGetProcAddressReal(procName));
 #else
     return GLHooks_GetProcAddress((const char *)procName);
     // return SDL_GL_GetProcAddress(procName);
@@ -1610,7 +1640,9 @@ int compileWithCGC(char *command)
 
     const char *compiledSource = _cgGetProgramString(program, 4106);
 
-    FILE *outputFile = fopen(outputFileName, "w+");
+    // Binary mode: on Windows text mode turns every '\n' into "\r\n", and the game hands the
+    // file to glProgramStringARB byte for byte.
+    FILE *outputFile = fopen(outputFileName, "wb+");
     if (outputFile == NULL)
     {
         log_error("Error creating output file %s", outputFileName);

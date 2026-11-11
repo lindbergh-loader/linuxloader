@@ -164,7 +164,7 @@ bool bridgeGlxMakeCurrent(Display *dpy, GLXDrawable drawable, GLXContext ctx)
 
 int bridgeGlxSwapInterval(int interval)
 {
-    return SDL_GL_SetSwapInterval(interval) ? 0 : 1;
+    return bridgeGlxSwapIntervalSGI(interval);
 }
 
 bool bridgeGlxQueryVersion(Display *dpy, int *major, int *minor)
@@ -404,7 +404,8 @@ void bridgeGlxSwapBuffers(Display *dpy, GLXDrawable drawable)
 #endif
 
     if (config->borderEnabled)
-        drawGameBorder(config->width, config->height, config->whiteBorderPercentage, config->blackBorderPercentage);
+        drawGameBorder(renderWidth ? renderWidth : config->width, renderHeight ? renderHeight : config->height,
+                       config->whiteBorderPercentage, config->blackBorderPercentage);
 
     if (p1CrossHairInitialized || p2CrossHairInitialized)
         renderCrosshairs();

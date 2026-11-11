@@ -22,8 +22,8 @@ int createDefaultIni(const char *filePath)
 
     // [Display]
     fprintf(file, "[Display]\n");
-    fprintf(file, "# Set the width resolution here\nWIDTH = AUTO\n\n");
-    fprintf(file, "# Set the height resolution here\nHEIGHT = AUTO\n\n");
+    fprintf(file, "# Set the width resolution here (AUTO = native, or calculated from HEIGHT keeping the native aspect ratio)\nWIDTH = AUTO\n\n");
+    fprintf(file, "# Set the height resolution here (AUTO = native, or calculated from WIDTH keeping the native aspect ratio)\nHEIGHT = AUTO\n\n");
     fprintf(file, "# Boost render resolution in HOD4/2Spicy/Harley/Rambo/HOD-EX/ID4/ID5 and LGJ\n");
     fprintf(file, "BOOST_RENDER_RES = %s\n\n", defaults.boostRenderRes ? "true" : "false");
     fprintf(file, "# Set to true for full screen\nFULLSCREEN = %s\n\n", defaults.fullscreen ? "true" : "false");
@@ -87,8 +87,8 @@ int createDefaultIni(const char *filePath)
     fprintf(file, "# Define the path to pass the JVS packets to if JVS is not being emulated\nJVS_PATH = \"%s\"\n\n", defaults.jvsPath);
     fprintf(file, "# Define the path to pass the first serial port to\nSERIAL_1_PATH = \"%s\"\n\n", defaults.serial1Path);
     fprintf(file, "# Define the path to pass the second serial port to\nSERIAL_2_PATH = \"%s\"\n\n", defaults.serial2Path);
-    fprintf(file, "# Define the path to the sram.bin file\nSRAM_PATH = \"%s\"\n\n", defaults.sramPath);
-    fprintf(file, "# Define the path to the eeprom.bin file\nEEPROM_PATH = \"%s\"\n\n", defaults.eepromPath);
+    fprintf(file, "# Define the path to the sram.bin file (relative paths are relative to the game folder)\nSRAM_PATH = \"%s\"\n\n", defaults.sramPath);
+    fprintf(file, "# Define the path to the eeprom.bin file (relative paths are relative to the game folder)\nEEPROM_PATH = \"%s\"\n\n", defaults.eepromPath);
     fprintf(file, "# If set, libCG.so needed for 2Spicy, Harley, Rambo and HOD-Ex shader recompilation\n");
     fprintf(file, "# will be loaded from the specified location. (include the name of file in the location ");
     fprintf(file, "For Example: /my/file/location/myLibCg.so)\nLIBCG_PATH = \"%s\"\n\n", defaults.libCgPath);

@@ -1,5 +1,16 @@
 #include "common.h"
 
+#define VF5_HEIGHT_FOG                                                                                                 \
+    "TEMP _hf0, _hf1;"                                                                                                 \
+    "SUB _hf0.xy, fragment.position, program.env[24].zwzw;MUL _hf0.xy, _hf0, program.env[24];"                        \
+    "MOV _hf0.z, fragment.position.z;MAD _hf0.xyz, _hf0, 2, -1;MOV _hf0.w, 1;"                                         \
+    "DP4 _hf1.x, state.matrix.projection.inverse.row[0], _hf0;DP4 _hf1.y, state.matrix.projection.inverse.row[1], _hf0;" \
+    "DP4 _hf1.z, state.matrix.projection.inverse.row[2], _hf0;DP4 _hf1.w, state.matrix.projection.inverse.row[3], _hf0;" \
+    "RCP _hf1.w, _hf1.w;MUL _hf1.xyz, _hf1, _hf1.w;MOV _hf1.w, 1;"                                                     \
+    "DP4 _hf0.x, state.matrix.program[0].inverse.row[0], _hf1;DP4 _hf0.y, state.matrix.program[0].inverse.row[2], _hf1;" \
+    "MAD _hf0.xy, _hf0, {0.0625, -0.0625, 0, 0}, 0.5;TEX _hf0, _hf0, texture[14], 2D;"                                 \
+    "MUL _hf0.x, _hf0.x, a_fogcoord.x;MOV _hf0.y, 0;"
+
 // Fragment
 SearchReplace vf5FsMesa[] = {
     {"OPTION NV_fragment_program2;", ""},
@@ -53,6 +64,45 @@ SearchReplace vf5FsMesa[] = {
     {"DDY du.xy, a_tex_color0;", "MOV du.xy, a_tex_color0;"},
     {"DP2 ds.w, ds, ds;", "MUL _tmp0.x, ds.x, ds.x;MUL _tmp0.y, ds.y, ds.y;ADD ds.w, _tmp0.x, _tmp0.y;"},
     {"DP2 du.w, du, du;", "MUL _tmp1.x, du.x, du.x;MUL _tmp1.y, du.y, du.y;ADD du.w, _tmp1.x, _tmp1.y;"},
+    // Second texture layer blend: SUBC sets _tmp2.xyz = mode - {0, 1, 2} and only the (EQ) line matching the mode
+    // runs. Stripping the conditions ran all three, adding the layer on top and washing Ruins' scenery to white.
+    // CMP keeps the result only where |_tmp2| is zero. _tmp1 is free here in every shader that uses this.
+    {"LRP tex_col.xyz (EQ.x), _tmp0.w, _tmp0, tex_col;",
+     "LRP _tmp1.xyz, _tmp0.w, _tmp0, tex_col;ABS _tmp1.w, _tmp2.x;CMP tex_col.xyz, -_tmp1.w, tex_col, _tmp1;"},
+    {"MUL tex_col.xyz (EQ.y), _tmp0, tex_col;",
+     "MUL _tmp1.xyz, _tmp0, tex_col;ABS _tmp1.w, _tmp2.y;CMP tex_col.xyz, -_tmp1.w, tex_col, _tmp1;"},
+    {"ADD tex_col.xyz (EQ.z), _tmp0, tex_col;",
+     "ADD _tmp1.xyz, _tmp0, tex_col;ABS _tmp1.w, _tmp2.z;CMP tex_col.xyz, -_tmp1.w, tex_col, _tmp1;"},
+    {"LRP color_map.xyz (EQ.x), tmp.w, tmp, color_map;",
+     "LRP _tmp1.xyz, tmp.w, tmp, color_map;ABS _tmp1.w, _tmp2.x;CMP color_map.xyz, -_tmp1.w, color_map, _tmp1;"},
+    {"MUL color_map.xyz (EQ.y), tmp, color_map;",
+     "MUL _tmp1.xyz, tmp, color_map;ABS _tmp1.w, _tmp2.y;CMP color_map.xyz, -_tmp1.w, color_map, _tmp1;"},
+    {"ADD color_map.xyz (EQ.z), tmp, color_map;",
+     "ADD _tmp1.xyz, tmp, color_map;ABS _tmp1.w, _tmp2.z;CMP color_map.xyz, -_tmp1.w, color_map, _tmp1;"},
+    {"LRP col0.xyz (EQ.x), _tmp0.w, _tmp0, col0;",
+     "LRP _tmp1.xyz, _tmp0.w, _tmp0, col0;ABS _tmp1.w, _tmp2.x;CMP col0.xyz, -_tmp1.w, col0, _tmp1;"},
+    {"MUL col0.xyz (EQ.y), _tmp0, col0;",
+     "MUL _tmp1.xyz, _tmp0, col0;ABS _tmp1.w, _tmp2.y;CMP col0.xyz, -_tmp1.w, col0, _tmp1;"},
+    {"ADD col0.xyz (EQ.z), _tmp0, col0;",
+     "ADD _tmp1.xyz, _tmp0, col0;ABS _tmp1.w, _tmp2.z;CMP col0.xyz, -_tmp1.w, col0, _tmp1;"},
+    // Ruins sand: settle only where SUBC left sand.x positive. sand.z is spent after the DP4 above it.
+    {"MUL sand.w (GT.x), sand.y, p.w;", "MUL sand.z, sand.y, p.w;CMP sand.w, -sand.x, sand.z, sand.w;"},
+    // Post flare: MOVC col.w, exposure.z gates the add, so the glow layer was always added. No temp is free in
+    // every variant, so it declares its own - ARBfp allows declarations between instructions.
+    {"ADD sum.xyz (GT.w), sum, col;", "TEMP _flare;ADD _flare.xyz, sum, col;CMP sum.xyz, -col.w, _flare, sum;"},
+    // Height fog density, moved here from the vertex program (see "TEX _tmp1, _tmp0, texture[14]" there). Rebuild
+    // the world position from the depth: window -> NDC through the viewport the loader puts in env[24] (1/w, 1/h,
+    // x, y), NDC -> eye through the inverse projection, eye -> world through the inverse camera in program[0].
+    // Then sample the map at the same world XZ mapping the vertex program used and scale the height factor the
+    // fog coordinate now carries. A vertex program that wrote no fog leaves it at 0.
+    {"LRP o_color, a_fogcoord.xxxy, p_height_fog_color, _tmp0;",
+     VF5_HEIGHT_FOG "LRP o_color, _hf0.xxxy, p_height_fog_color, _tmp0;"},
+    {"LRP o_color.rgb, a_fogcoord.xxxy, p_height_fog_color, tmp;",
+     VF5_HEIGHT_FOG "LRP o_color.rgb, _hf0.xxxy, p_height_fog_color, tmp;"},
+    {"LRP o_color.xyz, a_fogcoord.xxxy, p_height_fog_color, tmp;",
+     VF5_HEIGHT_FOG "LRP o_color.xyz, _hf0.xxxy, p_height_fog_color, tmp;"},
+    // SUBC tmp.w, col.w, 0.5 gates this; _tmp0 is declared and otherwise unused in that shader.
+    {"MUL tmp.xyz (LT.w), col.w, 2.0;", "MUL _tmp0.xyz, col.w, 2.0;CMP tmp.xyz, tmp.w, _tmp0, tmp;"},
     {"SUBC ", "SUB "},
     {"MOVC ", "MOV "},
     {"(LT.w)", " "},
@@ -120,27 +170,47 @@ SearchReplace vf5VsMesa[] = {
     {"SGT _tmp2.y, pos_w.yyyy, program.env[0].w;", "SLT _tmp2.y, program.env[0].w, pos_w.yyyy;"},
     {"SGT _tmp2.y, pos_w.yyyy, program.env[1].w;", "SLT _tmp2.y, program.env[1].w, pos_w.yyyy;"},
 
-    {"TEX _tmp1, _tmp0, texture[14], 2D;", "MOV _tmp1, { 0.0, 0.0, 0.0, 0.0};"}, // fog
+    // Height fog reads its density map here, which vertex programs cannot do on Mesa. Pass a density of 1 so the
+    // fog coordinate carries only the height factor; the fragment rules for p_height_fog_color multiply in the
+    // density per pixel. It used to be 0, which turned height fog off entirely.
+    {"TEX _tmp1, _tmp0, texture[14], 2D;", "MOV _tmp1, 1;"}, // fog
     //{"TEX displace, tmp, texture[14], 2D;", "MOV displace, { 0.0, 0.0, 0.0, 0.0};"}, // snow
     {"TEX displace, tmp, texture[14], 2D;", "MOV tmp, a_position;FRC displace.x, tmp.x;FRC displace.y, tmp.z;MUL "
                                             "displace, displace, {0.15, 0.15, 0.15, 0};"}, // snow
     {"TEX displace, a_tex0, texture[14], 2D;", "MOV displace, { 0.0, 0.0, 0.0, 0.0};"},    // water
     {"TEX tmp, { 0.0, 0.0 }, texture[3], 2D;", "MOV tmp, { 0.4, 0.4, 0.4, 0.4};"},         // tone X
+    // Skinning: index 255 marks an unused bone and the BRA (EQ) that skipped it is stripped below, so the bone ran
+    // anyway and read _mtxpal[255], past the 193-entry palette - undefined, zero on Intel, garbage on AMD. Weights
+    // go through _tmp1 with unused bones zeroed, and each index is clamped to the last valid matrix (190).
+    {"SUBC _tmp1, _a_mtxidx, 255;", "SLT _tmp1, _a_mtxidx, 254.5;MUL _tmp1, _tmp1, _a_weight;"},
+    {", _a_weight.", ", _tmp1."},
+    // MOVC tmp, a_tex0 set these: GT.x is a_tex0.x > 0, EQ.y is a_tex0.y == 0. No CMP in vertex programs, so
+    // blend by a 0/1 mask instead; tmp is only the condition copy of a_tex0 until it is rewritten after.
+    {"MOV pos_end.xyz (EQ.y), pos;",
+     "ABS tmp.w, a_tex0.y;SGE tmp.w, 0, tmp.w;SUB tmp.xyz, pos, pos_end;MAD pos_end.xyz, tmp, tmp.w, pos_end;"},
+    {"MOV pos (GT.x), pos_end;", "SLT tmp.w, 0, a_tex0.x;SUB tmp.xyz, pos_end, pos;MAD pos.xyz, tmp, tmp.w, pos;"},
+    {"MUL col.xyz (GT.x), col, 0.25;", "SLT tmp.w, 0, a_tex0.x;MAD tmp.w, tmp.w, -0.75, 1;MUL col.xyz, col, tmp.w;"},
+    // MOVC ex_col, p_exposure set GT.w: take the computed exposure only while p_exposure.w > 0.
+    {"MOV ex_col.x (GT.w), tmp.x;",
+     "SLT tmp.y, 0, p_exposure.w;SUB tmp.z, tmp.x, ex_col.x;MAD ex_col.x, tmp.z, tmp.y, ex_col.x;"},
     {"SUBC ", "SUB "},
     {"ARL _adr, vertex.attrib[15];", "ARL _adr.x, vertex.attrib[15].x;"},
-    {"DP4 _tmp0.x, _mtxpal[_adr.y ]", "ARL _adr.x, vertex.attrib[15].y;DP4 _tmp0.x, _mtxpal[_adr.x ]"},
+    {"DP4 _tmp0.x, _mtxpal[_adr.y ]",
+     "MIN _tmp0.w, vertex.attrib[15].y, 190;ARL _adr.x, _tmp0.w;DP4 _tmp0.x, _mtxpal[_adr.x ]"},
     {"DP4 _tmp0.y, _mtxpal[_adr.y+1]", "DP4 _tmp0.y, _mtxpal[_adr.x+1]"},
     {"DP4 _tmp0.z, _mtxpal[_adr.y+2]", "DP4 _tmp0.z, _mtxpal[_adr.x+2]"},
     {"DP3 _tmp0.x, _mtxpal[_adr.y ]", "DP3 _tmp0.x, _mtxpal[_adr.x ]"},
     {"DP3 _tmp0.y, _mtxpal[_adr.y+1]", "DP3 _tmp0.y, _mtxpal[_adr.x+1]"},
     {"DP3 _tmp0.z, _mtxpal[_adr.y+2]", "DP3 _tmp0.z, _mtxpal[_adr.x+2]"},
-    {"DP4 _tmp0.x, _mtxpal[_adr.z ]", "ARL _adr.x, vertex.attrib[15].z;DP4 _tmp0.x, _mtxpal[_adr.x ]"},
+    {"DP4 _tmp0.x, _mtxpal[_adr.z ]",
+     "MIN _tmp0.w, vertex.attrib[15].z, 190;ARL _adr.x, _tmp0.w;DP4 _tmp0.x, _mtxpal[_adr.x ]"},
     {"DP4 _tmp0.y, _mtxpal[_adr.z+1]", "DP4 _tmp0.y, _mtxpal[_adr.x+1]"},
     {"DP4 _tmp0.z, _mtxpal[_adr.z+2]", "DP4 _tmp0.z, _mtxpal[_adr.x+2]"},
     {"DP3 _tmp0.x, _mtxpal[_adr.z ]", "DP3 _tmp0.x, _mtxpal[_adr.x ]"},
     {"DP3 _tmp0.y, _mtxpal[_adr.z+1]", "DP3 _tmp0.y, _mtxpal[_adr.x+1]"},
     {"DP3 _tmp0.z, _mtxpal[_adr.z+2]", "DP3 _tmp0.z, _mtxpal[_adr.x+2]"},
-    {"DP4 _tmp0.x, _mtxpal[_adr.w ]", "ARL _adr.x, vertex.attrib[15].w;DP4 _tmp0.x, _mtxpal[_adr.x ]"},
+    {"DP4 _tmp0.x, _mtxpal[_adr.w ]",
+     "MIN _tmp0.w, vertex.attrib[15].w, 190;ARL _adr.x, _tmp0.w;DP4 _tmp0.x, _mtxpal[_adr.x ]"},
     {"DP4 _tmp0.y, _mtxpal[_adr.w+1]", "DP4 _tmp0.y, _mtxpal[_adr.x+1]"},
     {"DP4 _tmp0.z, _mtxpal[_adr.w+2]", "DP4 _tmp0.z, _mtxpal[_adr.x+2]"},
     {"DP3 _tmp0.x, _mtxpal[_adr.w ]", "DP3 _tmp0.x, _mtxpal[_adr.x ]"},

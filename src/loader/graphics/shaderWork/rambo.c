@@ -1,4 +1,7 @@
 #include "common.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 // File: 16box.frag
 const char ramboMesaFileName_0[] = "16box.frag";
@@ -83,13 +86,17 @@ const unsigned char ramboMesaPatchBuffer_7[] = {
     0x20, 0x76, 0x65, 0x63, 0x34, 0x28, 0x63, 0x29, 0x02, 0x54, 0x02, 0x00, 0x00, 0x2d, 0x00, 0x00, 0x00};
 
 // File: backblur.frag
+// Mesa/AMD read the depth through a sampler2DShadow with GL_TEXTURE_COMPARE_MODE = GL_NONE, which is
+// undefined; they do not return the raw depth like NVIDIA/Intel, and the motion blur turns into a haze
+// when the camera moves. The patch samples it with a plain sampler2D/texture2D instead.
 const char ramboMesaFileName_8[] = "backblur.frag";
-const size_t ramboMesaPatchSize_8 = 69;
-const unsigned char ramboMesaPatchBuffer_8[] = {0xc7, 0xef, 0x6e, 0x58, 0x42, 0x06, 0x00, 0x00, 0x01, 0x32, 0x23, 0x76, 0x65, 0x72,
-                                                     0x73, 0x69, 0x6f, 0x6e, 0x20, 0x31, 0x32, 0x30, 0x0a, 0x0a, 0x75, 0x6e, 0x69, 0x66,
-                                                     0x6f, 0x72, 0x6d, 0x20, 0x73, 0x61, 0x6d, 0x70, 0x6c, 0x65, 0x72, 0x32, 0x44, 0x20,
-                                                     0x43, 0x6f, 0x6c, 0x6f, 0x72, 0x4d, 0x61, 0x70, 0x3b, 0x0a, 0x75, 0x6e, 0x69, 0x66,
-                                                     0x6f, 0x72, 0x6d, 0x20, 0x02, 0x22, 0x00, 0x00, 0x00, 0x20, 0x06, 0x00, 0x00};
+const size_t ramboMesaPatchSize_8 = 96;
+const unsigned char ramboMesaPatchBuffer_8[] = {
+    0xc7, 0xef, 0x6e, 0x58, 0x42, 0x06, 0x00, 0x00, 0x01, 0x3b, 0x23, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x20, 0x31,
+    0x32, 0x30, 0x0a, 0x0a, 0x75, 0x6e, 0x69, 0x66, 0x6f, 0x72, 0x6d, 0x20, 0x73, 0x61, 0x6d, 0x70, 0x6c, 0x65, 0x72, 0x32,
+    0x44, 0x20, 0x43, 0x6f, 0x6c, 0x6f, 0x72, 0x4d, 0x61, 0x70, 0x3b, 0x0a, 0x75, 0x6e, 0x69, 0x66, 0x6f, 0x72, 0x6d, 0x20,
+    0x73, 0x61, 0x6d, 0x70, 0x6c, 0x65, 0x72, 0x32, 0x44, 0x02, 0x31, 0x00, 0x00, 0x00, 0x40, 0x02, 0x00, 0x00, 0x02, 0x3c,
+    0x02, 0x00, 0x00, 0x2f, 0x00, 0x00, 0x00, 0x02, 0xa8, 0x02, 0x00, 0x00, 0x9a, 0x03, 0x00, 0x00};
 
 // File: bmsoftparticle.frag
 const char ramboMesaFileName_9[] = "bmsoftparticle.frag";
@@ -1059,3 +1066,90 @@ ShaderFilesToPatch ramboNvidiaShaderPatches[] = {
 };
 
 int ramboNvidiaShaderPatchesCount = sizeof(ramboNvidiaShaderPatches) / sizeof(ShaderFilesToPatch);
+
+/**
+ *   Intel's Windows ARB vertex compiler crashes when a PARAM array that is read
+ *   with relative addressing (c[A0.x + n]) also holds non-matrix state bindings
+ *   (state.fog.params, state.material.*, state.light[n].*). cgc emits exactly
+ *   that for Rambo's skinning programs, in about 20 different layouts.
+ *
+ *   Each such binding is moved out to its own PARAM, its array slot is filled
+ *   with a literal so the indices don't shift, and direct reads of that slot
+ *   (c[k]) are renamed. Relative reads only index the bone matrices in
+ *   program.local, never these slots.
+ *
+ *   Returns a malloc'd program, or NULL when there is nothing to change.
+ */
+#define RAMBO_MAX_STATE 32
+
+// How many PARAM slots an array element takes: matrices 4 (or their .row range), ranges b-a+1, the rest 1.
+static int ramboParamSlots(const char *item)
+{
+    int a, b;
+    if (strncmp(item, "state.matrix.", 13) == 0)
+    {
+        const char *row = strstr(item, ".row[");
+        if (row == NULL)
+            return 4;
+        return sscanf(row, ".row[%d..%d]", &a, &b) == 2 ? b - a + 1 : 1;
+    }
+    if (strncmp(item, "program.", 8) == 0 && sscanf(strchr(item, '['), "[%d..%d]", &a, &b) == 2)
+        return b - a + 1;
+    return 1;
+}
+
+char *ramboIntelVs(char *program)
+{
+    char *list = strstr(program, "PARAM c[");
+    if (strstr(program, "ARL") == NULL || list == NULL || (list = strchr(list, '{')) == NULL)
+        return NULL;
+    char *listEnd = strstr(list, "};");
+    if (listEnd == NULL)
+        return NULL;
+
+    static char bindings[RAMBO_MAX_STATE][64], names[RAMBO_MAX_STATE][16], refs[RAMBO_MAX_STATE][16];
+    SearchReplace inList[RAMBO_MAX_STATE], inBody[RAMBO_MAX_STATE];
+    char hoisted[RAMBO_MAX_STATE * 96] = "";
+    int moved = 0, slot = 0;
+
+    // cgc puts one array element per line: "elem,\n\t\t" ... "elem };"
+    for (char *item = list + 1; item < listEnd && moved < RAMBO_MAX_STATE;)
+    {
+        while (*item == ' ' || *item == '\t' || *item == '\n' || *item == '\r')
+            item++;
+        char *next = strstr(item, ",\n");
+        char *end = (next == NULL || next > listEnd) ? listEnd : next;
+        while (end > item && end[-1] == ' ')
+            end--;
+
+        char text[64];
+        snprintf(text, sizeof(text), "%.*s", (int)(end - item), item);
+        if (strncmp(text, "state.", 6) == 0 && strncmp(text, "state.matrix.", 13) != 0)
+        {
+            strcpy(bindings[moved], text);
+            snprintf(names[moved], sizeof(names[moved]), "llState%d", slot);
+            snprintf(refs[moved], sizeof(refs[moved]), "c[%d]", slot);
+            inList[moved] = (SearchReplace){bindings[moved], "{ 0, 0, 0, 0 }"};
+            inBody[moved] = (SearchReplace){refs[moved], names[moved]};
+            snprintf(hoisted + strlen(hoisted), sizeof(hoisted) - strlen(hoisted), "PARAM %s = %s;\n", names[moved], text);
+            moved++;
+        }
+        slot += text[0] == '{' ? 1 : ramboParamSlots(text);
+        item = (next == NULL || next > listEnd) ? listEnd : next + 2;
+    }
+    if (moved == 0)
+        return NULL;
+
+    char hoist[sizeof(hoisted) + 16];
+    snprintf(hoist, sizeof(hoist), "%sPARAM c[", hoisted);
+    SearchReplace header[] = {{"PARAM c[", hoist}};
+
+    char *body = replaceInBlock(program, inBody, moved, "};", "");
+    char *array = replaceInBlock(body, inList, moved, "PARAM c[", "};");
+    char *out = replaceInBlock(array, header, 1, "", "");
+    if (array != body && body != program)
+        free(body);
+    if (out != array && array != program)
+        free(array);
+    return out == program ? NULL : out;
+}

@@ -463,6 +463,13 @@ static void *gsevoPollingThreadFunc(void *arg)
     return NULL;
 }
 
+// Player modes (CPlayer +0x38): 3 game, 4 hold (cutscenes), 5 select, 6 event.
+// Rambo's scripted aiming (the bow shot at the helicopter) runs in event mode.
+static bool playerModeShowsCrosshair(uint8_t mode)
+{
+    return mode == 3 || mode == 5 || (gGrp == GROUP_RAMBO && mode == 6);
+}
+
 static void *pollingThreadFunc(void *arg)
 {
     PollingArgs *args = (PollingArgs *)arg;
@@ -508,19 +515,13 @@ static void *pollingThreadFunc(void *arg)
                     if (*p1ModeAddress != 0x0)
                     {
                         uint8_t *p1Mode = *(uint8_t **)p1ModeAddress + 0x38;
-                        if (*p1Mode == 3 || *p1Mode == 5)
-                            crossHair[0].visible = true;
-                        else
-                            crossHair[0].visible = false;
+                        crossHair[0].visible = playerModeShowsCrosshair(*p1Mode);
                     }
 
                     if (*p2ModeAddress != 0x0)
                     {
                         uint8_t *p2Mode = *(uint8_t **)p2ModeAddress + 0x38;
-                        if (*p2Mode == 3 || *p2Mode == 5)
-                            crossHair[1].visible = true;
-                        else
-                            crossHair[1].visible = false;
+                        crossHair[1].visible = playerModeShowsCrosshair(*p2Mode);
                     }
                 }
             }

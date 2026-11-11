@@ -68,9 +68,9 @@ static void sleepMilliseconds(int milliseconds)
 #endif
 }
 
-static uint32_t detectTscFrequency(void)
+static uint64_t detectTscFrequency(void)
 {
-    static uint32_t cached = 0;
+    static uint64_t cached = 0;
 
     if (cached != 0)
         return cached;
@@ -86,24 +86,24 @@ static uint32_t detectTscFrequency(void)
     if (elapsed <= 0.0)
         return 0;
 
-    cached = (uint32_t)((double)(endTicks - startTicks) / elapsed);
+    cached = (uint64_t)((double)(endTicks - startTicks) / elapsed);
     return cached;
 }
 
 // Returns the value to patch into the game, or 0 to leave the stock constant alone.
-static uint32_t getPatchCpuFrequency(void)
+static uint64_t getPatchCpuFrequency(void)
 {
     float configured = getConfig()->cpuFreqGhz;
 
     if (configured != 0.0f)
     {
-        uint32_t hz = (uint32_t)(configured * 998000000.0);
-        printf("CPU frequency: using configured CPU_FREQ_GHZ = %.3f (%u Hz)\n", configured, hz);
+        uint64_t hz = (uint64_t)(configured * 998000000.0);
+        printf("CPU frequency: using configured CPU_FREQ_GHZ = %.3f (%llu Hz)\n", configured, (unsigned long long)hz);
         fflush(stdout);
         return hz;
     }
 
-    uint32_t detected = detectTscFrequency();
+    uint64_t detected = detectTscFrequency();
 
     if (detected == 0)
     {
@@ -112,11 +112,26 @@ static uint32_t getPatchCpuFrequency(void)
         return 0;
     }
 
-    log_info("CPU frequency: detected TSC %u Hz (%.4f GHz), game stock is 2992610000 Hz - patching\n", detected,
-           detected / 1e9);
+    log_info("CPU frequency: detected TSC %llu Hz (%.4f GHz), game stock is 2992610000 Hz - patching\n",
+             (unsigned long long)detected, detected / 1e9);
     fflush(stdout);
 
     return detected;
+}
+
+// IzTimerInitialize keeps the frequency as a 64-bit value, but only the low dword is an immediate (+0x2f), the high
+// dword is stored from a zeroed ECX. TSCs above 4.295 GHz (e.g. Ryzen 9950X) need it set, so we turn
+// "xor ecx,ecx; mov [start_lo],ecx" (+0x0f, 9 bytes) into "mov ecx,hi; nop x4". The start count stores of ECX are
+// dead anyway, rdtsc's EAX/EDX overwrite them right after.
+static void patchHod4CpuFrequency(uint32_t izTimerInitialize)
+{
+    uint64_t cpuFreq = getPatchCpuFrequency();
+    if (cpuFreq == 0)
+        return;
+
+    patchMemoryFromString(izTimerInitialize + 0x0f, "b90000000090909090");
+    setVariable(izTimerInitialize + 0x10, (uint32_t)(cpuFreq >> 32));
+    setVariable(izTimerInitialize + 0x2f, (uint32_t)cpuFreq);
 }
 
 extern uint32_t gId;
@@ -330,7 +345,6 @@ static int harleyAnalogRemapHook(void *a, void *b, uint32_t channel, void *d)
 // check in the game calls GunMgr_GetReloadOn(), so we also return true while Reload (BUTTON_2) is held.
 static uint32_t ramboGunMgrAddr;
 static int ramboGetReloadOn(unsigned char player)
-
 {
     uint32_t gunMgr = *(uint32_t *)(uintptr_t)ramboGunMgrAddr;
     if (gunMgr == 0)
@@ -2726,6 +2740,7 @@ int initPatch()
             detourFunction(0x082c3018, amDipswExit);
             detourFunction(0x082c308d, amDipswGetData);
             detourFunction(0x082c3103, amDipswSetLed);
+            detourFunction(0x080c7192, stubRetZero); // AppGarbageCollectionOnce, silence log spam
             // Reload button (emulated JVS only, a passthrough board has no such switch)
             if (getConfig()->emulateJVS)
             {
@@ -2766,6 +2781,7 @@ int initPatch()
             detourFunction(0x082c2f0c, amDipswExit);
             detourFunction(0x082c2f81, amDipswGetData);
             detourFunction(0x082c2ff7, amDipswSetLed);
+            detourFunction(0x080c70d6, stubRetZero); // AppGarbageCollectionOnce, silence log spam
             // Reload button (emulated JVS only, a passthrough board has no such switch)
             if (getConfig()->emulateJVS)
             {
@@ -2855,6 +2871,24 @@ int initPatch()
             amDipswContextAddr = (void *)0x0809c12c;
             detourFunction(0x0805c200, amDipswInit);
             detourFunction(0x0805c383, amDipswSetLed);
+            detourFunction(0x0805ebe3, stubRetOne); // amDongleIsDevelop
+        }
+        break;
+        case SEGABOOT_2_4:
+        {
+            // amDongle and amDipsw drive the SMBus/GPIO with raw in/out port instructions, which
+            // fault on Windows. The remaining dongle I/O (SMBus send/recv, amDongleExit) only runs
+            // when amDongleInit has set its context flag at 0x080b9b80, so detouring it covers them.
+            detourFunction(0x08088054, amDongleInit);
+            detourFunction(0x08088410, amDongleIsAvailable);
+            amDipswContextAddr = (void *)0x080b974c; // amDipswInit's "initialized" flag
+            detourFunction(0x0808576c, amDipswInit);
+            detourFunction(0x08085808, amDipswExit);
+            detourFunction(0x0808587e, amDipswGetData);
+            detourFunction(0x080858f6, amDipswSetLed);
+            
+            detourFunction(0x08088430, stubRetOne); //amDongleIsDevelop
+            setVariable(0x080a022c, (size_t)"3.00"); // CPU MODEL names {UNKNOWN, PENTIUM 4, CELERON}, replace UNKNOWN
         }
         break;
         case SEGA_RACE_TV_SBPF:
@@ -2943,9 +2977,7 @@ int initPatch()
                 detourFunction(0x0804be14, hod4VsPrintf);
             }
 
-            uint32_t cpuFreq = getPatchCpuFrequency();
-            if (cpuFreq != 0)
-                setVariable(0x0828ea13, cpuFreq);
+            patchHod4CpuFrequency(0x0828e9e4); // IzTimerInitialize
         }
         break;
         case THE_HOUSE_OF_THE_DEAD_4_SBLC_REVA_TEST:
@@ -3028,9 +3060,7 @@ int initPatch()
                 detourFunction(0x0804be04, hod4VsPrintf);
             }
 
-            uint32_t cpuFreq = getPatchCpuFrequency();
-            if (cpuFreq != 0)
-               setVariable(0x08289353, cpuFreq);
+            patchHod4CpuFrequency(0x08289324); // IzTimerInitialize
         }
         break;
         case THE_HOUSE_OF_THE_DEAD_4_SBLC_REVB_TEST:
@@ -3095,9 +3125,7 @@ int initPatch()
                 detourFunction(0x0804be04, hod4VsPrintf);
             }
 
-            uint32_t cpuFreq = getPatchCpuFrequency();
-            if (cpuFreq != 0)
-                setVariable(0x08289353, cpuFreq);
+            patchHod4CpuFrequency(0x08289324); // IzTimerInitialize
         }
         break;
         case THE_HOUSE_OF_THE_DEAD_4_SBLC_REVC_TEST:
@@ -3136,11 +3164,14 @@ int initPatch()
             // CPU patch to support AMD processors
             patchMemoryFromString(0x0804d1d4, "9090909090"); //__intel_new_proc_init_P
 
+            // CRI's VSYNC thread runs the vsync servers twice per tick, so a Sofdec movie with no
+            // audio track (title.sfd) gets its clock advanced 2 frames per frame and skips every
+            // other one. Drop the second call.
+            patchMemoryFromString(0x08338c8f, "9090909090");
+
             // Shader Fixes
             cacheModedShaderFiles();
-            uint32_t cpuFreq = getPatchCpuFrequency();
-            if (cpuFreq != 0)
-                setVariable(0x0826829b, cpuFreq);
+            patchHod4CpuFrequency(0x0826826c); // IzTimerInitialize
         }
         break;
         case THE_HOUSE_OF_THE_DEAD_4_SPECIAL_SBLS_REVB:
@@ -3162,11 +3193,14 @@ int initPatch()
 
             detourFunction(0x0804cf10, gl_XGetProcAddressARB); // glXGetProcAddressARB
 
+            // CRI's VSYNC thread runs the vsync servers twice per tick, so a Sofdec movie with no
+            // audio track (title.sfd) gets its clock advanced 2 frames per frame and skips every
+            // other one. Drop the second call.
+            patchMemoryFromString(0x083a61e7, "9090909090");
+
             // Shader Fixes
             cacheModedShaderFiles();
-            uint32_t cpuFreq = getPatchCpuFrequency();
-            if (cpuFreq != 0)
-                setVariable(0x082d019d, cpuFreq);
+            patchHod4CpuFrequency(0x082d016e); // IzTimerInitialize
         }
         break;
         case THE_HOUSE_OF_THE_DEAD_4_SPECIAL_SBLS_REVB_TEST:

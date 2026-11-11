@@ -21,6 +21,7 @@ extern unsigned int fboId;
 extern int gameIsOutrunChihiroMode;
 
 void initBlitting();
+int blitRedirectDefaultFramebuffer(unsigned int target, unsigned int framebuffer);
 void blitSetWidthandHeightSize();
 int blitInitializeFbo();
 void blitStretch();

@@ -6,7 +6,7 @@
 extern "C" {
 #endif
 
-int sharedKswap_collect(void *p);
+int sharedKswap_collect(int pages);
 char *sharedStrncpy(char *dest, const char *src, size_t n);
 int sharedSetenv(const char *name, const char *value, int overwrite);
 char *sharedGetenv(const char *name);

@@ -8,4 +8,11 @@
  *   unchanged if a trampoline could not be built.
  */
 void *glRealignWrap(void *fn);
+
+/**
+ *   libGLX's own glXGetProcAddressARB. The loader exports a realigning
+ *   glXGetProcAddressARB (glxStackAlign.c), so loader code that wants the
+ *   driver's unwrapped entry point must call this instead.
+ */
+void *glXGetProcAddressReal(const unsigned char *procName);
 #endif

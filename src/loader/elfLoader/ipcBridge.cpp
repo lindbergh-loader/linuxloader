@@ -2,6 +2,7 @@
 #include "ipcBridge.hpp"
 #include "../log/log.h"
 #include "symbolResolver.hpp"
+#include "libcBridge.hpp"
 
 #define MAP(name, func) SymbolResolver::GetInstance().RegisterVTable(name, reinterpret_cast<void *>(func))
 
@@ -16,8 +17,16 @@ namespace IpcBridge
         MAP("shmat", bridgeShmat);
         MAP("shmctl", bridgeShmctl);
         MAP("shmdt", bridgeShmdt);
+
+        // System V semaphores: only segaboot uses them, posting before it waits on the same
+        // thread, so a wait never really blocks; succeeding at once behaves the same.
+        MAP("semget", LibcBridge::bridgeStubSuccess);
+        MAP("semop", LibcBridge::bridgeStubSuccess);
+        MAP("semtimedop", LibcBridge::bridgeStubSuccess);
+        MAP("semctl", LibcBridge::bridgeStubSuccess);
     }
 }
+
 extern "C"
 {
     int bridgeShmget(int key, size_t size, int shmflg)

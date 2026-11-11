@@ -199,6 +199,7 @@ namespace LibcBridge
         // Memory
         MAP("getpagesize", bridgeGetpagesize);
         MAP("mmap", bridgeMmap);
+        MAP("mmap64", bridgeMmap64);
         MAP("munmap", bridgeMunmap);
 
         MAP("nice", bridgeNice);
@@ -1555,7 +1556,14 @@ namespace LibcBridge
 
     void *bridgeMmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset)
     {
-        log_trace("Intercepted mmap: addr=%p, len=%zu, prot=%d, flags=%d, fd=%d, offset=%ld", addr, length, prot, flags, fd, (long)offset);
+        return bridgeMmap64(addr, length, prot, flags, fd, (int64_t)offset);
+    }
+
+    // Same as mmap, with glibc's 64-bit off64_t offset (two stack slots on i386).
+    void *bridgeMmap64(void *addr, size_t length, int prot, int flags, int fd, int64_t offset)
+    {
+        log_trace("Intercepted mmap: addr=%p, len=%zu, prot=%d, flags=%d, fd=%d, offset=%lld", addr, length, prot, flags, fd,
+                  (long long)offset);
 
         if (flags & L_MAP_ANONYMOUS)
         {
@@ -1574,7 +1582,7 @@ namespace LibcBridge
         if (ret && fd >= 0)
         {
             log_info("mmap: Emulating file mapping by reading into VirtualAlloc memory (fd=%d)", fd);
-            _lseek(fd, offset, SEEK_SET);
+            _lseeki64(fd, offset, SEEK_SET);
             _read(fd, ret, length);
         }
         return ret ? ret : L_MAP_FAILED;

@@ -4,6 +4,7 @@
 #include <stddef.h>
 
 #include "../log/log.h"
+#include "glEntryRealign.h"
 
 /*
  * Stack realignment shims for the GLX and GLU entry points the games call
@@ -22,9 +23,12 @@
  * deliberately pure passthroughs: the entry points below are not interposed by
  * the loader today, so the game already reaches the system library for them and
  * this changes no behaviour. Anything the loader does interpose (glXSwapBuffers,
- * glXCreateContext, glXGetProcAddressARB, the SGIX pbuffer calls, the whole
- * glut* surface) is already covered by its own wrapper and must not be repeated
- * here.
+ * glXCreateContext, the SGIX pbuffer calls, the whole glut* surface) is already
+ * covered by its own wrapper and must not be repeated here.
+ *
+ * glXGetProcAddressARB is the exception: the per-game detours in patch.c send
+ * it to gl_XGetProcAddressARB, but a game without one (2 Spicy) binds its PLT
+ * import straight to libGLX, so it gets a shim here as well.
  *
  * The loader is built with -mincoming-stack-boundary=2, which already forces
  * this realignment everywhere. The explicit attribute is kept so these shims
@@ -157,6 +161,26 @@ REALIGN int glXQueryVersion(void *dpy, int *major, int *minor)
     if (real == NULL)
         real = resolveNext("glXQueryVersion");
     return real ? real(dpy, major, minor) : 0;
+}
+
+void *glXGetProcAddressReal(const unsigned char *procName)
+{
+    static void *(*real)(const unsigned char *) = NULL;
+    if (real == NULL)
+        real = resolveNext("glXGetProcAddressARB");
+    return real ? real(procName) : NULL;
+}
+
+/* The pointers handed back are called straight out of the game's frame too,
+ * so they go out behind the same trampoline gl_XGetProcAddressARB uses. */
+REALIGN void *glXGetProcAddressARB(const unsigned char *procName)
+{
+    return glRealignWrap(glXGetProcAddressReal(procName));
+}
+
+REALIGN void *glXGetProcAddress(const unsigned char *procName)
+{
+    return glRealignWrap(glXGetProcAddressReal(procName));
 }
 
 REALIGN void glXWaitX(void)

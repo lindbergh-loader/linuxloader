@@ -128,7 +128,7 @@ elseif(WIN32 OR MINGW OR CMAKE_C_COMPILER MATCHES "mingw")
         src/loader/elfLoader/*.cpp
         src/loader/elfLoader/pthread/*.cpp
         src/glad/src/gl.c
-        src/icon.rc
+        src/loader/resources/icon.rc
     )
 
 

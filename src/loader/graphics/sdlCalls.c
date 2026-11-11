@@ -168,7 +168,6 @@ void startSDL()
 
     if (g_SdlWindow)
     {
-#ifdef __linux__
         SDL_IOStream *io = SDL_IOFromConstMem(icon256x256, sizeof(icon256x256));
         if (io)
         {
@@ -179,7 +178,6 @@ void startSDL()
                 SDL_DestroySurface(iconSurface);
             }
         }
-#endif
     }
 
     // Hacky way to make AxA games render the characters properly
@@ -216,6 +214,11 @@ void startSDL()
         log_error("OpenGL context could not be created! SDL_Error: %s\n", SDL_GetError());
         exit(EXIT_FAILURE);
     }
+
+    // With the FPS limiter on it is the only frame clock; driver vsync on top of it would drift
+    // against it and drop frames.
+    if (getConfig()->fpsLimiter)
+        SDL_GL_SetSwapInterval(0);
 
     if (getConfig()->showDebugMessages)
     {
@@ -280,6 +283,13 @@ void startSDL()
 /*
  * Fix for Let's Go Jungle window resize
  */
+// The window's own width. In Outrun's Chihiro mode gWidth is the 800 wide render, but the window
+// shows the cropped 640.
+static int windowedWidth()
+{
+    return gameIsOutrunChihiroMode ? 640 : gWidth;
+}
+
 void refreshResizedDrawable()
 {
     if (gGrp != GROUP_LGJ)
@@ -417,10 +427,11 @@ void pollEvents()
                         }
                         else
                         {
-                            if ((long long)gWidth * 3 == (long long)gHeight * 4)
-                                SDL_SetWindowSize(g_SdlWindow, gWidth + 1, gHeight);
+                            int w = windowedWidth();
+                            if ((long long)w * 3 == (long long)gHeight * 4)
+                                SDL_SetWindowSize(g_SdlWindow, w + 1, gHeight);
                             else
-                                SDL_SetWindowSize(g_SdlWindow, gWidth, gHeight + 1);
+                                SDL_SetWindowSize(g_SdlWindow, w, gHeight + 1);
                             isFullScreen = false;
                             if (getConfig()->fullscreen)
                                 SDL_SetWindowBordered(g_SdlWindow, true);
@@ -463,10 +474,11 @@ void pollEvents()
                 break;
             case SDL_EVENT_WINDOW_RESTORED:
             {
-                if (((long long)gWidth * 3 == (long long)gHeight * 4) || gGrp == GROUP_HUMMER)
-                    SDL_SetWindowSize(g_SdlWindow, gWidth + 1, gHeight);
+                int w = windowedWidth();
+                if (((long long)w * 3 == (long long)gHeight * 4) || gGrp == GROUP_HUMMER)
+                    SDL_SetWindowSize(g_SdlWindow, w + 1, gHeight);
                 else
-                    SDL_SetWindowSize(g_SdlWindow, gWidth, gHeight + 1);
+                    SDL_SetWindowSize(g_SdlWindow, w, gHeight + 1);
             }
             break;
             case SDL_EVENT_WINDOW_MOUSE_LEAVE:

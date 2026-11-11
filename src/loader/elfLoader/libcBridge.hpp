@@ -90,6 +90,7 @@ namespace LibcBridge
     void bridgeExit(int status);
     int bridgeGetpagesize();
     void *bridgeMmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset);
+    void *bridgeMmap64(void *addr, size_t length, int prot, int flags, int fd, int64_t offset);
     int bridgeMunmap(void *addr, size_t length);
 
     int bridgeCxaAtexit(void (*func)(void *), void *arg, void *dso_handle);

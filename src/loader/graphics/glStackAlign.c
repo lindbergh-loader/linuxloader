@@ -99,8 +99,15 @@ REALIGN void glBindBufferARB(GLenum target, GLuint buffer)
         real(target, buffer);
 }
 
+int blitRedirectDefaultFramebuffer(unsigned int target, unsigned int framebuffer);
+
+// Hand-edited (the generator is not in the repo): Outrun's Chihiro mode redirects binds of the
+// default framebuffer to the loader's FBO, see blitRedirectDefaultFramebuffer().
 REALIGN void glBindFramebufferEXT(GLenum target, GLuint framebuffer)
 {
+    if (blitRedirectDefaultFramebuffer(target, framebuffer))
+        return;
+
     static void (*real)(GLenum, GLuint) = NULL;
     if (real == NULL)
         real = resolveNext("glBindFramebufferEXT");
