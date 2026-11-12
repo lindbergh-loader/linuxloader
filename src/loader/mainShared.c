@@ -92,6 +92,7 @@ char *games[] = {"a.elf",
                  "decaf_Linux",    // Cecropia (The Act)
                  "GoldCaptain",    // IGS (Gold Captain)
                  "sship",          // IGS (Pirate Revenge)
+                 "sdlinux",        // IGS (Speed Driver)
                  "END"};
 
 /**
@@ -194,6 +195,7 @@ uint32_t cleanElfCRC32[] = {
     0xE98156F6, // Cecropia  | The Act decaf_Linux (release009g)
     0xD05B6728, // IGS       | Gold Captain GoldCaptain (E2000 v1 e65, libcasmcard by name)
     0x16F1257A, // IGS       | Pirate Revenge sship (M-101CN, libcasmcard by name)
+    0x2336A62B, // IGS       | Speed Driver sdlinux (A27 board)
     0x0A5B0341, // Raw Thrills | Big Buck Hunter Pro game (v1.25, Rockey envelope)
     0xF96D95CC, // Raw Thrills | SpongeBob Bikini Bottom Bowling game (v1.05, Rockey envelope)
     0xFE266A17, // Namco N2  | Counter Strike NEO hlds_amd (code segment)
