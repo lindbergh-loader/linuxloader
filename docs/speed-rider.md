@@ -60,7 +60,8 @@ missing internal ROM is represented by its services (veneers at
 GPIO, the command latches, division, random numbers. Unknown services
 stop the CPU.
 
-The STM32 is on USART0 (IRQ 4). The firmware's handler reads CSR without
+The STM32 is on USART0 (IRQ 4; `igsStm32.c`, shared with
+[Speed Rider 2](speed-rider-2.md)). The firmware's handler reads CSR without
 IMR, so the transmitter and receiver enables are modelled: TXRDY/TXEMPTY
 only while the transmitter is enabled, the reply only once the receiver is
 (otherwise the firmware re-sends bytes and loses the reply's first one).

@@ -128,6 +128,25 @@ static const IgsGame games[] = {
         .serialIo = {0x08aa8e80, 0x08aa9390, 0x08aaa8b0, 0x08aa9690},
         .ogreAutoTextureMatrix = 0x4c0,
     },
+    {
+        // Speed Rider 2: the A36 board, run from TeknoRaven's game/bin_linux
+        // beside ../data; its decrypted firmware in ../roms.
+        .crc32 = SPEED_RIDER_2_IGS,
+        .fileCrc32 = 0xf10a20c0,
+        .a36Rom = "../roms/sr2_eprom_final.bin",
+        .a36Loader = {0x09091250, 0x09091490, 0x090912d0, 0x09091b90},
+        .a36ReplyPublish = 0x0890fc59,
+        .a36Idle = {0x10002e0c, 0x10002e5c},
+        .a36Services = 0x0200f000,
+        .a36Stm32Usart = 2,
+        // Lean; a brake, the throttle, a brake, which read 1023 released.
+        .a36Stm32Pots = {{12, 512, 1012}, {1023, 0, 0}, {1023, 0, 0}, {1023, 0, 0}},
+        .a36Stm32Throttle = 2,
+        .ogrePlugins = "../data/general/plugins.cfg",
+        // found from the scripts (SD3's key, recovered from SR2's Lua)
+        .a36CipherMask = {0xf2, 0x14, 0x52, 0x80, 0x62, 0x8f, 0x0d, 0x3a,
+                          0xb5, 0xf0, 0x14, 0xe8, 0xe5, 0x06, 0xb8, 0x38},
+    },
 };
 
 const IgsGame *igsGetGame(uint32_t crc32)
