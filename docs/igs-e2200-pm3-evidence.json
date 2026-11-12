@@ -1,0 +1,278 @@
+[
+  {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"evidence_id\":\"ev_4830e0e59d064ef2cc9b8b68100e817c23cf10b9b69bd9bc9babdf26fcdcfabb\",\"evidence_format\":2,\"subject\":{\"identity\":{\"kind\":\"file\",\"sha256\":\"429cd794e89bd7d3997325d4310a2ee026de8f95c67f97a9f7f4738b6d746e46\",\"selection\":null,\"format\":\"unknown\",\"architecture\":null},\"name\":\"pm3\",\"local_path\":\"/home/aderumier/code/linuxloader/games/Percussion Master 3/game/exe/pm3\"},\"provider\":{\"id\":\"rizin\",\"name\":\"Rizin\",\"version\":null},\"analysis_profile\":null,\"predicate_type\":\"rea.reverse-engineering.command-observation\",\"operation\":\"execute_rizin_command\",\"parameters\":{\"path\":\"/home/aderumier/code/linuxloader/games/Percussion Master 3/game/exe/pm3\",\"command\":\"s 0x08553150;pd 20;is~hasp;is~FAFC;is~main;iz~HASP\",\"max_output_bytes\":12000,\"provider_executable\":\"rizin\",\"command_arguments\":[\"-N\",\"-q\",\"-e\",\"scr.color=0\",\"-c\",\"s 0x08553150;pd 20;is~hasp;is~FAFC;is~main;iz~HASP\",\"/home/aderumier/code/linuxloader/games/Percussion Master 3/game/exe/pm3\"]},\"raw_result\":{\"stdout\":\"            ;-- entry0:\\n            ;-- section..text:\\n            ;-- _start:\\n            0x08553150      xor   ebp, ebp                             ; [12] -r-x section size 16606572 named .text\\n            0x08553152      pop   esi\\n            0x08553153      mov   ecx, esp\\n            0x08553155      and   esp, 0xfffffff0\\n            0x08553158      push  eax\\n            0x08553159      push  esp\\n            0x0855315a      push  edx\\n            0x0855315b      push  sym.__libc_csu_fini                  ; 0x95295e0 ; \\\"U\\\\x89\\\\xe5]Ít&\\\"\\n            0x08553160      push  sym.__libc_csu_init                  ; 0x95295f0 ; \\\"U\\\\x89\\\\xe5WVS\\\\xe8\\\\xc1\\\\U00000018C\\\\xff\\\\x81\\\\xc3\\\\xe5\\\\xc16\\\"\\n            0x08553165      push  ecx\\n            0x08553166      push  esi\\n            0x08553167      push  main                                 ; 0x85bcd20\\n            0x0855316c      call  sym.imp.__libc_start_main\\n            0x08553171      hlt\\n            0x08553172      nop\\n            0x08553173      nop\\n            0x08553174      nop\\n            0x08553175      nop\\n            0x08553176      nop\\n            0x08553177      nop\\n 7604 0x006e0f64 0x08728f64 GLOBAL FUNC       49     graphics::PUParticleSystem::HasParticleSystem(std::string const&) const\\n37753 0x008f6ae6 0x0893eae6 WEAK   FUNC      112     Ogre::Font::getGlyphAspectRatio(unsigned int) const\\n 1273 0x0091d7cc 0x089657cc GLOBAL FUNC      105     ParticleUniverse::ParticleSystem::setMainCameraName(std::string)\\n 2090 0x005e6d20 0x0862ed20 GLOBAL FUNC       11     CameraProc::GetMainCameraNode()\\n 8890 0x00574d20 0x085bcd20 GLOBAL FUNC      154     main\\n14163 0x0091d4d4 0x089654d4 GLOBAL FUNC       81     ParticleUniverse::ParticleSystem::getMainCamera()\\n20875 0x005e6d10 0x0862ed10 GLOBAL FUNC       11     CameraProc::GetMainCamera()\\n20878 0x0091d77c 0x0896577c GLOBAL FUNC       79     ParticleUniverse::ParticleSystem::setMainCamera(Ogre::Camera*)\\n21288 0x0090df30 0x08955f30 GLOBAL FUNC      850     grab_vMain\\n22339 0x00a83c6a 0x08acbc6a WEAK   FUNC       15     ParticleUniverse::ParticleSystem::hasMainCamera()\\n23786 0x0130ae50 0x09352e50 GLOBAL FUNC       66     GFxTextParagraph::CharactersIterator::GetRemainingTextPtr(unsigned int*) const\\n24452 ---------- 0x09b19d00 GLOBAL OBJ         4     ParticleUniverse::ParticleSystem::DEFAULT_MAIN_CAMERA_NAME\\n31355 0x0091d4c6 0x089654c6 GLOBAL FUNC       13     ParticleUniverse::ParticleSystem::getMainCameraName() const\\n47597 0x00557eb0 0x0859feb0 GLOBAL FUNC     2373     PMGAME::Setting::MainMenu()\\n   35 0x00506ba8 0x0854eba8 GLOBAL FUNC       16     imp.__libc_start_main\\n\",\"stderr\":\"WARNING: bin_file_strings: search interval size (0xfd656c) exeeds max region size (0xa00000), skipping it.\\nWARNING: bin_file_strings: search interval size (0x184cea9) exeeds max region size (0xa00000), skipping it.\\nWARNING: bin_file_strings: search interval size (0xfd656c) exeeds max region size (0xa00000), skipping it.\\nWARNING: bin_file_strings: search interval size (0x184cea9) exeeds max region size (0xa00000), skipping it.\\n\",\"exit_code\":0,\"signal\":null,\"output_budget_bytes\":12000,\"output_budget_source\":\"request\",\"output_truncated\":false,\"completion_status\":\"complete\",\"artifact_sha256_after\":\"429cd794e89bd7d3997325d4310a2ee026de8f95c67f97a9f7f4738b6d746e46\",\"artifact_changed\":false},\"normalized_result\":{\"stdout\":\"            ;-- entry0:\\n            ;-- section..text:\\n            ;-- _start:\\n            0x08553150      xor   ebp, ebp                             ; [12] -r-x section size 16606572 named .text\\n            0x08553152      pop   esi\\n            0x08553153      mov   ecx, esp\\n            0x08553155      and   esp, 0xfffffff0\\n            0x08553158      push  eax\\n            0x08553159      push  esp\\n            0x0855315a      push  edx\\n            0x0855315b      push  sym.__libc_csu_fini                  ; 0x95295e0 ; \\\"U\\\\x89\\\\xe5]Ít&\\\"\\n            0x08553160      push  sym.__libc_csu_init                  ; 0x95295f0 ; \\\"U\\\\x89\\\\xe5WVS\\\\xe8\\\\xc1\\\\U00000018C\\\\xff\\\\x81\\\\xc3\\\\xe5\\\\xc16\\\"\\n            0x08553165      push  ecx\\n            0x08553166      push  esi\\n            0x08553167      push  main                                 ; 0x85bcd20\\n            0x0855316c      call  sym.imp.__libc_start_main\\n            0x08553171      hlt\\n            0x08553172      nop\\n            0x08553173      nop\\n            0x08553174      nop\\n            0x08553175      nop\\n            0x08553176      nop\\n            0x08553177      nop\\n 7604 0x006e0f64 0x08728f64 GLOBAL FUNC       49     graphics::PUParticleSystem::HasParticleSystem(std::string const&) const\\n37753 0x008f6ae6 0x0893eae6 WEAK   FUNC      112     Ogre::Font::getGlyphAspectRatio(unsigned int) const\\n 1273 0x0091d7cc 0x089657cc GLOBAL FUNC      105     ParticleUniverse::ParticleSystem::setMainCameraName(std::string)\\n 2090 0x005e6d20 0x0862ed20 GLOBAL FUNC       11     CameraProc::GetMainCameraNode()\\n 8890 0x00574d20 0x085bcd20 GLOBAL FUNC      154     main\\n14163 0x0091d4d4 0x089654d4 GLOBAL FUNC       81     ParticleUniverse::ParticleSystem::getMainCamera()\\n20875 0x005e6d10 0x0862ed10 GLOBAL FUNC       11     CameraProc::GetMainCamera()\\n20878 0x0091d77c 0x0896577c GLOBAL FUNC       79     ParticleUniverse::ParticleSystem::setMainCamera(Ogre::Camera*)\\n21288 0x0090df30 0x08955f30 GLOBAL FUNC      850     grab_vMain\\n22339 0x00a83c6a 0x08acbc6a WEAK   FUNC       15     ParticleUniverse::ParticleSystem::hasMainCamera()\\n23786 0x0130ae50 0x09352e50 GLOBAL FUNC       66     GFxTextParagraph::CharactersIterator::GetRemainingTextPtr(unsigned int*) const\\n24452 ---------- 0x09b19d00 GLOBAL OBJ         4     ParticleUniverse::ParticleSystem::DEFAULT_MAIN_CAMERA_NAME\\n31355 0x0091d4c6 0x089654c6 GLOBAL FUNC       13     ParticleUniverse::ParticleSystem::getMainCameraName() const\\n47597 0x00557eb0 0x0859feb0 GLOBAL FUNC     2373     PMGAME::Setting::MainMenu()\\n   35 0x00506ba8 0x0854eba8 GLOBAL FUNC       16     imp.__libc_start_main\\n\",\"stderr\":\"WARNING: bin_file_strings: search interval size (0xfd656c) exeeds max region size (0xa00000), skipping it.\\nWARNING: bin_file_strings: search interval size (0x184cea9) exeeds max region size (0xa00000), skipping it.\\nWARNING: bin_file_strings: search interval size (0xfd656c) exeeds max region size (0xa00000), skipping it.\\nWARNING: bin_file_strings: search interval size (0x184cea9) exeeds max region size (0xa00000), skipping it.\\n\",\"exit_code\":0,\"signal\":null,\"output_budget_bytes\":12000,\"output_budget_source\":\"request\",\"output_truncated\":false,\"completion_status\":\"complete\",\"artifact_sha256_after\":\"429cd794e89bd7d3997325d4310a2ee026de8f95c67f97a9f7f4738b6d746e46\",\"artifact_changed\":false},\"confidence\":\"observed\",\"authority\":\"shipped-artifact\",\"environment\":null,\"limitations\":[\"The executable implementation, version and supported formats are unknown because no reliable identity probe was performed.\",\"Rizin commands and retained plugins may read files or access network resources outside the selected artifact; those external inputs are not bound to Evidence.\",\"completion_status covers process completion and Rizin shell refusals only. A statement that ran can still fail while Rizin returns exit_code 0, so inspect stderr before treating an empty response as absence.\",\"A non-zero process exit is preserved as an observed command result.\",\"When both are available, pre-run and post-run digests detect artifact changes across the provider call but cannot prove the exact bytes consumed during the call.\"],\"relationship_coverage\":null,\"locations\":[{\"kind\":\"artifact-path\",\"path\":\"/home/aderumier/code/linuxloader/games/Percussion Master 3/game/exe/pm3\"}],\"evidence_links\":[]}"
+      }
+    ],
+    "structuredContent": {
+      "evidence_id": "ev_4830e0e59d064ef2cc9b8b68100e817c23cf10b9b69bd9bc9babdf26fcdcfabb",
+      "evidence_format": 2,
+      "subject": {
+        "identity": {
+          "kind": "file",
+          "sha256": "429cd794e89bd7d3997325d4310a2ee026de8f95c67f97a9f7f4738b6d746e46",
+          "selection": null,
+          "format": "unknown",
+          "architecture": null
+        },
+        "name": "pm3",
+        "local_path": "/home/aderumier/code/linuxloader/games/Percussion Master 3/game/exe/pm3"
+      },
+      "provider": {
+        "id": "rizin",
+        "name": "Rizin",
+        "version": null
+      },
+      "analysis_profile": null,
+      "predicate_type": "rea.reverse-engineering.command-observation",
+      "operation": "execute_rizin_command",
+      "parameters": {
+        "path": "/home/aderumier/code/linuxloader/games/Percussion Master 3/game/exe/pm3",
+        "command": "s 0x08553150;pd 20;is~hasp;is~FAFC;is~main;iz~HASP",
+        "max_output_bytes": 12000,
+        "provider_executable": "rizin",
+        "command_arguments": [
+          "-N",
+          "-q",
+          "-e",
+          "scr.color=0",
+          "-c",
+          "s 0x08553150;pd 20;is~hasp;is~FAFC;is~main;iz~HASP",
+          "/home/aderumier/code/linuxloader/games/Percussion Master 3/game/exe/pm3"
+        ]
+      },
+      "raw_result": {
+        "stdout": "            ;-- entry0:\n            ;-- section..text:\n            ;-- _start:\n            0x08553150      xor   ebp, ebp                             ; [12] -r-x section size 16606572 named .text\n            0x08553152      pop   esi\n            0x08553153      mov   ecx, esp\n            0x08553155      and   esp, 0xfffffff0\n            0x08553158      push  eax\n            0x08553159      push  esp\n            0x0855315a      push  edx\n            0x0855315b      push  sym.__libc_csu_fini                  ; 0x95295e0 ; \"U\\x89\\xe5]Ít&\"\n            0x08553160      push  sym.__libc_csu_init                  ; 0x95295f0 ; \"U\\x89\\xe5WVS\\xe8\\xc1\\U00000018C\\xff\\x81\\xc3\\xe5\\xc16\"\n            0x08553165      push  ecx\n            0x08553166      push  esi\n            0x08553167      push  main                                 ; 0x85bcd20\n            0x0855316c      call  sym.imp.__libc_start_main\n            0x08553171      hlt\n            0x08553172      nop\n            0x08553173      nop\n            0x08553174      nop\n            0x08553175      nop\n            0x08553176      nop\n            0x08553177      nop\n 7604 0x006e0f64 0x08728f64 GLOBAL FUNC       49     graphics::PUParticleSystem::HasParticleSystem(std::string const&) const\n37753 0x008f6ae6 0x0893eae6 WEAK   FUNC      112     Ogre::Font::getGlyphAspectRatio(unsigned int) const\n 1273 0x0091d7cc 0x089657cc GLOBAL FUNC      105     ParticleUniverse::ParticleSystem::setMainCameraName(std::string)\n 2090 0x005e6d20 0x0862ed20 GLOBAL FUNC       11     CameraProc::GetMainCameraNode()\n 8890 0x00574d20 0x085bcd20 GLOBAL FUNC      154     main\n14163 0x0091d4d4 0x089654d4 GLOBAL FUNC       81     ParticleUniverse::ParticleSystem::getMainCamera()\n20875 0x005e6d10 0x0862ed10 GLOBAL FUNC       11     CameraProc::GetMainCamera()\n20878 0x0091d77c 0x0896577c GLOBAL FUNC       79     ParticleUniverse::ParticleSystem::setMainCamera(Ogre::Camera*)\n21288 0x0090df30 0x08955f30 GLOBAL FUNC      850     grab_vMain\n22339 0x00a83c6a 0x08acbc6a WEAK   FUNC       15     ParticleUniverse::ParticleSystem::hasMainCamera()\n23786 0x0130ae50 0x09352e50 GLOBAL FUNC       66     GFxTextParagraph::CharactersIterator::GetRemainingTextPtr(unsigned int*) const\n24452 ---------- 0x09b19d00 GLOBAL OBJ         4     ParticleUniverse::ParticleSystem::DEFAULT_MAIN_CAMERA_NAME\n31355 0x0091d4c6 0x089654c6 GLOBAL FUNC       13     ParticleUniverse::ParticleSystem::getMainCameraName() const\n47597 0x00557eb0 0x0859feb0 GLOBAL FUNC     2373     PMGAME::Setting::MainMenu()\n   35 0x00506ba8 0x0854eba8 GLOBAL FUNC       16     imp.__libc_start_main\n",
+        "stderr": "WARNING: bin_file_strings: search interval size (0xfd656c) exeeds max region size (0xa00000), skipping it.\nWARNING: bin_file_strings: search interval size (0x184cea9) exeeds max region size (0xa00000), skipping it.\nWARNING: bin_file_strings: search interval size (0xfd656c) exeeds max region size (0xa00000), skipping it.\nWARNING: bin_file_strings: search interval size (0x184cea9) exeeds max region size (0xa00000), skipping it.\n",
+        "exit_code": 0,
+        "signal": null,
+        "output_budget_bytes": 12000,
+        "output_budget_source": "request",
+        "output_truncated": false,
+        "completion_status": "complete",
+        "artifact_sha256_after": "429cd794e89bd7d3997325d4310a2ee026de8f95c67f97a9f7f4738b6d746e46",
+        "artifact_changed": false
+      },
+      "normalized_result": {
+        "stdout": "            ;-- entry0:\n            ;-- section..text:\n            ;-- _start:\n            0x08553150      xor   ebp, ebp                             ; [12] -r-x section size 16606572 named .text\n            0x08553152      pop   esi\n            0x08553153      mov   ecx, esp\n            0x08553155      and   esp, 0xfffffff0\n            0x08553158      push  eax\n            0x08553159      push  esp\n            0x0855315a      push  edx\n            0x0855315b      push  sym.__libc_csu_fini                  ; 0x95295e0 ; \"U\\x89\\xe5]Ít&\"\n            0x08553160      push  sym.__libc_csu_init                  ; 0x95295f0 ; \"U\\x89\\xe5WVS\\xe8\\xc1\\U00000018C\\xff\\x81\\xc3\\xe5\\xc16\"\n            0x08553165      push  ecx\n            0x08553166      push  esi\n            0x08553167      push  main                                 ; 0x85bcd20\n            0x0855316c      call  sym.imp.__libc_start_main\n            0x08553171      hlt\n            0x08553172      nop\n            0x08553173      nop\n            0x08553174      nop\n            0x08553175      nop\n            0x08553176      nop\n            0x08553177      nop\n 7604 0x006e0f64 0x08728f64 GLOBAL FUNC       49     graphics::PUParticleSystem::HasParticleSystem(std::string const&) const\n37753 0x008f6ae6 0x0893eae6 WEAK   FUNC      112     Ogre::Font::getGlyphAspectRatio(unsigned int) const\n 1273 0x0091d7cc 0x089657cc GLOBAL FUNC      105     ParticleUniverse::ParticleSystem::setMainCameraName(std::string)\n 2090 0x005e6d20 0x0862ed20 GLOBAL FUNC       11     CameraProc::GetMainCameraNode()\n 8890 0x00574d20 0x085bcd20 GLOBAL FUNC      154     main\n14163 0x0091d4d4 0x089654d4 GLOBAL FUNC       81     ParticleUniverse::ParticleSystem::getMainCamera()\n20875 0x005e6d10 0x0862ed10 GLOBAL FUNC       11     CameraProc::GetMainCamera()\n20878 0x0091d77c 0x0896577c GLOBAL FUNC       79     ParticleUniverse::ParticleSystem::setMainCamera(Ogre::Camera*)\n21288 0x0090df30 0x08955f30 GLOBAL FUNC      850     grab_vMain\n22339 0x00a83c6a 0x08acbc6a WEAK   FUNC       15     ParticleUniverse::ParticleSystem::hasMainCamera()\n23786 0x0130ae50 0x09352e50 GLOBAL FUNC       66     GFxTextParagraph::CharactersIterator::GetRemainingTextPtr(unsigned int*) const\n24452 ---------- 0x09b19d00 GLOBAL OBJ         4     ParticleUniverse::ParticleSystem::DEFAULT_MAIN_CAMERA_NAME\n31355 0x0091d4c6 0x089654c6 GLOBAL FUNC       13     ParticleUniverse::ParticleSystem::getMainCameraName() const\n47597 0x00557eb0 0x0859feb0 GLOBAL FUNC     2373     PMGAME::Setting::MainMenu()\n   35 0x00506ba8 0x0854eba8 GLOBAL FUNC       16     imp.__libc_start_main\n",
+        "stderr": "WARNING: bin_file_strings: search interval size (0xfd656c) exeeds max region size (0xa00000), skipping it.\nWARNING: bin_file_strings: search interval size (0x184cea9) exeeds max region size (0xa00000), skipping it.\nWARNING: bin_file_strings: search interval size (0xfd656c) exeeds max region size (0xa00000), skipping it.\nWARNING: bin_file_strings: search interval size (0x184cea9) exeeds max region size (0xa00000), skipping it.\n",
+        "exit_code": 0,
+        "signal": null,
+        "output_budget_bytes": 12000,
+        "output_budget_source": "request",
+        "output_truncated": false,
+        "completion_status": "complete",
+        "artifact_sha256_after": "429cd794e89bd7d3997325d4310a2ee026de8f95c67f97a9f7f4738b6d746e46",
+        "artifact_changed": false
+      },
+      "confidence": "observed",
+      "authority": "shipped-artifact",
+      "environment": null,
+      "limitations": [
+        "The executable implementation, version and supported formats are unknown because no reliable identity probe was performed.",
+        "Rizin commands and retained plugins may read files or access network resources outside the selected artifact; those external inputs are not bound to Evidence.",
+        "completion_status covers process completion and Rizin shell refusals only. A statement that ran can still fail while Rizin returns exit_code 0, so inspect stderr before treating an empty response as absence.",
+        "A non-zero process exit is preserved as an observed command result.",
+        "When both are available, pre-run and post-run digests detect artifact changes across the provider call but cannot prove the exact bytes consumed during the call."
+      ],
+      "relationship_coverage": null,
+      "locations": [
+        {
+          "kind": "artifact-path",
+          "path": "/home/aderumier/code/linuxloader/games/Percussion Master 3/game/exe/pm3"
+        }
+      ],
+      "evidence_links": []
+    }
+  },
+  {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"evidence_id\":\"ev_6e9b82d35fee7d592c0a97316f2ffa18b91d2429f382bbcce85a78dde8f6fe44\",\"evidence_format\":2,\"subject\":{\"identity\":{\"kind\":\"file\",\"sha256\":\"429cd794e89bd7d3997325d4310a2ee026de8f95c67f97a9f7f4738b6d746e46\",\"selection\":null,\"format\":\"unknown\",\"architecture\":null},\"name\":\"pm3\",\"local_path\":\"/home/aderumier/code/linuxloader/games/Percussion Master 3/game/exe/pm3\"},\"provider\":{\"id\":\"rizin\",\"name\":\"Rizin\",\"version\":null},\"analysis_profile\":null,\"predicate_type\":\"rea.reverse-engineering.command-observation\",\"operation\":\"execute_rizin_command\",\"parameters\":{\"path\":\"/home/aderumier/code/linuxloader/games/Percussion Master 3/game/exe/pm3\",\"command\":\"s 0x085bcd20;pd 45\",\"max_output_bytes\":6500,\"provider_executable\":\"rizin\",\"command_arguments\":[\"-N\",\"-q\",\"-e\",\"scr.color=0\",\"-c\",\"s 0x085bcd20;pd 45\",\"/home/aderumier/code/linuxloader/games/Percussion Master 3/game/exe/pm3\"]},\"raw_result\":{\"stdout\":\"            ;-- main:\\n            0x085bcd20      lea   ecx, [esp + 4]\\n            0x085bcd24      and   esp, 0xfffffff0\\n            0x085bcd27      push  dword [ecx - 4]\\n            0x085bcd2a      push  ebp\\n            0x085bcd2b      mov   ebp, esp\\n            0x085bcd2d      sub   esp, 0x18\\n            0x085bcd30      mov   dword [ebp - 8], ecx\\n            0x085bcd33      mov   dword [ebp - 4], ebx\\n            0x085bcd36      mov   dword [esp], obj.g_rGame             ; [0x99a1b80:4]=0\\n            0x085bcd3d      call  method.Game.Run\\n        .-> 0x085bcd42      mov   dword [esp], 0\\n        :   0x085bcd49      call  method.toyshop::Singleton_toyshop::SingletonManager__toyshop::OpNewCreator__toyshop::DoubleCheckedLocking__toyshop::ManualRelease_.getSingletonPtr_int\\n        :   0x085bcd4e      mov   eax, dword [eax]\\n        :   0x085bcd50      mov   edx, dword [eax]\\n        :   0x085bcd52      mov   dword [esp], eax\\n        :   0x085bcd55      mov   dword [esp + 4], 0\\n        :   0x085bcd5d      call  dword [edx + 8]                      ; 8\\n        :   0x085bcd60      mov   ecx, dword [ebp - 8]\\n        :   0x085bcd63      xor   eax, eax\\n        :   0x085bcd65      mov   ebx, dword [ebp - 4]\\n        :   0x085bcd68      leave\\n        :   0x085bcd69      lea   esp, [ecx - 4]\\n        :   0x085bcd6c      ret\\n        :   0x085bcd6d      dec   edx\\n        :   0x085bcd6e      mov   ebx, eax\\n       ,==< 0x085bcd70      je    0x85bcd7a\\n       |:   0x085bcd72      mov   dword [esp], ebx\\n       |:   0x085bcd75      call  sym.imp._Unwind_Resume\\n       `--> 0x085bcd7a      mov   dword [esp], eax\\n        :   0x085bcd7d      call  sym.imp.__cxa_begin_catch\\n        :   0x085bcd82      mov   edx, dword [eax]\\n        :   0x085bcd84      mov   dword [esp], eax\\n        :   0x085bcd87      call  dword [edx + 0xc]                    ; 12\\n        :   0x085bcd8a      mov   eax, dword [eax]\\n        :   0x085bcd8c      mov   dword [esp + 4], str.pm4::An_exception_has_occurred:__s ; [0x9535d6c:4]=0x3a346d70 ; \\\"pm4::An exception has occurred: %s\\\\n\\\"\\n        :   0x085bcd94      mov   dword [esp + 8], eax\\n        :   0x085bcd98      mov   eax, dword [obj.stderr]              ; [0x99232dc:4]=0\\n        :   0x085bcd9d      mov   dword [esp], eax\\n        :   0x085bcda0      call  sym.imp.fprintf\\n        :   0x085bcda5      call  sym.imp.__cxa_end_catch\\n        `=< 0x085bcdaa      jmp   0x85bcd42\\n            0x085bcdac      mov   ebx, eax\\n            0x085bcdae      nop\\n            0x085bcdb0      call  sym.imp.__cxa_end_catch\\n            0x085bcdb5      lea   esi, [esi]\\n\",\"stderr\":\"WARNING: bin_file_strings: search interval size (0xfd656c) exeeds max region size (0xa00000), skipping it.\\nWARNING: bin_file_strings: search interval size (0x184cea9) exeeds max region size (0xa00000), skipping it.\\nWARNING: bin_file_strings: search interval size (0xfd656c) exeeds max region size (0xa00000), skipping it.\\nWARNING: bin_file_strings: search interval size (0x184cea9) exeeds max region size (0xa00000), skipping it.\\n\",\"exit_code\":0,\"signal\":null,\"output_budget_bytes\":6500,\"output_budget_source\":\"request\",\"output_truncated\":false,\"completion_status\":\"complete\",\"artifact_sha256_after\":\"429cd794e89bd7d3997325d4310a2ee026de8f95c67f97a9f7f4738b6d746e46\",\"artifact_changed\":false},\"normalized_result\":{\"stdout\":\"            ;-- main:\\n            0x085bcd20      lea   ecx, [esp + 4]\\n            0x085bcd24      and   esp, 0xfffffff0\\n            0x085bcd27      push  dword [ecx - 4]\\n            0x085bcd2a      push  ebp\\n            0x085bcd2b      mov   ebp, esp\\n            0x085bcd2d      sub   esp, 0x18\\n            0x085bcd30      mov   dword [ebp - 8], ecx\\n            0x085bcd33      mov   dword [ebp - 4], ebx\\n            0x085bcd36      mov   dword [esp], obj.g_rGame             ; [0x99a1b80:4]=0\\n            0x085bcd3d      call  method.Game.Run\\n        .-> 0x085bcd42      mov   dword [esp], 0\\n        :   0x085bcd49      call  method.toyshop::Singleton_toyshop::SingletonManager__toyshop::OpNewCreator__toyshop::DoubleCheckedLocking__toyshop::ManualRelease_.getSingletonPtr_int\\n        :   0x085bcd4e      mov   eax, dword [eax]\\n        :   0x085bcd50      mov   edx, dword [eax]\\n        :   0x085bcd52      mov   dword [esp], eax\\n        :   0x085bcd55      mov   dword [esp + 4], 0\\n        :   0x085bcd5d      call  dword [edx + 8]                      ; 8\\n        :   0x085bcd60      mov   ecx, dword [ebp - 8]\\n        :   0x085bcd63      xor   eax, eax\\n        :   0x085bcd65      mov   ebx, dword [ebp - 4]\\n        :   0x085bcd68      leave\\n        :   0x085bcd69      lea   esp, [ecx - 4]\\n        :   0x085bcd6c      ret\\n        :   0x085bcd6d      dec   edx\\n        :   0x085bcd6e      mov   ebx, eax\\n       ,==< 0x085bcd70      je    0x85bcd7a\\n       |:   0x085bcd72      mov   dword [esp], ebx\\n       |:   0x085bcd75      call  sym.imp._Unwind_Resume\\n       `--> 0x085bcd7a      mov   dword [esp], eax\\n        :   0x085bcd7d      call  sym.imp.__cxa_begin_catch\\n        :   0x085bcd82      mov   edx, dword [eax]\\n        :   0x085bcd84      mov   dword [esp], eax\\n        :   0x085bcd87      call  dword [edx + 0xc]                    ; 12\\n        :   0x085bcd8a      mov   eax, dword [eax]\\n        :   0x085bcd8c      mov   dword [esp + 4], str.pm4::An_exception_has_occurred:__s ; [0x9535d6c:4]=0x3a346d70 ; \\\"pm4::An exception has occurred: %s\\\\n\\\"\\n        :   0x085bcd94      mov   dword [esp + 8], eax\\n        :   0x085bcd98      mov   eax, dword [obj.stderr]              ; [0x99232dc:4]=0\\n        :   0x085bcd9d      mov   dword [esp], eax\\n        :   0x085bcda0      call  sym.imp.fprintf\\n        :   0x085bcda5      call  sym.imp.__cxa_end_catch\\n        `=< 0x085bcdaa      jmp   0x85bcd42\\n            0x085bcdac      mov   ebx, eax\\n            0x085bcdae      nop\\n            0x085bcdb0      call  sym.imp.__cxa_end_catch\\n            0x085bcdb5      lea   esi, [esi]\\n\",\"stderr\":\"WARNING: bin_file_strings: search interval size (0xfd656c) exeeds max region size (0xa00000), skipping it.\\nWARNING: bin_file_strings: search interval size (0x184cea9) exeeds max region size (0xa00000), skipping it.\\nWARNING: bin_file_strings: search interval size (0xfd656c) exeeds max region size (0xa00000), skipping it.\\nWARNING: bin_file_strings: search interval size (0x184cea9) exeeds max region size (0xa00000), skipping it.\\n\",\"exit_code\":0,\"signal\":null,\"output_budget_bytes\":6500,\"output_budget_source\":\"request\",\"output_truncated\":false,\"completion_status\":\"complete\",\"artifact_sha256_after\":\"429cd794e89bd7d3997325d4310a2ee026de8f95c67f97a9f7f4738b6d746e46\",\"artifact_changed\":false},\"confidence\":\"observed\",\"authority\":\"shipped-artifact\",\"environment\":null,\"limitations\":[\"The executable implementation, version and supported formats are unknown because no reliable identity probe was performed.\",\"Rizin commands and retained plugins may read files or access network resources outside the selected artifact; those external inputs are not bound to Evidence.\",\"completion_status covers process completion and Rizin shell refusals only. A statement that ran can still fail while Rizin returns exit_code 0, so inspect stderr before treating an empty response as absence.\",\"A non-zero process exit is preserved as an observed command result.\",\"When both are available, pre-run and post-run digests detect artifact changes across the provider call but cannot prove the exact bytes consumed during the call.\"],\"relationship_coverage\":null,\"locations\":[{\"kind\":\"artifact-path\",\"path\":\"/home/aderumier/code/linuxloader/games/Percussion Master 3/game/exe/pm3\"}],\"evidence_links\":[]}"
+      }
+    ],
+    "structuredContent": {
+      "evidence_id": "ev_6e9b82d35fee7d592c0a97316f2ffa18b91d2429f382bbcce85a78dde8f6fe44",
+      "evidence_format": 2,
+      "subject": {
+        "identity": {
+          "kind": "file",
+          "sha256": "429cd794e89bd7d3997325d4310a2ee026de8f95c67f97a9f7f4738b6d746e46",
+          "selection": null,
+          "format": "unknown",
+          "architecture": null
+        },
+        "name": "pm3",
+        "local_path": "/home/aderumier/code/linuxloader/games/Percussion Master 3/game/exe/pm3"
+      },
+      "provider": {
+        "id": "rizin",
+        "name": "Rizin",
+        "version": null
+      },
+      "analysis_profile": null,
+      "predicate_type": "rea.reverse-engineering.command-observation",
+      "operation": "execute_rizin_command",
+      "parameters": {
+        "path": "/home/aderumier/code/linuxloader/games/Percussion Master 3/game/exe/pm3",
+        "command": "s 0x085bcd20;pd 45",
+        "max_output_bytes": 6500,
+        "provider_executable": "rizin",
+        "command_arguments": [
+          "-N",
+          "-q",
+          "-e",
+          "scr.color=0",
+          "-c",
+          "s 0x085bcd20;pd 45",
+          "/home/aderumier/code/linuxloader/games/Percussion Master 3/game/exe/pm3"
+        ]
+      },
+      "raw_result": {
+        "stdout": "            ;-- main:\n            0x085bcd20      lea   ecx, [esp + 4]\n            0x085bcd24      and   esp, 0xfffffff0\n            0x085bcd27      push  dword [ecx - 4]\n            0x085bcd2a      push  ebp\n            0x085bcd2b      mov   ebp, esp\n            0x085bcd2d      sub   esp, 0x18\n            0x085bcd30      mov   dword [ebp - 8], ecx\n            0x085bcd33      mov   dword [ebp - 4], ebx\n            0x085bcd36      mov   dword [esp], obj.g_rGame             ; [0x99a1b80:4]=0\n            0x085bcd3d      call  method.Game.Run\n        .-> 0x085bcd42      mov   dword [esp], 0\n        :   0x085bcd49      call  method.toyshop::Singleton_toyshop::SingletonManager__toyshop::OpNewCreator__toyshop::DoubleCheckedLocking__toyshop::ManualRelease_.getSingletonPtr_int\n        :   0x085bcd4e      mov   eax, dword [eax]\n        :   0x085bcd50      mov   edx, dword [eax]\n        :   0x085bcd52      mov   dword [esp], eax\n        :   0x085bcd55      mov   dword [esp + 4], 0\n        :   0x085bcd5d      call  dword [edx + 8]                      ; 8\n        :   0x085bcd60      mov   ecx, dword [ebp - 8]\n        :   0x085bcd63      xor   eax, eax\n        :   0x085bcd65      mov   ebx, dword [ebp - 4]\n        :   0x085bcd68      leave\n        :   0x085bcd69      lea   esp, [ecx - 4]\n        :   0x085bcd6c      ret\n        :   0x085bcd6d      dec   edx\n        :   0x085bcd6e      mov   ebx, eax\n       ,==< 0x085bcd70      je    0x85bcd7a\n       |:   0x085bcd72      mov   dword [esp], ebx\n       |:   0x085bcd75      call  sym.imp._Unwind_Resume\n       `--> 0x085bcd7a      mov   dword [esp], eax\n        :   0x085bcd7d      call  sym.imp.__cxa_begin_catch\n        :   0x085bcd82      mov   edx, dword [eax]\n        :   0x085bcd84      mov   dword [esp], eax\n        :   0x085bcd87      call  dword [edx + 0xc]                    ; 12\n        :   0x085bcd8a      mov   eax, dword [eax]\n        :   0x085bcd8c      mov   dword [esp + 4], str.pm4::An_exception_has_occurred:__s ; [0x9535d6c:4]=0x3a346d70 ; \"pm4::An exception has occurred: %s\\n\"\n        :   0x085bcd94      mov   dword [esp + 8], eax\n        :   0x085bcd98      mov   eax, dword [obj.stderr]              ; [0x99232dc:4]=0\n        :   0x085bcd9d      mov   dword [esp], eax\n        :   0x085bcda0      call  sym.imp.fprintf\n        :   0x085bcda5      call  sym.imp.__cxa_end_catch\n        `=< 0x085bcdaa      jmp   0x85bcd42\n            0x085bcdac      mov   ebx, eax\n            0x085bcdae      nop\n            0x085bcdb0      call  sym.imp.__cxa_end_catch\n            0x085bcdb5      lea   esi, [esi]\n",
+        "stderr": "WARNING: bin_file_strings: search interval size (0xfd656c) exeeds max region size (0xa00000), skipping it.\nWARNING: bin_file_strings: search interval size (0x184cea9) exeeds max region size (0xa00000), skipping it.\nWARNING: bin_file_strings: search interval size (0xfd656c) exeeds max region size (0xa00000), skipping it.\nWARNING: bin_file_strings: search interval size (0x184cea9) exeeds max region size (0xa00000), skipping it.\n",
+        "exit_code": 0,
+        "signal": null,
+        "output_budget_bytes": 6500,
+        "output_budget_source": "request",
+        "output_truncated": false,
+        "completion_status": "complete",
+        "artifact_sha256_after": "429cd794e89bd7d3997325d4310a2ee026de8f95c67f97a9f7f4738b6d746e46",
+        "artifact_changed": false
+      },
+      "normalized_result": {
+        "stdout": "            ;-- main:\n            0x085bcd20      lea   ecx, [esp + 4]\n            0x085bcd24      and   esp, 0xfffffff0\n            0x085bcd27      push  dword [ecx - 4]\n            0x085bcd2a      push  ebp\n            0x085bcd2b      mov   ebp, esp\n            0x085bcd2d      sub   esp, 0x18\n            0x085bcd30      mov   dword [ebp - 8], ecx\n            0x085bcd33      mov   dword [ebp - 4], ebx\n            0x085bcd36      mov   dword [esp], obj.g_rGame             ; [0x99a1b80:4]=0\n            0x085bcd3d      call  method.Game.Run\n        .-> 0x085bcd42      mov   dword [esp], 0\n        :   0x085bcd49      call  method.toyshop::Singleton_toyshop::SingletonManager__toyshop::OpNewCreator__toyshop::DoubleCheckedLocking__toyshop::ManualRelease_.getSingletonPtr_int\n        :   0x085bcd4e      mov   eax, dword [eax]\n        :   0x085bcd50      mov   edx, dword [eax]\n        :   0x085bcd52      mov   dword [esp], eax\n        :   0x085bcd55      mov   dword [esp + 4], 0\n        :   0x085bcd5d      call  dword [edx + 8]                      ; 8\n        :   0x085bcd60      mov   ecx, dword [ebp - 8]\n        :   0x085bcd63      xor   eax, eax\n        :   0x085bcd65      mov   ebx, dword [ebp - 4]\n        :   0x085bcd68      leave\n        :   0x085bcd69      lea   esp, [ecx - 4]\n        :   0x085bcd6c      ret\n        :   0x085bcd6d      dec   edx\n        :   0x085bcd6e      mov   ebx, eax\n       ,==< 0x085bcd70      je    0x85bcd7a\n       |:   0x085bcd72      mov   dword [esp], ebx\n       |:   0x085bcd75      call  sym.imp._Unwind_Resume\n       `--> 0x085bcd7a      mov   dword [esp], eax\n        :   0x085bcd7d      call  sym.imp.__cxa_begin_catch\n        :   0x085bcd82      mov   edx, dword [eax]\n        :   0x085bcd84      mov   dword [esp], eax\n        :   0x085bcd87      call  dword [edx + 0xc]                    ; 12\n        :   0x085bcd8a      mov   eax, dword [eax]\n        :   0x085bcd8c      mov   dword [esp + 4], str.pm4::An_exception_has_occurred:__s ; [0x9535d6c:4]=0x3a346d70 ; \"pm4::An exception has occurred: %s\\n\"\n        :   0x085bcd94      mov   dword [esp + 8], eax\n        :   0x085bcd98      mov   eax, dword [obj.stderr]              ; [0x99232dc:4]=0\n        :   0x085bcd9d      mov   dword [esp], eax\n        :   0x085bcda0      call  sym.imp.fprintf\n        :   0x085bcda5      call  sym.imp.__cxa_end_catch\n        `=< 0x085bcdaa      jmp   0x85bcd42\n            0x085bcdac      mov   ebx, eax\n            0x085bcdae      nop\n            0x085bcdb0      call  sym.imp.__cxa_end_catch\n            0x085bcdb5      lea   esi, [esi]\n",
+        "stderr": "WARNING: bin_file_strings: search interval size (0xfd656c) exeeds max region size (0xa00000), skipping it.\nWARNING: bin_file_strings: search interval size (0x184cea9) exeeds max region size (0xa00000), skipping it.\nWARNING: bin_file_strings: search interval size (0xfd656c) exeeds max region size (0xa00000), skipping it.\nWARNING: bin_file_strings: search interval size (0x184cea9) exeeds max region size (0xa00000), skipping it.\n",
+        "exit_code": 0,
+        "signal": null,
+        "output_budget_bytes": 6500,
+        "output_budget_source": "request",
+        "output_truncated": false,
+        "completion_status": "complete",
+        "artifact_sha256_after": "429cd794e89bd7d3997325d4310a2ee026de8f95c67f97a9f7f4738b6d746e46",
+        "artifact_changed": false
+      },
+      "confidence": "observed",
+      "authority": "shipped-artifact",
+      "environment": null,
+      "limitations": [
+        "The executable implementation, version and supported formats are unknown because no reliable identity probe was performed.",
+        "Rizin commands and retained plugins may read files or access network resources outside the selected artifact; those external inputs are not bound to Evidence.",
+        "completion_status covers process completion and Rizin shell refusals only. A statement that ran can still fail while Rizin returns exit_code 0, so inspect stderr before treating an empty response as absence.",
+        "A non-zero process exit is preserved as an observed command result.",
+        "When both are available, pre-run and post-run digests detect artifact changes across the provider call but cannot prove the exact bytes consumed during the call."
+      ],
+      "relationship_coverage": null,
+      "locations": [
+        {
+          "kind": "artifact-path",
+          "path": "/home/aderumier/code/linuxloader/games/Percussion Master 3/game/exe/pm3"
+        }
+      ],
+      "evidence_links": []
+    }
+  },
+  {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"evidence_id\":\"ev_0ebda102648e862d0de445c21ec7255b61535e9005fa0f118ffb632982d6aef1\",\"evidence_format\":2,\"subject\":{\"identity\":{\"kind\":\"file\",\"sha256\":\"01108a2f9270ade7c9be28343725a0480ca2052cbf837339df01084ef9fee93f\",\"selection\":null,\"format\":\"unknown\",\"architecture\":null},\"name\":\"a36rom_fpga_decrypted.bin\",\"local_path\":\"/home/aderumier/code/linuxloader/games/Percussion Master 3/game/roms/a36rom_fpga_decrypted.bin\"},\"provider\":{\"id\":\"rizin\",\"name\":\"Rizin\",\"version\":null},\"analysis_profile\":null,\"predicate_type\":\"rea.reverse-engineering.command-observation\",\"operation\":\"execute_rizin_command\",\"parameters\":{\"path\":\"/home/aderumier/code/linuxloader/games/Percussion Master 3/game/roms/a36rom_fpga_decrypted.bin\",\"command\":\"s 0;pd 18\",\"asm_arch\":\"arm\",\"asm_bits\":32,\"base_address\":\"0x0\",\"max_output_bytes\":5000,\"provider_executable\":\"rizin\",\"command_arguments\":[\"-N\",\"-q\",\"-e\",\"scr.color=0\",\"-a\",\"arm\",\"-b\",\"32\",\"-n\",\"-m\",\"0x0\",\"-c\",\"s 0;pd 18\",\"/home/aderumier/code/linuxloader/games/Percussion Master 3/game/roms/a36rom_fpga_decrypted.bin\"]},\"raw_result\":{\"stdout\":\"        ,=< 0x00000000      b     0x20\\n       ,==< 0x00000004      b     0x118\\n      ,===< 0x00000008      b     0x168\\n     ,====< 0x0000000c      b     0x1b8\\n    ,=====< 0x00000010      b     0x208\\n    |||||   0x00000014      mov   r0, r0\\n   ,======< 0x00000018      b     0x70\\n  ,=======< 0x0000001c      b     0xc0\\n  ||||||`-> 0x00000020      mov   r0, 0xd2\\n  ||||||    0x00000024      msr   cpsr_c, r0\\n  ||||||    0x00000028      ldr   sp, [0x000000e8]                     ; [0xe8:4]=0x200fa00\\n  ||||||    0x0000002c      mov   r0, 0xd1\\n  ||||||    0x00000030      msr   cpsr_c, r0\\n  ||||||    0x00000034      ldr   sp, [0x000000ec]                     ; [0xec:4]=0x200f800\\n  ||||||    0x00000038      ldr   r8, [0x000000f0]                     ; [0xf0:4]=0xfffff000\\n  ||||||    0x0000003c      mov   r0, 0xd7\\n  ||||||    0x00000040      msr   cpsr_c, r0\\n  ||||||    0x00000044      ldr   sp, [0x000000f4]                     ; [0xf4:4]=0x200fc00\\n\",\"stderr\":\"\",\"exit_code\":0,\"signal\":null,\"output_budget_bytes\":5000,\"output_budget_source\":\"request\",\"output_truncated\":false,\"completion_status\":\"complete\",\"artifact_sha256_after\":\"01108a2f9270ade7c9be28343725a0480ca2052cbf837339df01084ef9fee93f\",\"artifact_changed\":false},\"normalized_result\":{\"stdout\":\"        ,=< 0x00000000      b     0x20\\n       ,==< 0x00000004      b     0x118\\n      ,===< 0x00000008      b     0x168\\n     ,====< 0x0000000c      b     0x1b8\\n    ,=====< 0x00000010      b     0x208\\n    |||||   0x00000014      mov   r0, r0\\n   ,======< 0x00000018      b     0x70\\n  ,=======< 0x0000001c      b     0xc0\\n  ||||||`-> 0x00000020      mov   r0, 0xd2\\n  ||||||    0x00000024      msr   cpsr_c, r0\\n  ||||||    0x00000028      ldr   sp, [0x000000e8]                     ; [0xe8:4]=0x200fa00\\n  ||||||    0x0000002c      mov   r0, 0xd1\\n  ||||||    0x00000030      msr   cpsr_c, r0\\n  ||||||    0x00000034      ldr   sp, [0x000000ec]                     ; [0xec:4]=0x200f800\\n  ||||||    0x00000038      ldr   r8, [0x000000f0]                     ; [0xf0:4]=0xfffff000\\n  ||||||    0x0000003c      mov   r0, 0xd7\\n  ||||||    0x00000040      msr   cpsr_c, r0\\n  ||||||    0x00000044      ldr   sp, [0x000000f4]                     ; [0xf4:4]=0x200fc00\\n\",\"stderr\":\"\",\"exit_code\":0,\"signal\":null,\"output_budget_bytes\":5000,\"output_budget_source\":\"request\",\"output_truncated\":false,\"completion_status\":\"complete\",\"artifact_sha256_after\":\"01108a2f9270ade7c9be28343725a0480ca2052cbf837339df01084ef9fee93f\",\"artifact_changed\":false},\"confidence\":\"observed\",\"authority\":\"shipped-artifact\",\"environment\":null,\"limitations\":[\"The executable implementation, version and supported formats are unknown because no reliable identity probe was performed.\",\"Rizin commands and retained plugins may read files or access network resources outside the selected artifact; those external inputs are not bound to Evidence.\",\"completion_status covers process completion and Rizin shell refusals only. A statement that ran can still fail while Rizin returns exit_code 0, so inspect stderr before treating an empty response as absence.\",\"REA does not confirm that Rizin applied the selected asm_* values. Rizin uses another arch or bits value when it cannot apply one, at most reporting it on stderr, and e asm.cpu echoes any value, so compare it with e asm.cpu=?.\",\"With base_address, REA passed -n and -m so that Rizin maps file offset 0 at that address as a raw image; REA does not confirm the map, which oml shows. -n skips Rizin's format loaders, so expect no sections, symbols or entry point, and arch, bits and byte order stay at Rizin's defaults unless the call selects them.\",\"A non-zero process exit is preserved as an observed command result.\",\"When both are available, pre-run and post-run digests detect artifact changes across the provider call but cannot prove the exact bytes consumed during the call.\"],\"relationship_coverage\":null,\"locations\":[{\"kind\":\"artifact-path\",\"path\":\"/home/aderumier/code/linuxloader/games/Percussion Master 3/game/roms/a36rom_fpga_decrypted.bin\"}],\"evidence_links\":[]}"
+      }
+    ],
+    "structuredContent": {
+      "evidence_id": "ev_0ebda102648e862d0de445c21ec7255b61535e9005fa0f118ffb632982d6aef1",
+      "evidence_format": 2,
+      "subject": {
+        "identity": {
+          "kind": "file",
+          "sha256": "01108a2f9270ade7c9be28343725a0480ca2052cbf837339df01084ef9fee93f",
+          "selection": null,
+          "format": "unknown",
+          "architecture": null
+        },
+        "name": "a36rom_fpga_decrypted.bin",
+        "local_path": "/home/aderumier/code/linuxloader/games/Percussion Master 3/game/roms/a36rom_fpga_decrypted.bin"
+      },
+      "provider": {
+        "id": "rizin",
+        "name": "Rizin",
+        "version": null
+      },
+      "analysis_profile": null,
+      "predicate_type": "rea.reverse-engineering.command-observation",
+      "operation": "execute_rizin_command",
+      "parameters": {
+        "path": "/home/aderumier/code/linuxloader/games/Percussion Master 3/game/roms/a36rom_fpga_decrypted.bin",
+        "command": "s 0;pd 18",
+        "asm_arch": "arm",
+        "asm_bits": 32,
+        "base_address": "0x0",
+        "max_output_bytes": 5000,
+        "provider_executable": "rizin",
+        "command_arguments": [
+          "-N",
+          "-q",
+          "-e",
+          "scr.color=0",
+          "-a",
+          "arm",
+          "-b",
+          "32",
+          "-n",
+          "-m",
+          "0x0",
+          "-c",
+          "s 0;pd 18",
+          "/home/aderumier/code/linuxloader/games/Percussion Master 3/game/roms/a36rom_fpga_decrypted.bin"
+        ]
+      },
+      "raw_result": {
+        "stdout": "        ,=< 0x00000000      b     0x20\n       ,==< 0x00000004      b     0x118\n      ,===< 0x00000008      b     0x168\n     ,====< 0x0000000c      b     0x1b8\n    ,=====< 0x00000010      b     0x208\n    |||||   0x00000014      mov   r0, r0\n   ,======< 0x00000018      b     0x70\n  ,=======< 0x0000001c      b     0xc0\n  ||||||`-> 0x00000020      mov   r0, 0xd2\n  ||||||    0x00000024      msr   cpsr_c, r0\n  ||||||    0x00000028      ldr   sp, [0x000000e8]                     ; [0xe8:4]=0x200fa00\n  ||||||    0x0000002c      mov   r0, 0xd1\n  ||||||    0x00000030      msr   cpsr_c, r0\n  ||||||    0x00000034      ldr   sp, [0x000000ec]                     ; [0xec:4]=0x200f800\n  ||||||    0x00000038      ldr   r8, [0x000000f0]                     ; [0xf0:4]=0xfffff000\n  ||||||    0x0000003c      mov   r0, 0xd7\n  ||||||    0x00000040      msr   cpsr_c, r0\n  ||||||    0x00000044      ldr   sp, [0x000000f4]                     ; [0xf4:4]=0x200fc00\n",
+        "stderr": "",
+        "exit_code": 0,
+        "signal": null,
+        "output_budget_bytes": 5000,
+        "output_budget_source": "request",
+        "output_truncated": false,
+        "completion_status": "complete",
+        "artifact_sha256_after": "01108a2f9270ade7c9be28343725a0480ca2052cbf837339df01084ef9fee93f",
+        "artifact_changed": false
+      },
+      "normalized_result": {
+        "stdout": "        ,=< 0x00000000      b     0x20\n       ,==< 0x00000004      b     0x118\n      ,===< 0x00000008      b     0x168\n     ,====< 0x0000000c      b     0x1b8\n    ,=====< 0x00000010      b     0x208\n    |||||   0x00000014      mov   r0, r0\n   ,======< 0x00000018      b     0x70\n  ,=======< 0x0000001c      b     0xc0\n  ||||||`-> 0x00000020      mov   r0, 0xd2\n  ||||||    0x00000024      msr   cpsr_c, r0\n  ||||||    0x00000028      ldr   sp, [0x000000e8]                     ; [0xe8:4]=0x200fa00\n  ||||||    0x0000002c      mov   r0, 0xd1\n  ||||||    0x00000030      msr   cpsr_c, r0\n  ||||||    0x00000034      ldr   sp, [0x000000ec]                     ; [0xec:4]=0x200f800\n  ||||||    0x00000038      ldr   r8, [0x000000f0]                     ; [0xf0:4]=0xfffff000\n  ||||||    0x0000003c      mov   r0, 0xd7\n  ||||||    0x00000040      msr   cpsr_c, r0\n  ||||||    0x00000044      ldr   sp, [0x000000f4]                     ; [0xf4:4]=0x200fc00\n",
+        "stderr": "",
+        "exit_code": 0,
+        "signal": null,
+        "output_budget_bytes": 5000,
+        "output_budget_source": "request",
+        "output_truncated": false,
+        "completion_status": "complete",
+        "artifact_sha256_after": "01108a2f9270ade7c9be28343725a0480ca2052cbf837339df01084ef9fee93f",
+        "artifact_changed": false
+      },
+      "confidence": "observed",
+      "authority": "shipped-artifact",
+      "environment": null,
+      "limitations": [
+        "The executable implementation, version and supported formats are unknown because no reliable identity probe was performed.",
+        "Rizin commands and retained plugins may read files or access network resources outside the selected artifact; those external inputs are not bound to Evidence.",
+        "completion_status covers process completion and Rizin shell refusals only. A statement that ran can still fail while Rizin returns exit_code 0, so inspect stderr before treating an empty response as absence.",
+        "REA does not confirm that Rizin applied the selected asm_* values. Rizin uses another arch or bits value when it cannot apply one, at most reporting it on stderr, and e asm.cpu echoes any value, so compare it with e asm.cpu=?.",
+        "With base_address, REA passed -n and -m so that Rizin maps file offset 0 at that address as a raw image; REA does not confirm the map, which oml shows. -n skips Rizin's format loaders, so expect no sections, symbols or entry point, and arch, bits and byte order stay at Rizin's defaults unless the call selects them.",
+        "A non-zero process exit is preserved as an observed command result.",
+        "When both are available, pre-run and post-run digests detect artifact changes across the provider call but cannot prove the exact bytes consumed during the call."
+      ],
+      "relationship_coverage": null,
+      "locations": [
+        {
+          "kind": "artifact-path",
+          "path": "/home/aderumier/code/linuxloader/games/Percussion Master 3/game/roms/a36rom_fpga_decrypted.bin"
+        }
+      ],
+      "evidence_links": []
+    }
+  }
+]

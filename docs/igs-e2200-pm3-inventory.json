@@ -1,0 +1,35 @@
+{
+  "game": "Percussion Master 3",
+  "platform": "E2200 per user identification; local package is a prepared TeknoRaven release, not an original disk dump",
+  "artifacts": [
+    {
+      "path": "games/Percussion Master 3/game/exe/pm3",
+      "size": 26091136,
+      "sha256": "429cd794e89bd7d3997325d4310a2ee026de8f95c67f97a9f7f4738b6d746e46",
+      "package_manifest_matches": true
+    },
+    {
+      "path": "games/Percussion Master 3/game/roms/a36rom_fpga_decrypted.bin",
+      "size": 524288,
+      "sha256": "01108a2f9270ade7c9be28343725a0480ca2052cbf837339df01084ef9fee93f",
+      "package_manifest_matches": true
+    },
+    {
+      "path": "games/Percussion Master 3/game/config/pm3.json",
+      "size": 960,
+      "sha256": "717c734f4feea25fc4603f04ebc1e5d5654f8455b2091afa75a0d0d4df6e0a02",
+      "package_manifest_matches": true
+    }
+  ],
+  "entry": 139800912,
+  "main": 140234016,
+  "startup": "Normal libc startup calls accessible main; no matching E2200 envelope trampoline",
+  "full_executable_marker_counts": {
+    "hasp_": 0,
+    "HASP": 0,
+    "THaspKeyPro": 0,
+    "FAFC_": 0
+  },
+  "firmware": "Supplied 512 KiB image with readable ARM vectors; not recovered in this investigation",
+  "runtime_tested": false
+}
