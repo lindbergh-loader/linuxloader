@@ -322,9 +322,6 @@ local objdump/nm, decrypted scripts and GDB plus the measured runs above.
 
 ## Speed Driver 2
 
-Not started. Its firmware `roms/SD2_EPROM.dec.bin` (already decrypted)
-calls ~29 internal-ROM services (veneers at 0x1003050c+); Kitsune runs it
-"with decrypted EROM and IROM services" and TeknoRaven has an SD2 IROM
-compat layer: one of them is the reference for those services. The A36
-board code here should mostly carry over (different memory sizes:
-TeknoRaven's sd2.json `sram_ext_size` 0x1000000).
+Speed Driver 2's PLX interface and missing internal-ROM services are now
+implemented separately in `igsSd2.c`. See [Speed Driver 2](speed-driver-2.md)
+for its launcher, controls, board model and validation.

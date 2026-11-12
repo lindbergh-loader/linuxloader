@@ -92,6 +92,14 @@ static const IgsGame games[] = {
         .a27Rom = "roms/sd1-yueluo.bin",
     },
     {
+        .crc32 = SPEED_DRIVER_2_IGS,
+        .fileCrc32 = 0x2593d7f6,
+        .dataDirs = {"/data", NULL},
+        .frameWidth = 640,
+        .frameHeight = 480,
+        .sd2Rom = "roms/SD2_EPROM.dec.bin",
+    },
+    {
         // Speed Driver 3 (2010): the A36 board, its firmware in the dump's
         // roms/ (TeknoRaven's game/).
         .crc32 = SPEED_DRIVER_3_IGS,
