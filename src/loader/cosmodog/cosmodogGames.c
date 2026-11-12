@@ -6,6 +6,19 @@
 #include "../config/config.h"
 
 static const CosmodogGame games[] = {
+    {
+        // Rockin' Bowl-O-Rama gold (bowlgold, its 2.2.1).
+        .crc32 = ROCKIN_BOWL_O_RAMA_COSMODOG,
+        .fileCrc32 = 0x7db5f008,
+        .rootPath = "/bowl",
+        .dataPath = "/data",
+        .ioInit = 0x08092790,
+        .sendMessage = 0x08092b10,
+        .getMessage = 0x08092e50,
+        .sha1 = 0x0804edd0,
+        .convertHash = 0x0804c610,
+        .dataValid = 0x080713d0,
+    },
 };
 
 const CosmodogGame *cosmodogGetGame(uint32_t crc32)
