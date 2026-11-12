@@ -63,6 +63,7 @@
 #define GOLD_CAPTAIN_IGS 0x6d6ff885                              // IGS, Gold Captain E2000 v1 e65 (GoldCaptain)
 #define PIRATE_REVENGE_IGS 0x322ab98e                            // IGS, Pirate Revenge M-101CN (sship)
 #define SPEED_DRIVER_IGS 0x5beeb93f                              // IGS, Speed Driver (sdlinux, A27 board)
+#define ROCKIN_BOWL_O_RAMA_COSMODOG 0x93675fe0                   // Cosmodog, Rockin' Bowl-O-Rama gold (bowlgold)
 #define POLICE_TRAINER_2_TEAMPLAY 0xf1709a8e                     // Teamplay, pt2s_g11
 #define STAR_TREK_VOYAGER_TEAMPLAY 0x29632402                    // Teamplay, trek (src-e4)
 #define STAR_TREK_VOYAGER_SERVICE_TEAMPLAY 0x093b902f            // Teamplay, stvserv (src-e4)
