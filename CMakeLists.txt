@@ -72,6 +72,15 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux" AND NOT MINGW AND NOT CMAKE_C_COMPILER MATC
     set_target_properties(linuxloader_exe PROPERTIES OUTPUT_NAME "linuxloader")
     target_compile_options(linuxloader_exe PRIVATE ${LINUXLOADER_EXE_C_FLAGS})
 
+    # FreeBSD games (Temple Run): their ELF mapped and run on the host's
+    # libraries (src/freebsd/fbsdRunner.c). Position-independent: the game
+    # takes the executables' usual address.
+    file(GLOB LINUXLOADER_FREEBSD_SRC src/freebsd/*.c)
+    add_executable(linuxloader_freebsd ${LINUXLOADER_FREEBSD_SRC})
+    target_compile_options(linuxloader_freebsd PRIVATE -m32 -fPIE -Wall)
+    set_target_properties(linuxloader_freebsd PROPERTIES LINK_FLAGS "-m32 -pie")
+    target_link_libraries(linuxloader_freebsd PRIVATE dl pthread)
+
     # Common options for shared libraries
     set(LIBS_C_FLAGS -m32 -fPIC -shared)
     set(SHARED_LINKER_FLAGS -m32 -Wl,-z,defs -rdynamic)
