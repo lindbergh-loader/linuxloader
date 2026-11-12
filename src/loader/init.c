@@ -26,6 +26,7 @@
 #include "roxor/roxor.h"
 #include "cecropia/cecropia.h"
 #include "igs/igs.h"
+#include "cosmodog/cosmodog.h"
 #include "common/desktopInput.h"
 #endif
 
@@ -279,6 +280,9 @@ void initMain(char *configPath, char *controlsPath)
         exit(1);
     // Global VR games too (see globalvr/gvr.c).
     if (isGvrGame() && gvrInit() != 0)
+        exit(1);
+    // Cosmodog games too (see cosmodog/cosmodog.c).
+    if (isCosmodogGame() && cosmodogInit() != 0)
         exit(1);
 #endif
 
