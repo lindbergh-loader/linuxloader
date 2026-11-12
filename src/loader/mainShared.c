@@ -95,6 +95,7 @@ char *games[] = {"a.elf",
                  "sdlinux",        // IGS (Speed Driver)
                  "sd2",            // IGS (Speed Driver 2)
                  "sd3",            // IGS (Speed Driver 3)
+                 "SR",             // IGS (Speed Rider)
                  "bowlgold",       // Cosmodog (Rockin' Bowl-O-Rama)
                  "END"};
 
@@ -201,6 +202,7 @@ uint32_t cleanElfCRC32[] = {
     0x2336A62B, // IGS       | Speed Driver sdlinux (A27 board)
     0x2593D7F6, // IGS       | Speed Driver 2 sd2 (A36 / PLX9030)
     0x760014AA, // IGS       | Speed Driver 3 sd3 (A36 board)
+    0x2770C27E, // IGS       | Speed Rider SR (IGS036 / PLX9030)
     0x7DB5F008, // Cosmodog  | Rockin' Bowl-O-Rama bowlgold (gold 2.2.1)
     0x0A5B0341, // Raw Thrills | Big Buck Hunter Pro game (v1.25, Rockey envelope)
     0xF96D95CC, // Raw Thrills | SpongeBob Bikini Bottom Bowling game (v1.05, Rockey envelope)

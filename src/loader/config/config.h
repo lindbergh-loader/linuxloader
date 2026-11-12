@@ -65,6 +65,7 @@
 #define SPEED_DRIVER_IGS 0x5beeb93f                              // IGS, Speed Driver (sdlinux, A27 board)
 #define SPEED_DRIVER_2_IGS 0x2602638a                            // IGS, Speed Driver 2 (sd2, A36 / PLX9030)
 #define SPEED_DRIVER_3_IGS 0xb5771886                            // IGS, Speed Driver 3 (sd3, A36 board)
+#define SPEED_RIDER_IGS 0xdc9fbc3b                               // IGS, Speed Rider (SR, IGS036 / PLX9030)
 #define ROCKIN_BOWL_O_RAMA_COSMODOG 0x93675fe0                   // Cosmodog, Rockin' Bowl-O-Rama gold (bowlgold)
 #define POLICE_TRAINER_2_TEAMPLAY 0xf1709a8e                     // Teamplay, pt2s_g11
 #define STAR_TREK_VOYAGER_TEAMPLAY 0x29632402                    // Teamplay, trek (src-e4)

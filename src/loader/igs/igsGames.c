@@ -100,6 +100,16 @@ static const IgsGame games[] = {
         .sd2Rom = "roms/SD2_EPROM.dec.bin",
     },
     {
+        // Speed Rider (M109): the cabinet runs from game/, beside data/.
+        .crc32 = SPEED_RIDER_IGS,
+        .fileCrc32 = 0x2770c27e,
+        .frameWidth = 848,
+        .frameHeight = 480,
+        .sr1Rom = "roms/sr1_eprom.bin",
+        .ogrePlugins = "../data/LinuxPlugins.cfg",
+        .ogreAutoTextureMatrix = 0x400,
+    },
+    {
         // Speed Driver 3 (2010): the A36 board, its firmware in the dump's
         // roms/ (TeknoRaven's game/).
         .crc32 = SPEED_DRIVER_3_IGS,
