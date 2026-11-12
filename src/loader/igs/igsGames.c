@@ -91,6 +91,25 @@ static const IgsGame games[] = {
         .frameHeight = 480,
         .a27Rom = "roms/sd1-yueluo.bin",
     },
+    {
+        // Speed Driver 3 (2010): the A36 board, its firmware in the dump's
+        // roms/ (TeknoRaven's game/).
+        .crc32 = SPEED_DRIVER_3_IGS,
+        .fileCrc32 = 0x760014aa,
+        .arguments = "24836 7056 3728",
+        .frameWidth = 1360,
+        .frameHeight = 768,
+        .a36Rom = "roms/sd3_eprom.bin",
+        .a36Idle = {0x10002798, 0x100027ac},
+        .a36Loader = {0x08fffc00, 0x09000310, 0x08fffbc0, 0x08fffc70},
+        .a36ReplyPublish = 0x08b9ccb1,
+        .oisScanJoys = 0x08ccb0c0,
+        .luabindGetErrorCallback = 0x08cbaea0,
+        .luaToLString = 0x08c81fe0,
+        .luaPCall = 0x08c80000,
+        .serialIo = {0x08aa8e80, 0x08aa9390, 0x08aaa8b0, 0x08aa9690},
+        .ogreAutoTextureMatrix = 0x4c0,
+    },
 };
 
 const IgsGame *igsGetGame(uint32_t crc32)
