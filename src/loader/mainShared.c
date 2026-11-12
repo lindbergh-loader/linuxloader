@@ -93,6 +93,7 @@ char *games[] = {"a.elf",
                  "GoldCaptain",    // IGS (Gold Captain)
                  "sship",          // IGS (Pirate Revenge)
                  "sdlinux",        // IGS (Speed Driver)
+                 "sd2",            // IGS (Speed Driver 2)
                  "sd3",            // IGS (Speed Driver 3)
                  "bowlgold",       // Cosmodog (Rockin' Bowl-O-Rama)
                  "END"};
@@ -198,6 +199,7 @@ uint32_t cleanElfCRC32[] = {
     0xD05B6728, // IGS       | Gold Captain GoldCaptain (E2000 v1 e65, libcasmcard by name)
     0x16F1257A, // IGS       | Pirate Revenge sship (M-101CN, libcasmcard by name)
     0x2336A62B, // IGS       | Speed Driver sdlinux (A27 board)
+    0x2593D7F6, // IGS       | Speed Driver 2 sd2 (A36 / PLX9030)
     0x760014AA, // IGS       | Speed Driver 3 sd3 (A36 board)
     0x7DB5F008, // Cosmodog  | Rockin' Bowl-O-Rama bowlgold (gold 2.2.1)
     0x0A5B0341, // Raw Thrills | Big Buck Hunter Pro game (v1.25, Rockey envelope)
