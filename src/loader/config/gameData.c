@@ -44,6 +44,7 @@ static const GameData gameData[] = {
     {THE_ACT_CECROPIA, "The Act", "the-act", "Cecropia", "CEC-ACT", "2007", "640x480", WORKING, NO_JVS_IO, DIGITAL, 640, 480, -1, 0, 0, 0, 0, 0, 0, RED},
     {GOLD_CAPTAIN_IGS, "Gold Captain", "gold-captain", "IGS", "IGS-GC", "2009", "640x480", WORKING, NO_JVS_IO, DIGITAL, 640, 480, -1, 0, 0, 0, 0, 0, 0, RED},
     {PIRATE_REVENGE_IGS, "Pirate Revenge", "pirate-revenge", "IGS", "IGS-PR", "2008", "640x480", WORKING, NO_JVS_IO, DIGITAL, 640, 480, -1, 0, 0, 0, 0, 0, 0, RED},
+    {SPEED_DRIVER_IGS, "Speed Driver", "speed-driver", "IGS", "IGS-SD", "2004", "640x480", WORKING, NO_JVS_IO, DRIVING, 640, 480, -1, 0, 0, 0, 0, 0, 0, RED},
     {WMMT3DXPLUS_N2, "Wangan Midnight Maximum Tune 3DX+", "wmmt3dxp", "Namco N2", "W3P100", "2010", "640x480", NOT_WORKING, NAMCO_FCA_1, DRIVING, 640, 480, -1, 0, 0, 0, 0, 0, 0, RED},
     {CSNEO_N2, "Counter Strike NEO", "csneo", "Namco N2", "csneo2", "2005", "640x480", WORKING, NO_JVS_IO, SHOOTING, 640, 480, -1, 0, 0, 0, 0, 0, 0, RED},
     {DHRIDERS_ES1, "Dead Heat Riders", "dhriders", "Namco ES1", "DHR100", "2013", "1360x768", WORKING, NAMCO_NA_JV, DRIVING, 1360, 768, -1, 0, 0, 0, 0, 0, 0, RED},

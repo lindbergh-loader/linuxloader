@@ -82,6 +82,15 @@ static const IgsGame games[] = {
         .sodObjectSize = 0x5f8,
         .stage = 0x08796340,
     },
+    {
+        // Speed Driver (2003): the A27 board, its ROM in the dump's roms/.
+        .crc32 = SPEED_DRIVER_IGS,
+        .fileCrc32 = 0x2336a62b,
+        .dataDirs = {"/sd", NULL},
+        .frameWidth = 1280,
+        .frameHeight = 480,
+        .a27Rom = "roms/sd1-yueluo.bin",
+    },
 };
 
 const IgsGame *igsGetGame(uint32_t crc32)
