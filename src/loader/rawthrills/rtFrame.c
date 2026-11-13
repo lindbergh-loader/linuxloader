@@ -316,6 +316,27 @@ static void parseCommandLineArgs(int argc, char **argv)
     int32_t *mode = (int32_t *)videoGame->resolution;
 
     parseArgsOrig(argc, argv);
+    // Apply the descriptor's in-memory code patches now the game is mapped:
+    // changing a hardcoded constant without modifying the dump on disk. A
+    // marker file lets a variant image (same ELF) opt in while the stock one
+    // (no marker) is left untouched.
+    int applyCodePatches = 1;
+    if (videoGame->codePatchCount && videoGame->codePatchMarker)
+    {
+        char marker[PATH_MAX];
+        snprintf(marker, sizeof(marker), "%s/%s", rtGameDir(), videoGame->codePatchMarker);
+        applyCodePatches = access(marker, F_OK) == 0;
+    }
+    for (size_t i = 0; applyCodePatches && i < videoGame->codePatchCount; i++)
+    {
+        uint32_t a = videoGame->codePatches[i].address;
+        uintptr_t page = a & ~(uintptr_t)0xfff;
+        if (mprotect((void *)page, (a + 4 - page + 0xfff) & ~(uintptr_t)0xfff,
+                     PROT_READ | PROT_WRITE | PROT_EXEC) == 0)
+            *(uint32_t *)(uintptr_t)a = videoGame->codePatches[i].value;
+        else
+            log_warn("Raw Thrills: cannot apply code patch at %#x", a);
+    }
     if (width <= 0 || height <= 0)
         return;
     mode[0] = width;

@@ -113,12 +113,29 @@ typedef struct
     int value;
 } RtStub;
 
+// A 4-byte value written into the running game's code/data at a fixed address
+// during init, to change a hardcoded constant without modifying the dump on
+// disk (which would change its CRC and break the cabinet loader's dump
+// handling). Applied from the ParseCommandLineArgs hook (rtFrame.c).
+typedef struct
+{
+    uint32_t address;
+    uint32_t value;
+} RtCodePatch;
+
 // Everything the loader needs to know about one Raw Thrills game dump.
 typedef struct RtGame
 {
     uint32_t crc32;    // loader-side id (partial CRC of the code segment)
     uint32_t fileCrc32; // CRC32 of the dumped ELF file, as the launcher sees it (0: run as is)
     uint32_t altFileCrc32; // another copy of the same ELF (a resolution patch), run the same way (0: none)
+
+    // 4-byte in-memory patches applied to the running game at init (rtFrame.c).
+    const RtCodePatch *codePatches;
+    size_t codePatchCount;
+    // If set, codePatches apply only when this file exists in the game dir, so
+    // a variant image (same ELF/CRC, different data) can opt in. (0: always.)
+    const char *codePatchMarker;
 
     // Rockey boot envelope: XOR-encrypted code beginning at the real entry.
     // Decrypted in the launcher's cached copy; the original remains intact.
