@@ -260,6 +260,17 @@ static const RtStub cbStubs[] = {
     {"Wheel_SetData", 0},    {"Wheel_SetControl", 0},  {NULL, 0},
 };
 
+// Hybrid-build bonus cars (tools/cruisn-blast-backport-cars.py --preset
+// hybrid): the london_taxi slot (type 3, hosting the 370Z) scales its car to
+// 0.85 in CarSel_CreateCar3D (the three [ebx+0xb0/b4/b8] stores at 0x817be94).
+// Lift it to 1.0f so the 370Z renders full size. Done in memory so the game
+// dump on disk stays original (CRC 0xb919dbd6) — patching it there crashes the
+// cabinet loader's dump handling. Gated on bonus_cars.flag so the stock image
+// is untouched. (jeep, the other bonus slot, is already 1.0.)
+static const RtCodePatch cbCodePatches[] = {
+    {0x0817be9a, 0x3f800000}, {0x0817bea4, 0x3f800000}, {0x0817beae, 0x3f800000},
+};
+
 // The wheel's state (g_ffwheel, 0x8babba0): the force the menus ask for,
 // and whether a race is on; and the flag turning the wheel effects on
 // (bumps, crashes, off-road), which the game only clears.
@@ -1585,6 +1596,11 @@ static const RtGame rtGames[] = {
     {
         .crc32 = CRUISN_BLAST_RT,
         .fileCrc32 = 0xb919dbd6,
+        .codePatches = cbCodePatches,
+        .codePatchCount = sizeof(cbCodePatches) / sizeof(cbCodePatches[0]),
+        // Only the bonus-cars image carries this flag; the stock dump does not,
+        // so its secret-car (bus/dino) scales are left as shipped.
+        .codePatchMarker = "bonus_cars.flag",
         .envelopeGot = CB_ENVELOPE_GOT,
         .envelopeImports = cbEnvelopeImports,
         .envelopeImportCount = sizeof(cbEnvelopeImports) / sizeof(cbEnvelopeImports[0]),
