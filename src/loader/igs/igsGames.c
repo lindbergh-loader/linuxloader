@@ -176,6 +176,32 @@ static const IgsGame games[] = {
         .a36CipherChunks = sizeof(sd4ChunkMasks) / sizeof(sd4ChunkMasks[0]),
     },
     {
+        // Power Truck (pt): Speed Driver 3's cabinet and A36 board, run from
+        // TeknoRaven's game/ beside ../data; its firmware in roms/.
+        .crc32 = POWER_TRUCK_IGS,
+        .fileCrc32 = 0x699ae32a,
+        .arguments = "25020 7056 10080",
+        .frameWidth = 1366,
+        .frameHeight = 768,
+        .a36Rom = "roms/powertruck_eprom.bin",
+        .a36Loader = {0x098b51f0, 0x098b5430, 0x098b5270, 0x098b5b30},
+        .a36Idle = {0x1000288c, 0x100028a0},
+        // Speed Rider 2's internal-ROM services and table
+        .a36Services = 0x0200f000,
+        .oisScanJoys = 0x09580ee0,
+        .luabindGetErrorCallback = 0x09570b70,
+        .luaToLString = 0x09551820,
+        .luaPCall = 0x0954f820,
+        .luabindByteCastFailed = 0x08daf9c4,
+        .serialIo = {0x0930e2c6, 0x0930e0fc, 0x0931042c, 0x0930dab4},
+        .serialIoGearLever = 1,
+        .ogreAutoTextureMatrix = 0x4c0,
+        .ogreKeepArchives = 1,
+        // found from the scripts (frequency analysis, as Speed Rider 2's)
+        .a36CipherMask = {0xe6, 0x88, 0x37, 0xed, 0x73, 0x50, 0xdc, 0xfe,
+                          0x4f, 0x16, 0xef, 0x54, 0xd2, 0x3b, 0x10, 0x7e},
+    },
+    {
         // Speed Rider 2: the A36 board, run from TeknoRaven's game/bin_linux
         // beside ../data; its decrypted firmware in ../roms.
         .crc32 = SPEED_RIDER_2_IGS,
