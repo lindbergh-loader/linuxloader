@@ -69,6 +69,24 @@ static const GaelcoGame games[] = {
         .potentiometerMargin = 7,
         .alignStack = 1,
     },
+    {
+        // Gaelco Championship Tuning Race (car, joc2004).
+        .crc32 = TUNING_RACE_GAELCO,
+        .fileCrc32 = 0x6f1e5179,
+        .paths = diskPaths,
+        .workDir = "../../../..",
+        .frameWidth = 720,
+        .frameHeight = 540,
+        .io = GAELCO_IO_MEMORY,
+        .controls = GAELCO_TUNING_RACE,
+        // Mandos::IniControllers(SwitchCoinSettings *), its ranges static
+        .iniControllers = 0x08189440,
+        .iniControllersPrologue = 9,
+        .potentiometers = 0x0a009260,
+        .potentiometerCount = 6,
+        .potentiometerMargin = 3,
+        .alignStack = 1,
+    },
 };
 
 const GaelcoGame *gaelcoGetGame(uint32_t crc32)
