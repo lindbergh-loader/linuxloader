@@ -29,6 +29,7 @@
 #include "wiimoteEvdev.h"
 #ifdef __linux__
 #include "evdevInput.h"
+#include "../gaelco/gaelcoGame.h"
 #endif
 
 // --- GLOBAL STATE AND MAPPINGS ---
@@ -639,6 +640,13 @@ void remapPerGame()
         gJvsMap[PLAYER_1][LA_GearUp] = (JVSActionMapping){JVS_CALL_SWITCH, BUTTON_3};
         gJvsMap[PLAYER_1][LA_GearDown] = (JVSActionMapping){JVS_CALL_SWITCH, BUTTON_4};
     }
+#ifdef __linux__
+    else if (gaelcoGetGame(gId))
+    {
+        gJvsMap[PLAYER_1][LA_MusicChange] = (JVSActionMapping){JVS_CALL_SWITCH, BUTTON_1};
+        gJvsMap[PLAYER_1][LA_ViewChange] = (JVSActionMapping){JVS_CALL_SWITCH, BUTTON_2};
+    }
+#endif
     else if (gId == PRIMEVAL_HUNT_SBPP)
     {
         gJvsMap[PLAYER_1][LA_Reload] = (JVSActionMapping){JVS_CALL_SWITCH, BUTTON_2};

@@ -28,6 +28,7 @@
 #include "cecropia/cecropia.h"
 #include "igs/igs.h"
 #include "cosmodog/cosmodog.h"
+#include "gaelco/gaelco.h"
 #include "common/desktopInput.h"
 #endif
 
@@ -289,6 +290,9 @@ void initMain(char *configPath, char *controlsPath)
         exit(1);
     // Cosmodog games too (see cosmodog/cosmodog.c).
     if (isCosmodogGame() && cosmodogInit() != 0)
+        exit(1);
+    // Gaelco games too (see gaelco/gaelco.c).
+    if (isGaelcoGame() && gaelcoInit() != 0)
         exit(1);
 #endif
 

@@ -22,6 +22,7 @@
 #include "roxor/roxorGame.h"
 #include "cecropia/cecropiaGame.h"
 #include "teamplay/teamplayGame.h"
+#include "gaelco/gaelcoGame.h"
 #include "igs/igsGame.h"
 
 static const char *const hostLinkers[] = {
@@ -115,6 +116,7 @@ void hostLinkerPrepareCommand(char *command, size_t size, uint32_t fileCrc32)
     const IgsGame *igs = igsGetGameByFileCrc(fileCrc32);
 
     if (!teamplayGetGameByFileCrc(fileCrc32) && !gvrGetGameByFileCrc(fileCrc32) && !roxorGetGameByFileCrc(fileCrc32) &&
+        !gaelcoGetGameByFileCrc(fileCrc32) &&
         !uclibc && !(igs && (igs->a36Rom || igs->sd2Rom || igs->sr1Rom)))
         return;
 
