@@ -14,6 +14,19 @@ static const GaelcoPathAlias tokyoCopPaths[] = {
     {NULL, NULL},
 };
 
+// Ring Riders' and Tuning Race's dumps are the cabinet's whole disk: the
+// game runs from home/joc2001/<game>/salidas, three levels under /home
+// (the host's /home stays the host's). Tuning Race's dump has its aux
+// partition (/home/aux, where the cabinet runs it: its records and
+// settings) at the disk's root.
+static const GaelcoPathAlias diskPaths[] = {
+    {"/home/joc2001", "../.."},
+    {"/home/save0", "../../../save0"},
+    {"/home/save1", "../../../save1"},
+    {"/home/aux", "../../../.."},
+    {NULL, NULL},
+};
+
 static const GaelcoGame games[] = {
     {
         // Tokyo Cop (gameport, the same as car in the dump).
@@ -37,6 +50,24 @@ static const GaelcoGame games[] = {
         // ProcesaPlataforma: jne past "estadoPlataforma = 9" (the switch
         // setting at 0x87938a4, switch.bin's 0x34)
         .noMotionJump = 0x080c027e,
+    },
+    {
+        // Ring Riders (gameport, joc2003).
+        .crc32 = RING_RIDERS_GAELCO,
+        .fileCrc32 = 0x51ea930f,
+        .paths = diskPaths,
+        .frameWidth = 640,
+        .frameHeight = 480,
+        .io = GAELCO_IO_MEMORY,
+        .controls = GAELCO_RING_RIDERS,
+        // G3Dintf_mandos::IniControllers(int *, POTE *)
+        .rs485GetString = 0x08107a6c,
+        .platformInit = 0x080bf60c,
+        .iniControllers = 0x08105f3a,
+        .iniControllersPrologue = 6,
+        .potentiometerCount = 5,
+        .potentiometerMargin = 7,
+        .alignStack = 1,
     },
 };
 

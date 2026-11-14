@@ -72,6 +72,7 @@
 #define POWER_TRUCK_S_IGS 0x197a141e                             // IGS, Power Truck S (pt repaired, A36 board)
 #define ROCKIN_BOWL_O_RAMA_COSMODOG 0x93675fe0                   // Cosmodog, Rockin' Bowl-O-Rama gold (bowlgold)
 #define TOKYO_COP_GAELCO 0x0bbe26aa                              // Gaelco, Tokyo Cop (gameport)
+#define RING_RIDERS_GAELCO 0xeb10f0c5                            // Gaelco, Ring Riders (gameport)
 #define POLICE_TRAINER_2_TEAMPLAY 0xf1709a8e                     // Teamplay, pt2s_g11
 #define STAR_TREK_VOYAGER_TEAMPLAY 0x29632402                    // Teamplay, trek (src-e4)
 #define STAR_TREK_VOYAGER_SERVICE_TEAMPLAY 0x093b902f            // Teamplay, stvserv (src-e4)
