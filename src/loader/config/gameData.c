@@ -44,6 +44,7 @@ static const GameData gameData[] = {
     {THE_ACT_CECROPIA, "The Act", "the-act", "Cecropia", "CEC-ACT", "2007", "640x480", WORKING, NO_JVS_IO, DIGITAL, 640, 480, -1, 0, 0, 0, 0, 0, 0, RED},
     {GOLD_CAPTAIN_IGS, "Gold Captain", "gold-captain", "IGS", "IGS-GC", "2009", "640x480", WORKING, NO_JVS_IO, DIGITAL, 640, 480, -1, 0, 0, 0, 0, 0, 0, RED},
     {PIRATE_REVENGE_IGS, "Pirate Revenge", "pirate-revenge", "IGS", "IGS-PR", "2008", "640x480", WORKING, NO_JVS_IO, DIGITAL, 640, 480, -1, 0, 0, 0, 0, 0, 0, RED},
+    {TOKYO_COP_GAELCO, "Tokyo Cop", "tokyo-cop", "Gaelco", "GAE-TC", "2003", "640x480", WORKING, NO_JVS_IO, DRIVING, 640, 480, -1, 0, 0, 0, 0, 0, 0, RED},
     {ROCKIN_BOWL_O_RAMA_COSMODOG, "Rockin' Bowl-O-Rama", "rockin-bowl-o-rama", "Cosmodog", "CD-RBOR", "2007", "640x480", WORKING, NO_JVS_IO, DIGITAL, 640, 480, -1, 0, 0, 0, 0, 0, 0, RED},
     {SPEED_DRIVER_3_IGS, "Speed Driver 3", "speed-driver-3", "IGS", "IGS-SD3", "2010", "1360x768", WORKING, NO_JVS_IO, DRIVING, 1360, 768, -1, 0, 0, 0, 0, 0, 0, RED},
     {SPEED_DRIVER_IGS, "Speed Driver", "speed-driver", "IGS", "IGS-SD", "2004", "640x480", WORKING, NO_JVS_IO, DRIVING, 640, 480, -1, 0, 0, 0, 0, 0, 0, RED},
