@@ -101,6 +101,7 @@ char *games[] = {"a.elf",
                  "olympus",        // IGS (Speed Driver 4)
                  "pt",             // IGS (Power Truck)
                  "bowlgold",       // Cosmodog (Rockin' Bowl-O-Rama)
+                 "bowling_usa",    // Paokai (Go Go Strike)
                  "gameport",       // Gaelco (Tokyo Cop, Ring Riders)
                  "car",            // Gaelco (Gaelco Championship Tuning Race; Tokyo Cop's copy)
                  "END"};
@@ -214,6 +215,7 @@ uint32_t cleanElfCRC32[] = {
     0x699AE32A, // IGS       | Power Truck pt (A36 board)
     0xB450A566, // IGS       | Power Truck S pt (A36 board, tools/igs-pts-repair.py)
     0x7DB5F008, // Cosmodog  | Rockin' Bowl-O-Rama bowlgold (gold 2.2.1)
+    0x5356B0A1, // Paokai    | Go Go Strike bowling_usa (E.1.0.0)
     0x7A518E3B, // Gaelco    | Tokyo Cop gameport
     0x51EA930F, // Gaelco    | Ring Riders gameport (joc2003)
     0x6F1E5179, // Gaelco    | Gaelco Championship Tuning Race car (joc2004)
