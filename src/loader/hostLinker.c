@@ -26,6 +26,7 @@
 #include "gaelco/gaelcoGame.h"
 #include "igs/igsGame.h"
 #include "paokai/paokaiGame.h"
+#include "itech/itechGame.h"
 
 static const char *const hostLinkers[] = {
     "/lib/ld-linux.so.2",
@@ -118,7 +119,7 @@ void hostLinkerPrepareCommand(char *command, size_t size, uint32_t fileCrc32)
     const IgsGame *igs = igsGetGameByFileCrc(fileCrc32);
 
     if (!teamplayGetGameByFileCrc(fileCrc32) && !gvrGetGameByFileCrc(fileCrc32) && !roxorGetGameByFileCrc(fileCrc32) &&
-        !gaelcoGetGameByFileCrc(fileCrc32) && !paokaiGetGameByFileCrc(fileCrc32) &&
+        !gaelcoGetGameByFileCrc(fileCrc32) && !paokaiGetGameByFileCrc(fileCrc32) && !itechGetGameByFileCrc(fileCrc32) &&
         !uclibc && !(igs && (igs->a36Rom || igs->sd2Rom || igs->sr1Rom)))
         return;
 

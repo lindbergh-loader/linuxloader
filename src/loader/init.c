@@ -29,6 +29,7 @@
 #include "igs/igs.h"
 #include "cosmodog/cosmodog.h"
 #include "paokai/paokai.h"
+#include "itech/itech.h"
 #include "gaelco/gaelco.h"
 #include "common/desktopInput.h"
 #endif
@@ -270,6 +271,34 @@ void initMain(char *configPath, char *controlsPath)
         if (MH_Initialize() != MH_OK || paokaiInit() != 0 || MH_EnableHook(MH_ALL_HOOKS) != MH_OK)
         {
             log_error("Paokai: cannot install the cabinet's hardware");
+            exit(1);
+        }
+        printf("\n");
+        return;
+    }
+
+    // Incredible Technologies games (Orange County Choppers Pinball) keep
+    // their own window too (X11 + GLX): none of the Lindbergh hardware; their
+    // I/O board and dongle are the loader's, fed from evdev or the desktop
+    // (see itech/itechIo.c).
+    if (isItechGame())
+    {
+        printf("\nLinux Loader\nBy the Linux Loader Development Team 2026\n\n");
+        printf("  GAME:        %s\n", getGameName());
+        printf("  GAME ID:     %s\n", getGameId());
+        initJVS();
+        if (getConfig()->inputMode == 2)
+        {
+            if (initEvdevControllers(&controllers) != 0)
+                exit(1);
+            for (int i = 0; i < controllers.count; i++)
+                if (controllers.controller[i].inUse)
+                    printf("  CONTROLLER:  %s\n", controllers.controller[i].name);
+        }
+        desktopStartQuitWatch();
+        if (MH_Initialize() != MH_OK || itechInit() != 0 || MH_EnableHook(MH_ALL_HOOKS) != MH_OK)
+        {
+            log_error("IT: cannot install the cabinet's hardware");
             exit(1);
         }
         printf("\n");

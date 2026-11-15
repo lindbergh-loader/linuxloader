@@ -12,6 +12,7 @@
 #include "namco/namcoN2.h"
 #include "hostLinker.h"
 #include "globalvr/gvrGame.h"
+#include "itech/itechGame.h"
 #include "igs/igsGame.h"
 #endif
 #include <ctype.h>
@@ -662,7 +663,14 @@ void setEnvironmentVariables(const char *ldLibPath, const char *originalDir, con
 
     free(ldLibPathCopy);
 
-    strcat(newLdLibPath, ":.:lib:../lib");
+#ifdef __linux__
+    // An IT game's lib/ is its cabinet's /game/dynamic/lib: its drivers and
+    // the cabinet's own glibc, which no library of today can load.
+    if (itechGetGameByFileCrc(elfCrc))
+        strcat(newLdLibPath, ":.");
+    else
+#endif
+        strcat(newLdLibPath, ":.:lib:../lib");
 
     if (newLdLibPath[0] == ':')
         memmove(newLdLibPath, newLdLibPath + 1, strlen(newLdLibPath));

@@ -1,5 +1,5 @@
 // Cabinet paths of the PC-based arcade systems (Raw Thrills, Namco ES1 and
-// N2, Teamplay, Global VR, Roxor, Cecropia, IGS, Cosmodog, Gaelco, Paokai), mapped to the host by the running game's system:
+// N2, Teamplay, Global VR, Roxor, Cecropia, IGS, Cosmodog, Gaelco, Paokai, IT), mapped to the host by the running game's system:
 // the loader's file interposers (redirections/filesystemShared.c) and the
 // libc path calls below.
 
@@ -20,6 +20,7 @@
 #include "../igs/igs.h"
 #include "../cosmodog/cosmodog.h"
 #include "../paokai/paokai.h"
+#include "../itech/itech.h"
 #include "../gaelco/gaelco.h"
 
 const char *gameRedirectPath(const char *path, char *buf, size_t size)
@@ -42,6 +43,8 @@ const char *gameRedirectPath(const char *path, char *buf, size_t size)
         return cosmodogRedirectPath(path, buf, size);
     if (isPaokaiGame())
         return paokaiRedirectPath(path, buf, size);
+    if (isItechGame())
+        return itechRedirectPath(path, buf, size);
     if (isGaelcoGame())
         return gaelcoRedirectPath(path, buf, size);
     if (isNamcoEs1Game())

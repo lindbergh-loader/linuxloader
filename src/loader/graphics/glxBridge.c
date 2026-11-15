@@ -20,6 +20,7 @@
 #include "../log/log.h"
 #include "../namco/namcoEs1.h"
 #include "../igs/igs.h"
+#include "../itech/itech.h"
 
 #include <math.h>
 #include <stdlib.h>
@@ -483,6 +484,7 @@ void glXSwapBuffers(Display *dpy, GLXDrawable drawable)
         void (*_glXSwapBuffers)(Display *, GLXDrawable) = dlsym(RTLD_NEXT, "glXSwapBuffers");
         namcoEs1BeforeSwap(dpy, drawable);
         igsBeforeSwap();
+        itechBeforeSwap();
         if (_glXSwapBuffers)
             _glXSwapBuffers(dpy, drawable);
         return;
