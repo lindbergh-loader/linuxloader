@@ -22,6 +22,7 @@
 #include "../teamplay/teamplay.h"
 #include "../globalvr/gvr.h"
 #include "../igs/igs.h"
+#include "../paokai/paokai.h"
 #include "../log/log.h"
 
 #define DSP_FRAGMENTS 4
@@ -78,7 +79,7 @@ static int fragmentSize = DSP_FRAGMENT_SIZE;
 
 int ossDspIsPath(const char *path)
 {
-    return (isRawThrillsGame() || isNamcoEs1Game() || isTeamplayGame() || isGvrGame() || isIgsGame()) && path && strcmp(path, "/dev/dsp") == 0;
+    return (isRawThrillsGame() || isNamcoEs1Game() || isTeamplayGame() || isGvrGame() || isIgsGame() || isPaokaiGame()) && path && strcmp(path, "/dev/dsp") == 0;
 }
 
 int ossDspIsFd(int fd)
@@ -147,7 +148,7 @@ static int mixerVolumes[SOUND_MIXER_NRDEVICES];
 
 int ossMixerIsPath(const char *path)
 {
-    return isIgsGame() && path && strcmp(path, "/dev/mixer") == 0;
+    return (isIgsGame() || isPaokaiGame()) && path && strcmp(path, "/dev/mixer") == 0;
 }
 
 int ossMixerIsFd(int fd)

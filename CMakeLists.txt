@@ -65,6 +65,7 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux" AND NOT MINGW AND NOT CMAKE_C_COMPILER MATC
         src/loader/cecropia/cecropiaGames.c
         src/loader/igs/igsGames.c
         src/loader/cosmodog/cosmodogGames.c
+        src/loader/paokai/paokaiGames.c
         src/loader/gaelco/gaelcoGames.c
         src/loader/hostLinker.c)
 
@@ -138,6 +139,7 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux" AND NOT MINGW AND NOT CMAKE_C_COMPILER MATC
         src/loader/igs/*.c
         src/loader/igs/*.cpp
         src/loader/cosmodog/*.c
+        src/loader/paokai/*.c
         src/loader/gaelco/*.c
         src/loader/graphics/shaderWork/*.c
         src/glad/src/gl.c)
