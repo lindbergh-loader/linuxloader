@@ -72,6 +72,7 @@
 #define POWER_TRUCK_S_IGS 0x197a141e                             // IGS, Power Truck S (pt repaired, A36 board)
 #define ROCKIN_BOWL_O_RAMA_COSMODOG 0x93675fe0                   // Cosmodog, Rockin' Bowl-O-Rama gold (bowlgold)
 #define GO_GO_STRIKE_PAOKAI 0xa6ac3b6c                           // Paokai, Go Go Strike (bowling_usa, E.1.0.0)
+#define OCC_PINBALL_ITECH 0x0d4666eb                             // Incredible Technologies, Orange County Choppers Pinball (game.bin)
 #define TOKYO_COP_GAELCO 0x0bbe26aa                              // Gaelco, Tokyo Cop (gameport)
 #define RING_RIDERS_GAELCO 0xeb10f0c5                            // Gaelco, Ring Riders (gameport)
 #define TUNING_RACE_GAELCO 0x66c6a2e5                            // Gaelco, Gaelco Championship Tuning Race (car)

@@ -6,6 +6,12 @@
 #include "../config/config.h"
 
 static const ItechGame games[] = {
+    {
+        // Orange County Choppers Pinball (game.bin).
+        .crc32 = OCC_PINBALL_ITECH,
+        .fileCrc32 = 0x91bfaf71,
+        .startXServer = 0x082b9903,
+    },
 };
 
 const ItechGame *itechGetGame(uint32_t crc32)
