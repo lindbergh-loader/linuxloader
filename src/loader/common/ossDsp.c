@@ -23,6 +23,7 @@
 #include "../globalvr/gvr.h"
 #include "../igs/igs.h"
 #include "../paokai/paokai.h"
+#include "../byoyoyo/byoyoyo.h"
 #include "../itech/itech.h"
 #include "../log/log.h"
 
@@ -80,7 +81,7 @@ static int fragmentSize = DSP_FRAGMENT_SIZE;
 
 int ossDspIsPath(const char *path)
 {
-    return (isRawThrillsGame() || isNamcoEs1Game() || isTeamplayGame() || isGvrGame() || isIgsGame() || isPaokaiGame() || isItechGame()) && path && strcmp(path, "/dev/dsp") == 0;
+    return (isRawThrillsGame() || isNamcoEs1Game() || isTeamplayGame() || isGvrGame() || isIgsGame() || isPaokaiGame() || isItechGame() || isByoyoyoGame()) && path && strcmp(path, "/dev/dsp") == 0;
 }
 
 int ossDspIsFd(int fd)

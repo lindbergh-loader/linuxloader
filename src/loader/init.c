@@ -29,6 +29,7 @@
 #include "igs/igs.h"
 #include "cosmodog/cosmodog.h"
 #include "paokai/paokai.h"
+#include "byoyoyo/byoyoyo.h"
 #include "itech/itech.h"
 #include "gaelco/gaelco.h"
 #include "common/desktopInput.h"
@@ -271,6 +272,34 @@ void initMain(char *configPath, char *controlsPath)
         if (MH_Initialize() != MH_OK || paokaiInit() != 0 || MH_EnableHook(MH_ALL_HOOKS) != MH_OK)
         {
             log_error("Paokai: cannot install the cabinet's hardware");
+            exit(1);
+        }
+        printf("\n");
+        return;
+    }
+
+    // Byoyoyo games (Skycurser) keep their own window too (GameMaker's X11
+    // one): none of the Lindbergh hardware; the loader's input becomes their
+    // keys, fed from evdev or the desktop's gamepads (see
+    // byoyoyo/byoyoyoInput.c).
+    if (isByoyoyoGame())
+    {
+        printf("\nLinux Loader\nBy the Linux Loader Development Team 2026\n\n");
+        printf("  GAME:        %s\n", getGameName());
+        printf("  GAME ID:     %s\n", getGameId());
+        initJVS();
+        if (getConfig()->inputMode == 2)
+        {
+            if (initEvdevControllers(&controllers) != 0)
+                exit(1);
+            for (int i = 0; i < controllers.count; i++)
+                if (controllers.controller[i].inUse)
+                    printf("  CONTROLLER:  %s\n", controllers.controller[i].name);
+        }
+        desktopStartQuitWatch();
+        if (byoyoyoInit() != 0)
+        {
+            log_error("Byoyoyo: cannot install the cabinet's controls");
             exit(1);
         }
         printf("\n");

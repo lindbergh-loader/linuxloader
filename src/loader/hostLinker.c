@@ -7,8 +7,8 @@
 // Global VR and Roxor games, whose dumps come that way, and the Cecropia
 // ones always: built against uClibc, they ask for its dynamic linker
 // (/lib/ld-uClibc.so.0), which glibc's stands in for.
-// Speed Driver 3 and Go Go Strike (Paokai) dumps can also lack their
-// executable mode.
+// Speed Driver 3, Go Go Strike (Paokai) and Skycurser (Byoyoyo) dumps can
+// also lack their executable mode.
 
 #include <limits.h>
 #include <elf.h>
@@ -26,6 +26,7 @@
 #include "gaelco/gaelcoGame.h"
 #include "igs/igsGame.h"
 #include "paokai/paokaiGame.h"
+#include "byoyoyo/byoyoyoGame.h"
 #include "itech/itechGame.h"
 
 static const char *const hostLinkers[] = {
@@ -120,7 +121,7 @@ void hostLinkerPrepareCommand(char *command, size_t size, uint32_t fileCrc32)
 
     if (!teamplayGetGameByFileCrc(fileCrc32) && !gvrGetGameByFileCrc(fileCrc32) && !roxorGetGameByFileCrc(fileCrc32) &&
         !gaelcoGetGameByFileCrc(fileCrc32) && !paokaiGetGameByFileCrc(fileCrc32) && !itechGetGameByFileCrc(fileCrc32) &&
-        !uclibc && !(igs && (igs->a36Rom || igs->sd2Rom || igs->sr1Rom)))
+        !byoyoyoGetGameByFileCrc(fileCrc32) && !uclibc && !(igs && (igs->a36Rom || igs->sd2Rom || igs->sr1Rom)))
         return;
 
     snprintf(elfPath, sizeof(elfPath), "%s", command);
