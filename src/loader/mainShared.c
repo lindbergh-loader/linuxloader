@@ -102,6 +102,7 @@ char *games[] = {"a.elf",
                  "pt",             // IGS (Power Truck)
                  "bowlgold",       // Cosmodog (Rockin' Bowl-O-Rama)
                  "bowling_usa",    // Paokai (Go Go Strike)
+                 "runner",         // Byoyoyo (Skycurser: GameMaker's runner)
                  "game.bin",       // Incredible Technologies (Orange County Choppers Pinball)
                  "gameport",       // Gaelco (Tokyo Cop, Ring Riders)
                  "car",            // Gaelco (Gaelco Championship Tuning Race; Tokyo Cop's copy)
@@ -217,6 +218,7 @@ uint32_t cleanElfCRC32[] = {
     0xB450A566, // IGS       | Power Truck S pt (A36 board, tools/igs-pts-repair.py)
     0x7DB5F008, // Cosmodog  | Rockin' Bowl-O-Rama bowlgold (gold 2.2.1)
     0x5356B0A1, // Paokai    | Go Go Strike bowling_usa (E.1.0.0)
+    0x3CE2194F, // Byoyoyo   | Skycurser runner (GameMaker: Studio 1.4)
     0x91BFAF71, // IT        | Orange County Choppers Pinball game.bin
     0x7A518E3B, // Gaelco    | Tokyo Cop gameport
     0x51EA930F, // Gaelco    | Ring Riders gameport (joc2003)
