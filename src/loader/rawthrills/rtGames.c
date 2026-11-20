@@ -1,4 +1,6 @@
 #include <SDL3/SDL_gamepad.h>
+#include <stdint.h>
+#include <sys/mman.h>
 #include "rtGame.h"
 #include "../config/config.h"
 #include "../hardware/lindbergh/jvs.h"
@@ -1497,6 +1499,74 @@ static const RtSymbol bbhproSymbols[] = {
 };
 static const RtStub bbhproStubs[] = {{"JammaLoop", 0}, {NULL, 0}};
 
+// Big Buck Safari: the Pro engine two years on, not wrapped in the Rockey
+// envelope; the same JAMMA board, guns and events.
+static const RtPathAlias bbsRootAliases[] = {{"/bbsuser", "bbsuser"}, {NULL, NULL}};
+static const RtSymbol bbsSymbols[] = {
+    // Big Buck World's HASP library, 0x63a30 bytes lower.
+    {"hasp_login", 0x08339a00},
+    {"hasp_logout", 0x08339aa0},
+    {"hasp_encrypt", 0x08339b8c},
+    {"hasp_decrypt", 0x08339c78},
+    {"hasp_free", 0x0833a2bc},
+    {"hasp_get_sessioninfo", 0x0833a580},
+    {"hasp_read", 0x0833a7f8},
+    {"hasp_write", 0x0833a8c4},
+    {"JammaPoll", 0x08058590},
+    {"JammaOp", 0x081a7e24},
+    {"JammaLoop", 0x081a96d8},
+    {"PostInputEvent", 0x08058a90},
+    // Big Buck World's tracer pair, 0x29f bytes apart in both.
+    {"TracerGuard", 0x0827ce2a},
+    {"TracerCheck", 0x0827d0c9},
+    // A .cf file's checksum and SHA-1 against its table (0x84c9500): its data
+    // is Big Buck World's (see docs/big-buck-safari.md), newer than the table.
+    {"CfValidate", 0x080df580},
+    // GameStart's check of all of them (a progress screen): its errors put
+    // up the "data files corrupted" warning.
+    {"CfCheckAll", 0x080ac520},
+    // The lease (the operator's fee record, three copies at 0x8598914):
+    // in force unless its fee mode is 1. In force, an unregistered cabinet
+    // locks itself after the gun calibration: "PLEASE STAND BY / Game must
+    // be registered / machine is undergoing system maintenance" (the lock
+    // check 0x818e1f0, its reasons at 0x8598994).
+    {"LeaseActive", 0x0818eee0},
+    // The IR gun manager's gun connected (gun): its camera's status, none
+    // here. The Deluxe cabinet starts no game without both guns.
+    {"GunConnected", 0x0837010f},
+    {NULL, 0},
+};
+static const RtStub bbsStubs[] = {
+    {"JammaLoop", 0}, {"TracerGuard", 1}, {"TracerCheck", 0}, {"CfValidate", 0}, {"CfCheckAll", 0},
+    {"LeaseActive", 0}, {"GunConnected", 1}, {NULL, 0},
+};
+
+// Two tests of the start made jumps to its next steps ("je" to "nop; jmp",
+// the same displacement):
+// - 0x809b306, its gun calibration while the cabinet is a fresh install
+//   (0x89f39f0): the IR one or the two targets one, both shot through the IR
+//   camera, which takes no shot here; the guns get Big Buck Hunter Pro's
+//   calibration instead (jammaGunCalFile);
+// - 0x80997bf, its registration request while the cabinet is unregistered
+//   (adjustment 0x29 on): left unregistered, the game stays offline (a
+//   registered one connects to Raw Thrills' servers at each start, 0x809a933,
+//   "Connecting..." until a 30 s timeout).
+static void bbsInstall(const RtGame *game)
+{
+    static const uintptr_t jumps[] = {0x0809b306, 0x080997bf};
+    (void)game;
+    for (size_t i = 0; i < sizeof(jumps) / sizeof(jumps[0]); i++)
+    {
+        uint8_t *p = (uint8_t *)jumps[i];
+        uintptr_t page = (uintptr_t)p & ~(uintptr_t)0xfff;
+        if (p[0] != 0x0f || p[1] != 0x84 || mprotect((void *)page, 0x2000, PROT_READ | PROT_WRITE | PROT_EXEC) != 0)
+            continue;
+        p[0] = 0x90;
+        p[1] = 0xe9;
+        mprotect((void *)page, 0x2000, PROT_READ | PROT_EXEC);
+    }
+}
+
 static const RtPathAlias sbbRootAliases[] = {{"/sbbuser", "sbbuser"}, {NULL, NULL}};
 static const RtSymbol sbbSymbols[] = {
     {"JammaPoll", 0x0804c7d0},
@@ -1563,6 +1633,40 @@ static const RtGame rtGames[] = {
         .gunHeight = 480,
         .jammaGunCalibrateOp = 0x16,
         .jammaGunCalibrationModeOp = 0x19,
+        .offScreenButton = 1,
+        .glutGameModeWindow = 1,
+        .frameAspect = {4, 3},
+    },
+    {
+        .crc32 = BIG_BUCK_SAFARI_RT,
+        // Mode 700 in the dump: the launcher's copy is executable.
+        .fileCrc32 = 0x1cca4025,
+        .envelopeSelfSlot = -1,
+        .haspFeature = 0xffff0000,
+        .haspMemoryFileId = 0xfff2,
+        .haspAnswers = "hasp",
+        .haspAnswerKeySize = 32,
+        .rootPath = "/g3",
+        .rootAliases = bbsRootAliases,
+        .symbols = bbsSymbols,
+        .stubs = bbsStubs,
+        .jammaPollSymbol = "JammaPoll",
+        .jammaPollPrologue = 6,
+        .jammaOpSymbol = "JammaOp",
+        .jammaOpPrologue = 8,
+        .jammaSwitches = jammaSwitches,
+        .postEventSymbol = "PostInputEvent",
+        .jammaGuns = bbwGuns,
+        .jammaGunCount = sizeof(bbwGuns) / sizeof(bbwGuns[0]),
+        .gunPositionEvent = 0x3f,
+        .gunWidth = 640,
+        .gunHeight = 480,
+        .jammaGunCalibrateOp = 0x16,
+        .jammaGunCalibrationModeOp = 0x19,
+        // Its IR calibration needs the IR camera: a Big Buck Hunter Pro
+        // calibration copied in its place, if any.
+        .jammaGunCalFile = "bbsuser/aud/GunCal.000.aud",
+        .install = bbsInstall,
         .offScreenButton = 1,
         .glutGameModeWindow = 1,
         .frameAspect = {4, 3},

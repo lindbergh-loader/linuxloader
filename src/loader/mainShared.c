@@ -224,6 +224,7 @@ uint32_t cleanElfCRC32[] = {
     0x51EA930F, // Gaelco    | Ring Riders gameport (joc2003)
     0x6F1E5179, // Gaelco    | Gaelco Championship Tuning Race car (joc2004)
     0x0A5B0341, // Raw Thrills | Big Buck Hunter Pro game (v1.25, Rockey envelope)
+    0x1CCA4025, // Raw Thrills | Big Buck Safari game (v01.02.23 US Deluxe)
     0xF96D95CC, // Raw Thrills | SpongeBob Bikini Bottom Bowling game (v1.05, Rockey envelope)
     0xFE266A17, // Namco N2  | Counter Strike NEO hlds_amd (code segment)
 };
