@@ -11,7 +11,8 @@
 //   lacks;
 // - a Unity game: its dumps carry the Windows player, so the game runs under
 //   Unity's Linux player of the version it was built with (or the dump's
-//   own, when it is the cabinet's Linux build), from a tree
+//   own, when it is the cabinet's Linux build: Marvel Contest of
+//   Champions), from a tree
 //   made under /tmp at each start (see docs/nerf-arcade.md): the player, the
 //   game's <name>_Data linked file by file, the player's Mono, the library
 //   under the names of the cabinet plugins it stands in for, and the rest
@@ -37,6 +38,8 @@
 
 static char loaderDir[PATH_MAX], library[PATH_MAX + 32];
 static IniConfig *ini;
+// The Unity game being started (its <name>_Data).
+static const char *unityGame = "";
 
 int logGeneric(int level, const char *file, int line, const char *message, ...)
 {
@@ -226,11 +229,18 @@ static int copyFile(const char *from, const char *to, mode_t mode)
 
 // The cabinet's native plugins the library stands in for (rawthrills/unity):
 // the RIO board, the dongle and its glue.
+// Marvel Contest of Champions' (rawthrills/mcoc): its smart card reader,
+// its cameras, and its RIO2, which the others' dumps lack.
 static const char *pluginStandIn(const char *name)
 {
+    int mcoc = !strcmp(unityGame, "mcoc2");
     if (!strcmp(name, "librio.so") || !strcmp(name, "libUnityNatives.so") || !strncmp(name, "libhasp_linux_", 14))
         return library;
-    if (!strcmp(name, "libOrenVid.so"))
+    // MCoC's is the cabinet's own Linux decoder, which works.
+    if (!strcmp(name, "libOrenVid.so") && !mcoc)
+        return library;
+    if (mcoc && (!strcmp(name, "libRIO2.so") || !strcmp(name, "libUnitySCard.so") || !strcmp(name, "libSCard.so") ||
+                 !strcmp(name, "libWebCamRT.so")))
         return library;
     return NULL;
 }
@@ -312,6 +322,7 @@ static void runUnity(const char *gameDir, const Game64 *g)
     DIR *d;
     struct dirent *e;
 
+    unityGame = g->name;
     snprintf(data, sizeof(data), "%s/%s_Data", gameDir, g->name);
     if (!unityVersion(data, version, sizeof(version)))
     {
@@ -390,7 +401,7 @@ static void runUnity(const char *gameDir, const Game64 *g)
         // as FMOD's studio library its core one).
         snprintf(dst, sizeof(dst), "%s/Plugins/x86_64", path);
         prependEnv("LD_LIBRARY_PATH", dst);
-        // Unity 2019 and later: no x86_64/.
+        // Unity 2019 and later: no x86_64/ (Marvel Contest of Champions).
         snprintf(dst, sizeof(dst), "%s/Plugins", path);
         prependEnv("LD_LIBRARY_PATH", dst);
         // Plugins built asking for an executable stack (FMOD 1.10's), which

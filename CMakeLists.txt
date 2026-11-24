@@ -194,7 +194,9 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux" AND NOT MINGW AND NOT CMAKE_C_COMPILER MATC
         src/loader/rawthrills/unity/*.c
         src/loader/rawthrills/nerf/*.c
         src/loader/rawthrills/sb3/*.c
-        src/loader/rawthrills/tmnt/*.c)
+        src/loader/rawthrills/tmnt/*.c
+        src/loader/rawthrills/mcoc/*.c
+        src/loader/rawthrills/mcoc/*.cpp)
     add_library(loader64 SHARED
         ${LOADER64_SO_SRC}
         src/loader/config/iniParser.c
