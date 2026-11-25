@@ -316,6 +316,31 @@ static const IgsGame games[] = {
         .haspMemorySize = sizeof(fishHunterHasp),
     },
     {
+        // MuziBox (mb, TeknoRaven's package): the A36 board, run from game/
+        // (its relative paths), its firmware in roms/.
+        .crc32 = MUZIBOX_IGS,
+        .fileCrc32 = 0x233690da,
+        .a36Rom = "roms/muzibox_eprom.bin",
+        // P2A_Loader iInit, iReset, iUnInit, LoaderAdv iLoadDataPointer (its
+        // embedded firmware), the wait
+        .a36Loader = {0x0847befa, 0x0847c136, 0x0847bf92, 0x0847cfce, 0x0847c514},
+        .a36Sdl = 1,
+        .a36FrameTurn = 1,
+        .a36Offline = 1,
+        // isDefaultStoreName (storeName from info/setting.cfg starts with
+        // "MuziBox"): not, booting to attract
+        .returnZero = 0x081d5a60,
+        // its I/O board (switches, lamps) on USART1
+        .a36Stm32Usart = 2,
+        .a36FishBoard = 2,
+        // Speed Rider 2's internal-ROM services and table
+        .a36Services = 0x0200f000,
+        // its scripts' (Lua 5.1 bytecode: from opening.mba's header), moved
+        // as the cipher's bits are: the game asks for encryption
+        .a36CipherMask = {0x04, 0x1b, 0x59, 0x25, 0xbb, 0xc4, 0x26, 0xdf,
+                          0x50, 0x7f, 0x76, 0x15, 0xc4, 0x61, 0xec, 0x7c},
+    },
+    {
         // Speed Rider 2: the A36 board, run from TeknoRaven's game/bin_linux
         // beside ../data; its decrypted firmware in ../roms.
         .crc32 = SPEED_RIDER_2_IGS,
