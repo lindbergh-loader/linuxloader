@@ -371,6 +371,40 @@ static const IgsGame games[] = {
                           0x30, 0xbe, 0x78, 0x37, 0xef, 0xec, 0x78, 0x93},
     },
     {
+        // Demon Hunter (zombie, M202CN, 2011): the E2100, its A36 board's
+        // firmware embedded in the executable (0x08246be0, decrypted to
+        // roms/; the asic36.bin beside it unused).
+        .crc32 = DEMON_HUNTER_IGS,
+        .fileCrc32 = 0xd3ab8aa8,
+        .rootPath = "/Zombie",
+        .dataDirs = {NULL},
+        // its picture: 1280x720, whatever the screen
+        .frameWidth = 1280,
+        .frameHeight = 720,
+        .a36AsksScreen = 1,
+        .a36Rom = "roms/demonhunter_eprom.bin",
+        // the upload (P2A_LoaderAdv_iLoadData's of a buffer)
+        .a36Loader = {0, 0, 0, 0x0808a040},
+        .a36Sdl = 1,
+        // the internal ROM's services' table (0x1001236c)
+        .a36Services = 0x0200f000,
+        .a36TimerClock = 65000000,
+        .a36CatchUp = 1,
+        // the assets' (the encrypted zero block, moved as the cipher's bits
+        // are: the game asks for encryption)
+        .a36CipherMask = {0x42, 0x44, 0x1f, 0xc3, 0xdb, 0x08, 0xf3, 0x47,
+                          0xe1, 0x25, 0xb1, 0xe6, 0xd1, 0xf1, 0xc3, 0x26},
+        // its sound loader takes the size before its reader gives it (as
+        // Fish Hunter SKL 2's): replaced
+        .soundLoad = 0x080630f0,
+        .soundSlot = 0x08062e10,
+        .soundRead = 0x08066490,
+        .soundTable = 0x083dea88,
+        // the control board (RS485)
+        .a36Stm32Usart = 2,
+        .a36FishBoard = 5,
+    },
+    {
         // MuziBox (mb, TeknoRaven's package): the A36 board, run from game/
         // (its relative paths), its firmware in roms/.
         .crc32 = MUZIBOX_IGS,
