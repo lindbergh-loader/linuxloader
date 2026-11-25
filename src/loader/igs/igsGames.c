@@ -247,6 +247,24 @@ static const IgsGame games[] = {
         .a36PlxDoorbell = 0x080983bd,
     },
     {
+        // Rock Fever 5 (RF5v2): the same board and cabinet; its doorbell
+        // writes 1. Its package has no internal ROM: Percussion Master
+        // 2008's.
+        .crc32 = ROCK_FEVER_5_IGS,
+        .fileCrc32 = 0x39386fac,
+        .setVideoMode = 0x08150c70,
+        .frameWidth = 640,
+        .frameHeight = 480,
+        .a36Rom = "roms/RF5v2_EPROM.bin",
+        .a36PlxOpen = 0x081903b0,
+        .a36PlxBarMap = 0x081907f0,
+        .a36PlxDone = {0x0818fda0, 0x0818feb0, 0x08190510, 0x08190d90, 0x08190e00},
+        .a36PlxDoorbell = 0x080978d7,
+        .a36PlxFind = 0x080976b0,
+        .a36Rf5Services = 1,
+        .a36PlxDoorbellByte = 1,
+    },
+    {
         // Speed Rider 2: the A36 board, run from TeknoRaven's game/bin_linux
         // beside ../data; its decrypted firmware in ../roms.
         .crc32 = SPEED_RIDER_2_IGS,

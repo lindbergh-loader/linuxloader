@@ -72,6 +72,7 @@
 #define POWER_TRUCK_IGS 0x02fe5b0b                               // IGS, Power Truck (pt, A36 board)
 #define POWER_TRUCK_S_IGS 0x197a141e                             // IGS, Power Truck S (pt repaired, A36 board)
 #define PERCUSSION_MASTER_2008_IGS 0x0931a9e5                   // IGS, Percussion Master 2008 (PM2008v2, IGS036/PLX9030)
+#define ROCK_FEVER_5_IGS 0xedcac0b6                             // IGS, Rock Fever 5 (RF5v2, IGS036/PLX9030)
 #define ROCKIN_BOWL_O_RAMA_COSMODOG 0x93675fe0                   // Cosmodog, Rockin' Bowl-O-Rama gold (bowlgold)
 #define GO_GO_STRIKE_PAOKAI 0xa6ac3b6c                           // Paokai, Go Go Strike (bowling_usa, E.1.0.0)
 #define SKYCURSER_BYOYOYO 0x4a073bb5                             // Byoyoyo, Skycurser (runner, GameMaker: Studio)
