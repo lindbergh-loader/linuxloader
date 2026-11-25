@@ -102,6 +102,7 @@ char *games[] = {"a.elf",
                  "pt",             // IGS (Power Truck)
                  "PM2008v2",       // IGS (Percussion Master 2008)
                  "RF5v2",          // IGS (Rock Fever 5)
+                 "FHSKLv2-8p",     // IGS (Fish Hunter SKL 2)
                  "bowlgold",       // Cosmodog (Rockin' Bowl-O-Rama)
                  "bowling_usa",    // Paokai (Go Go Strike)
                  "runner",         // Byoyoyo (Skycurser: GameMaker's runner)

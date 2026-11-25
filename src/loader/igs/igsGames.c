@@ -26,6 +26,20 @@ static const uint8_t sd4ChunkMasks[][16] = {
     {0x38, 0x07, 0x82, 0x04, 0xdc, 0xd6, 0x19, 0xd4, 0x1c, 0x71, 0x25, 0x96, 0x0f, 0xe4, 0x8d, 0x26},
 };
 
+// Fish Hunter SKL 2's dongle file 0xfff5 as the game uses it: the FPGA user
+// key (0-15), the PC's and the board's first packet keys (0x10, 0x14), the
+// packets' checksum seed (0x18), the three words the board answers
+// (0x1c-0x24).
+static const uint8_t fishHunterHasp[40] = {
+    [0x10] = 0x64, 0xa4, 0x1a, 0x0d, // 0x0d1aa464, the firmware's own
+    [0x14] = 0x63, 0xb4, 0x3f, 0x54, // 0x543fb463, the firmware's own
+    [0x18] = 0x51, 0x0e, 0x80, 0x11, // 0x11800e51, the firmware's own
+    // what the board answers (packet 46)
+    [0x1c] = 0x94, 0x03, 0x00, 0x10, // 0x10000394
+    [0x20] = 0xb4, 0x03, 0x00, 0x10, // 0x100003b4
+    [0x24] = 0xd4, 0x03, 0x00, 0x10, // 0x100003d4
+};
+
 static const IgsGame games[] = {
     {
         // Gold Captain (GoldCaptian-E2000-v1-e65, March 12, 2009).
@@ -263,6 +277,43 @@ static const IgsGame games[] = {
         .a36PlxFind = 0x080976b0,
         .a36Rf5Services = 1,
         .a36PlxDoorbellByte = 1,
+    },
+    {
+        // Fish Hunter SKL 2 (FHSKLv2-8p, 2012): the E2200, its A36 board's
+        // firmware embedded in the executable (decrypted to roms/ by
+        // tools/igs036-firmware.py), its dongle's API linked in.
+        .crc32 = FISH_HUNTER_SKL2_IGS,
+        .fileCrc32 = 0x12dbf836,
+        .rootPath = "/FishSKLv2-8p",
+        .dataDirs = {NULL},
+        // its picture, scaled to a larger screen
+        .frameWidth = 1280,
+        .frameHeight = 720,
+        .a36Rom = "roms/fhskl2_eprom.bin",
+        // the upload (P2A_LoaderAdv_iLoadData's of a buffer)
+        .a36Loader = {0, 0, 0, 0x08095940},
+        .a36Sdl = 1,
+        // Speed Driver 4's internal-ROM services and table
+        .a36Services = 0x0200f300,
+        // the control board, on USART1
+        .a36Stm32Usart = 2,
+        .a36FishBoard = 1,
+        // the upload's header (the firmware checks it at start)
+        .a36Project = "FishHunterSKL28P",
+        .a36ProjectArea = "FishSKL28P_E2200",
+        .a36ProjectVersion = 0x24 << 5 | 2,
+        // the assets' (the mask from their known plaintext, moved as the
+        // cipher's bits are: the game asks for encryption)
+        .a36CipherMask = {0xe4, 0xe1, 0x5d, 0x82, 0xe5, 0xa6, 0x01, 0x28,
+                          0xfe, 0x7b, 0x75, 0x1a, 0x34, 0xd1, 0xd7, 0xbd},
+        .soundLoad = 0x08064450,
+        .soundSlot = 0x08064180,
+        .soundRead = 0x080678c0,
+        .soundTable = 0x084800c8,
+        .haspApi = {0x08214880, 0x08214820, 0x08213750, 0x082136a0, 0x08214700, 0x08214780},
+        .haspFile = 0xfff5,
+        .haspMemory = fishHunterHasp,
+        .haspMemorySize = sizeof(fishHunterHasp),
     },
     {
         // Speed Rider 2: the A36 board, run from TeknoRaven's game/bin_linux
