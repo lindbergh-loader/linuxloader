@@ -227,6 +227,26 @@ static const IgsGame games[] = {
                           0xd6, 0x2b, 0x3b, 0x94, 0x13, 0x21, 0xb6, 0x3c},
     },
     {
+        // Percussion Master 2008 (PM2008v2, TeknoRaven's package): an IGS036
+        // behind a PLX9030 (its PC side's names say A27), its decrypted
+        // firmware and its internal ROM; run from game/.
+        .crc32 = PERCUSSION_MASTER_2008_IGS,
+        .fileCrc32 = 0x8567b838,
+        // its SDL 1.2's SDL_SetVideoMode (full screen: the X server
+        // switched to 640x480, and left so)
+        .setVideoMode = 0x08121830,
+        .frameWidth = 640,
+        .frameHeight = 480,
+        .a36Rom = "roms/PM2008_EPROM.dec.bin",
+        .a36InternalRom = "roms/pm2008_internal_rom.bin",
+        // its PLX SDK: PlxPciDeviceOpen, PlxPciBarMap; chip type,
+        // PlxPciDeviceClose, the interrupt and register calls; the doorbell
+        .a36PlxOpen = 0x08161440,
+        .a36PlxBarMap = 0x08161880,
+        .a36PlxDone = {0x08160e30, 0x08160f40, 0x081615a0, 0x08161e20},
+        .a36PlxDoorbell = 0x080983bd,
+    },
+    {
         // Speed Rider 2: the A36 board, run from TeknoRaven's game/bin_linux
         // beside ../data; its decrypted firmware in ../roms.
         .crc32 = SPEED_RIDER_2_IGS,
