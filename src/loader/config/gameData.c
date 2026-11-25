@@ -67,6 +67,7 @@ static const GameData gameData[] = {
     {PERCUSSION_MASTER_3_IGS, "Percussion Master 3", "pm3", "IGS", "IGS-PM3", "2011", "1280x720", WORKING, NO_JVS_IO, DIGITAL, 1280, 720, -1, 0, 0, 0, 0, 0, 0, RED},
     {OCEAN_PARTY_IGS, "Ocean Party", "ocean-party", "IGS", "IGS-OP", "2011", "1280x720", WORKING, NO_JVS_IO, DIGITAL, 1280, 720, -1, 0, 0, 0, 0, 0, 0, RED},
     {DEMON_HUNTER_IGS, "Demon Hunter", "demon-hunter", "IGS", "IGS-DH", "2011", "1280x720", WORKING, NO_JVS_IO, DIGITAL, 1280, 720, -1, 0, 0, 0, 0, 0, 0, RED},
+    {SCRATCH_IGS, "Scratch", "scratch", "IGS", "IGS-SW", "2011", "1920x1080", WORKING, NO_JVS_IO, DIGITAL, 1920, 1080, -1, 0, 0, 0, 0, 0, 0, RED},
     {WMMT3DXPLUS_N2, "Wangan Midnight Maximum Tune 3DX+", "wmmt3dxp", "Namco N2", "W3P100", "2010", "640x480", NOT_WORKING, NAMCO_FCA_1, DRIVING, 640, 480, -1, 0, 0, 0, 0, 0, 0, RED},
     {CSNEO_N2, "Counter Strike NEO", "csneo", "Namco N2", "csneo2", "2005", "640x480", WORKING, NO_JVS_IO, SHOOTING, 640, 480, -1, 0, 0, 0, 0, 0, 0, RED},
     {DHRIDERS_ES1, "Dead Heat Riders", "dhriders", "Namco ES1", "DHR100", "2013", "1360x768", WORKING, NAMCO_NA_JV, DRIVING, 1360, 768, -1, 0, 0, 0, 0, 0, 0, RED},

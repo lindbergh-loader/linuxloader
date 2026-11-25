@@ -405,6 +405,35 @@ static const IgsGame games[] = {
         .a36FishBoard = 5,
     },
     {
+        // Scratch (SWIN, M101CN, 2011): the E2100, its A36 board's firmware
+        // embedded in the executable (0x0817e900, decrypted to roms/; the
+        // asic36.bin beside it unused); its Flash pictures and Ogg sounds
+        // plain.
+        .crc32 = SCRATCH_IGS,
+        .fileCrc32 = 0x31b33103,
+        .rootPath = "/Scratch",
+        .dataDirs = {NULL},
+        // its picture
+        .frameWidth = 1920,
+        .frameHeight = 1080,
+        .a36Rom = "roms/scratch_eprom.bin",
+        // the upload (P2A_LoaderAdv_iLoadData's of a buffer)
+        .a36Loader = {0, 0, 0, 0x0814e620},
+        .a36Sdl = 1,
+        // its picture shader's "precision lowp float;"
+        .glesPrecision = {0x0815ebb8},
+        // the control board (RS485), Demon Hunter's (its fire button takes
+        // a ticket: no free play)
+        .a36Stm32Usart = 2,
+        .a36FishBoard = 6,
+        // its lamp board, on the PC's /dev/ttyS0
+        .ttyZero = 1,
+        // the internal ROM's services' table (0x1000f300)
+        .a36Services = 0x0200f000,
+        .a36TimerClock = 65000000,
+        .a36CatchUp = 1,
+    },
+    {
         // MuziBox (mb, TeknoRaven's package): the A36 board, run from game/
         // (its relative paths), its firmware in roms/.
         .crc32 = MUZIBOX_IGS,

@@ -78,6 +78,7 @@
 #define PERCUSSION_MASTER_3_IGS 0xd251d0cc                      // IGS, Percussion Master 3 (pm3, A36 board)
 #define OCEAN_PARTY_IGS 0x400f6dfe                              // IGS, Ocean Party (OceanParty, E2100 A36 board)
 #define DEMON_HUNTER_IGS 0x982c8e8a                             // IGS, Demon Hunter (zombie, E2100 A36 board)
+#define SCRATCH_IGS 0x5a18a050                                  // IGS, Scratch (SWIN, E2100 A36 board)
 #define ROCKIN_BOWL_O_RAMA_COSMODOG 0x93675fe0                   // Cosmodog, Rockin' Bowl-O-Rama gold (bowlgold)
 #define GO_GO_STRIKE_PAOKAI 0xa6ac3b6c                           // Paokai, Go Go Strike (bowling_usa, E.1.0.0)
 #define SKYCURSER_BYOYOYO 0x4a073bb5                             // Byoyoyo, Skycurser (runner, GameMaker: Studio)
