@@ -103,6 +103,7 @@ char *games[] = {"a.elf",
                  "PM2008v2",       // IGS (Percussion Master 2008)
                  "RF5v2",          // IGS (Rock Fever 5)
                  "FHSKLv2-8p",     // IGS (Fish Hunter SKL 2)
+                 "OceanParty",     // IGS (Ocean Party)
                  "mb",             // IGS (MuziBox)
                  "pm3",            // IGS (Percussion Master 3)
                  "bowlgold",       // Cosmodog (Rockin' Bowl-O-Rama)

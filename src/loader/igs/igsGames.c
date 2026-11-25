@@ -342,6 +342,35 @@ static const IgsGame games[] = {
         .haspMemorySize = sizeof(fishHunterHasp),
     },
     {
+        // Ocean Party (OceanParty, 2011): the E2100, its A36 board's firmware
+        // embedded in the executable (0x08257c00, decrypted to roms/ by
+        // tools/igs036-firmware.py; the game reads asic36.bin, then sends
+        // the embedded one).
+        .crc32 = OCEAN_PARTY_IGS,
+        .fileCrc32 = 0x16a7235e,
+        .rootPath = "/OceanParty",
+        .dataDirs = {NULL},
+        .a36Rom = "roms/oceanparty_eprom.bin",
+        // the upload (P2A_LoaderAdv_iLoadData's of a buffer)
+        .a36Loader = {0, 0, 0, 0x082152e0},
+        .a36Sdl = 1,
+        // the internal ROM's services' table (0x1001cb30 calls it)
+        .a36Services = 0x0200f000,
+        // all OFF: switch 1 the gold shark mode (ON: the overlord shark's)
+        .a36E2100Dips = 1,
+        // 65 MHz (the firmware's baud rates, 0x10014530)
+        .a36TimerClock = 65000000,
+        // its main loop polls (no idle loop): its time kept to the clock
+        .a36CatchUp = 1,
+        // the control board (RS485), on USART0
+        .a36Stm32Usart = 1,
+        .a36FishBoard = 4,
+        // the assets' (the encrypted zero block, moved as the cipher's bits
+        // are: the game asks for encryption)
+        .a36CipherMask = {0x5b, 0xc9, 0x59, 0x14, 0x4a, 0xe9, 0x34, 0x11,
+                          0x30, 0xbe, 0x78, 0x37, 0xef, 0xec, 0x78, 0x93},
+    },
+    {
         // MuziBox (mb, TeknoRaven's package): the A36 board, run from game/
         // (its relative paths), its firmware in roms/.
         .crc32 = MUZIBOX_IGS,
