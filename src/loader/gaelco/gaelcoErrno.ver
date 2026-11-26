@@ -1,0 +1,8 @@
+/* linuxloader.so's errno is the Gaelco games' errno@GLIBC_2.0 only
+   (gaelcoErrno.c). Unversioned, it also took libm's TLS reference to
+   errno@GLIBC_PRIVATE: libm's errno writes (pow overflow...) went to a
+   bogus thread offset and crashed other games (Jurassic Park). Every other
+   symbol stays global and unversioned. */
+GLIBC_2.0 {
+    global: errno;
+};

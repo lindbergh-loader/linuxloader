@@ -9,6 +9,9 @@
 #include "../log/log.h"
 #include "iniParser.h"
 #include "../mainShared.h"
+#ifdef __linux__
+#include "../teamplay/teamplayGame.h"
+#endif
 
 EmulatorConfig config = {0};
 
@@ -178,6 +181,7 @@ void setDefaultValues(EmulatorConfig *cfg)
     cfg->touchCursorHeight = 32;
     cfg->mj4EnabledAtT = 0;
     cfg->enableNetworkPatches = 1;
+    cfg->wmmt4Server = 1;
     strcpy(cfg->idIpSeat1, "");
     strcpy(cfg->idIpSeat2, "");
     strcpy(cfg->nicName, "");
@@ -196,6 +200,9 @@ void setDefaultValues(EmulatorConfig *cfg)
     cfg->gameGroup = GROUP_UNKNOWN;
     cfg->skipOutrunCabinetCheck = 0;
     cfg->borderEnabled = 0;
+    cfg->rotateVertical = 0;
+    strcpy(cfg->bezel, "bezel.png");
+    cfg->bezelEnabled = -1;
     cfg->whiteBorderPercentage = 0.02f;
     cfg->blackBorderPercentage = 0.0f;
     cfg->inputMode = 1;
@@ -345,6 +352,9 @@ void applyIniConfig(EmulatorConfig *config, const IniConfig *ini)
     config->fullscreen = getInt(ini, "Display", "FULLSCREEN", config->fullscreen);
     config->displayIndex = getInt(ini, "Display", "DISPLAY_INDEX", config->displayIndex);
     config->borderEnabled = getInt(ini, "Display", "BORDER_ENABLED", config->borderEnabled);
+    config->rotateVertical = getInt(ini, "Display", "ROTATE_VERTICAL", config->rotateVertical);
+    getString(ini, "Display", "BEZEL", config->bezel, MAX_PATH_LENGTH);
+    config->bezelEnabled = getInt(ini, "Display", "BEZEL_ENABLED", config->bezelEnabled);
 	config->whiteBorderPercentage = getFloat(ini, "Display", "WHITE_BORDER_PERCENTAGE", config->whiteBorderPercentage * 100.0f) / 100.0f;
 	config->blackBorderPercentage = getFloat(ini, "Display", "BLACK_BORDER_PERCENTAGE", config->blackBorderPercentage * 100.0f) / 100.0f;
     config->keepAspectRatio = getInt(ini, "Display", "KEEP_ASPECT_RATIO", config->keepAspectRatio);
@@ -359,6 +369,7 @@ void applyIniConfig(EmulatorConfig *config, const IniConfig *ini)
         else if (strcmp(scalingFilterStr, "linear") == 0)
             config->scalingFilterNearest = 0;
     }
+    config->seats = getInt(ini, "Display", "SEATS", config->seats);
     config->hideCursor = getInt(ini, "Display", "HIDE_CURSOR", config->hideCursor);
     config->fpsLimiter = getInt(ini, "Display", "FPS_LIMITER_ENABLED", config->fpsLimiter);
     config->fpsTarget = getFloat(ini, "Display", "FPS_TARGET", config->fpsTarget);
@@ -463,6 +474,7 @@ void applyIniConfig(EmulatorConfig *config, const IniConfig *ini)
 
     // [Network]
     config->enableNetworkPatches = getInt(ini, "Network", "ENABLE_NETWORK_PATCHES", config->enableNetworkPatches);
+    config->wmmt4Server = getInt(ini, "Network", "WMMT4_SERVER", config->wmmt4Server);
     getString(ini, "Network", "ID_IP_SEAT_1", config->idIpSeat1, 16);
     getString(ini, "Network", "ID_IP_SEAT_2", config->idIpSeat2, 16);
     getString(ini, "Network", "NIC_NAME", config->nicName, 20);
@@ -542,7 +554,12 @@ int initConfig(const char *configFilePath)
     setDefaultValues(&config);
 
     config.crc32 = partialElfCrc;
-    if (detectGame(config.crc32) != 0)
+    if (detectGame(config.crc32) != 0
+#ifdef __linux__
+        // A game's helper process, not a game (see teamplayGame.h).
+        && !teamplayGetGameBySoundDaemonCrc(partialElfCrc)
+#endif
+    )
     {
         log_error("Unsure what game with CRC 0x%X is. Please submit this new game to the GitHub repository: "
                  "https://github.com/lindbergh-loader/lindbergh-loader/issues/"

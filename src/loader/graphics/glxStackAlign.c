@@ -49,14 +49,6 @@ static void *resolveNext(const char *name)
 
 /* GLXDrawable, GLXPbuffer and friends are XIDs, which are unsigned long on i386. */
 
-REALIGN void *glXChooseVisual(void *dpy, int screen, int *attribList)
-{
-    static void *(*real)(void *, int, int *) = NULL;
-    if (real == NULL)
-        real = resolveNext("glXChooseVisual");
-    return real ? real(dpy, screen, attribList) : NULL;
-}
-
 REALIGN unsigned long glXCreatePbuffer(void *dpy, void *config, const int *attribList)
 {
     static unsigned long (*real)(void *, void *, const int *) = NULL;
@@ -121,14 +113,6 @@ REALIGN int glXIsDirect(void *dpy, void *ctx)
     if (real == NULL)
         real = resolveNext("glXIsDirect");
     return real ? real(dpy, ctx) : 0;
-}
-
-REALIGN int glXMakeCurrent(void *dpy, unsigned long drawable, void *ctx)
-{
-    static int (*real)(void *, unsigned long, void *) = NULL;
-    if (real == NULL)
-        real = resolveNext("glXMakeCurrent");
-    return real ? real(dpy, drawable, ctx) : 0;
 }
 
 REALIGN int glXQueryExtension(void *dpy, int *errorBase, int *eventBase)

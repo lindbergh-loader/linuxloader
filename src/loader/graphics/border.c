@@ -2,7 +2,8 @@
 
 #include "border.h"
 
-void drawBorderWithOffset(int width, int height, float borderPercentage, float offsetPercentage, GLfloat *color)
+static void drawBorderWithOffsetAt(int x, int y, int width, int height, float borderPercentage, float offsetPercentage,
+                                   GLfloat *color)
 {
     // Border thickness based on the percentage of the width/height
     int borderWidth = (int)(width * borderPercentage); // Border width as a percentage of the screen width
@@ -16,29 +17,40 @@ void drawBorderWithOffset(int width, int height, float borderPercentage, float o
     glad_glClearColor(color[0], color[1], color[2], color[3]);
 
     // Left side (borderWidth wide from top to bottom, starting from the left edge with offset)
-    glad_glScissor(offsetX, offsetY, borderWidth,
+    glad_glScissor(x + offsetX, y + offsetY, borderWidth,
                    height - 2 * offsetY); // X = offsetX, Y = offsetY, Width = borderWidth, Height = (height - 2 * offsetY)
     glad_glClear(GL_COLOR_BUFFER_BIT);
 
     // Right side (borderWidth wide from top to bottom, starting from the right edge with offset)
     glad_glScissor(
-        width - borderWidth - offsetX, offsetY, borderWidth,
+        x + width - borderWidth - offsetX, y + offsetY, borderWidth,
         height - 2 * offsetY); // X = (width - borderWidth - offsetX), Y = offsetY, Width = borderWidth, Height = (height - 2 * offsetY)
     glad_glClear(GL_COLOR_BUFFER_BIT);
 
     // Top side (borderHeight wide from left to right, starting from the top edge with offset)
-    glad_glScissor(offsetX, offsetY, width - 2 * offsetX,
+    glad_glScissor(x + offsetX, y + offsetY, width - 2 * offsetX,
                    borderHeight); // X = offsetX, Y = offsetY, Width = (width - 2 * offsetX), Height = borderHeight
     glad_glClear(GL_COLOR_BUFFER_BIT);
 
     // Bottom side (borderHeight wide from left to right, starting from the bottom edge with offset)
     glad_glScissor(
-        offsetX, height - borderHeight - offsetY, width - 2 * offsetX,
+        x + offsetX, y + height - borderHeight - offsetY, width - 2 * offsetX,
         borderHeight); // X = offsetX, Y = (height - borderHeight - offsetY), Width = (width - 2 * offsetX), Height = borderHeight
     glad_glClear(GL_COLOR_BUFFER_BIT);
 }
 
+void drawBorderWithOffset(int width, int height, float borderPercentage, float offsetPercentage, GLfloat *color)
+{
+    drawBorderWithOffsetAt(0, 0, width, height, borderPercentage, offsetPercentage, color);
+}
+
 void drawGameBorder(int width, int height, float whiteBorderPercentage, float blackBorderPercentage)
+{
+    drawGameBorderAt(0, 0, width, height, whiteBorderPercentage, blackBorderPercentage);
+}
+
+// The border around a width x height picture whose bottom-left corner is at x, y.
+void drawGameBorderAt(int x, int y, int width, int height, float whiteBorderPercentage, float blackBorderPercentage)
 {
     // Store the old clear colour
     GLfloat originalClearColour[4];
@@ -49,10 +61,27 @@ void drawGameBorder(int width, int height, float whiteBorderPercentage, float bl
 
     glad_glEnable(GL_SCISSOR_TEST);
 
-    drawBorderWithOffset(width, height, whiteBorderPercentage, blackBorderPercentage, whiteColour);
-    drawBorderWithOffset(width, height, blackBorderPercentage, 0, blackColour);
+    drawBorderWithOffsetAt(x, y, width, height, whiteBorderPercentage, blackBorderPercentage, whiteColour);
+    drawBorderWithOffsetAt(x, y, width, height, blackBorderPercentage, 0, blackColour);
 
     glad_glDisable(GL_SCISSOR_TEST);
 
     glad_glClearColor(originalClearColour[0], originalClearColour[1], originalClearColour[2], originalClearColour[3]);
+}
+static void (*frameOverlay)(int x, int y, int width, int height);
+
+void setFrameOverlay(void (*draw)(int x, int y, int width, int height))
+{
+    frameOverlay = draw;
+}
+
+int frameOverlaySet(void)
+{
+    return frameOverlay != 0;
+}
+
+void drawFrameOverlay(int x, int y, int width, int height)
+{
+    if (frameOverlay)
+        frameOverlay(x, y, width, height);
 }

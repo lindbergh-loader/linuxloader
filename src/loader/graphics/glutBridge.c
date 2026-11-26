@@ -21,6 +21,9 @@
 #include "overlayMsgs.h"
 #include "../graphics/sdlCalls.h"
 #include "../hardware/lindbergh/touchScreen.h"
+#ifdef __linux__
+#include "../teamplay/teamplay.h"
+#endif
 
 extern uint32_t gId;
 extern int gGrp;
@@ -42,7 +45,7 @@ extern int drawableH;
 extern int blitWidth;
 extern int gameIsOutrunChihiroMode;
 extern SDL_Renderer *fontRenderer;
-extern TTF_Font *font;
+extern TTF_Font *glutBitmapFont;
 
 void bridgeGlutInit(int *argcp, char **argv)
 {
@@ -91,6 +94,11 @@ void bridgeGlutSwapBuffers(void)
 
     if ((p1CrossHairInitialized || p2CrossHairInitialized) || (gId == GHOST_SQUAD_EVOLUTION_SBNJ && config->borderEnabled))
         renderCrosshairs();
+
+#ifdef __linux__
+    // Into the Teamplay games' frame, before it is scaled.
+    teamplayDrawCrosshairs(blitWidth, blitHeight);
+#endif
 
     blitStretch();
 
@@ -172,6 +180,11 @@ void bridgeGlutDisplayFunc(void (*callback)(void))
 
 void bridgeGlutReshapeFunc(void (*callback)(int, int))
 {
+    // Star Trek: Voyager (and its service mode) sets its viewport and
+    // projection there: once, at its monitor's size (the frame scaled), which
+    // it also gives the gun board (240 or 384 lines).
+    if (gId == STAR_TREK_VOYAGER_TEAMPLAY || gId == STAR_TREK_VOYAGER_SERVICE_TEAMPLAY)
+        callback(blitWidth, blitHeight);
 }
 
 void bridgeGlutVisibilityFunc(void (*callback)(int))
@@ -320,7 +333,7 @@ void bridgeGlutBitmapCharacter(void *fontID, int character)
     if (penX != glPos[0])
         penX = glPos[0];
 
-    SDL_Surface *glyph = TTF_RenderGlyph_Solid(font, character, sdlColor);
+    SDL_Surface *glyph = TTF_RenderGlyph_Solid(glutBitmapFont, character, sdlColor);
     if (!glyph)
     {
         printf("Failed to render glyph: %s\n", SDL_GetError());

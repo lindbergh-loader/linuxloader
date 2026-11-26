@@ -11,6 +11,9 @@
 #include "../log/log.h"
 #include "../patching/patchResolution.h"
 #include "sdlCalls.h"
+#ifdef __linux__
+#include "../gaelco/gaelcoGame.h"
+#endif
 // #include "glInitFunctions.h"
 
 #define CHECK_GL(msg)                                                                                                                      \
@@ -194,11 +197,28 @@ void blitSetWidthandHeightSize()
             blitHeight = gHeight;
         }
     }
-    else if (gGrp == GROUP_VT3_TEST)
+    // Police Trainer 2 draws 640x480, whatever its window's size.
+    else if (gGrp == GROUP_VT3_TEST || gId == POLICE_TRAINER_2_TEAMPLAY)
     {
         blitWidth = 640;
         blitHeight = 480;
     }
+    // Crossfire Maximum Paintball and Star Trek: Voyager draw 512x384 (their
+    // medium-resolution monitor's size), whatever their window's size.
+    else if (gId == CROSSFIRE_TEAMPLAY || gId == STAR_TREK_VOYAGER_TEAMPLAY || gId == STAR_TREK_VOYAGER_SERVICE_TEAMPLAY)
+    {
+        blitWidth = 512;
+        blitHeight = 384;
+    }
+#ifdef __linux__
+    // The Gaelco games draw at their own size (640x480, Tuning Race's
+    // 720x540), whatever their window's.
+    else if (gaelcoGetGame(gId))
+    {
+        blitWidth = gaelcoGetGame(gId)->frameWidth;
+        blitHeight = gaelcoGetGame(gId)->frameHeight;
+    }
+#endif
     else if (gId == QUIZ_AXA_SBMS || gId == QUIZ_AXA_SBUR_LIVE || gId == MJ4_SBPN_REVG || gId == MJ4_EVO_SBTA)
     {
         blitWidth = 1024;

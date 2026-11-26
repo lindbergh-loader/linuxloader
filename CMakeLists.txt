@@ -41,6 +41,7 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux" AND NOT MINGW AND NOT CMAKE_C_COMPILER MATC
     set(LINUXLOADER_EXE_C_FLAGS -m32 -DCOMPILING_LINUXLOADER_ELF)
     add_executable(linuxloader_exe
         src/loader/linuxExe.c
+        src/loader/loader64/game64.c
         src/loader/mainShared.c
         src/loader/config/iniParser.c
         src/loader/input/sdlInput.c
@@ -51,12 +52,38 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux" AND NOT MINGW AND NOT CMAKE_C_COMPILER MATC
         src/loader/config/config.c
         src/loader/input/evdevInput.c
         src/loader/config/gameData.c
-        src/loader/config/configIni.c)
+        src/loader/config/configIni.c
+        src/loader/rawthrills/rtGames.c
+        src/loader/rawthrills/rtLaunch.c
+        src/loader/namco/namcoEs1Games.c
+        src/loader/namco/namcoEs1Launch.c
+        src/loader/namco/namcoN2Games.c
+        src/loader/namco/namcoN2Launch.c
+        src/loader/teamplay/teamplayGames.c
+        src/loader/globalvr/gvrGames.c
+        src/loader/roxor/roxorGames.c
+        src/loader/cecropia/cecropiaGames.c
+        src/loader/igs/igsGames.c
+        src/loader/cosmodog/cosmodogGames.c
+        src/loader/paokai/paokaiGames.c
+        src/loader/byoyoyo/byoyoyoGames.c
+        src/loader/itech/itechGames.c
+        src/loader/gaelco/gaelcoGames.c
+        src/loader/hostLinker.c)
 
     set_target_properties(linuxloader_exe PROPERTIES LINK_FLAGS "-m32")
     target_link_libraries(linuxloader_exe PRIVATE m SDL3)
     set_target_properties(linuxloader_exe PROPERTIES OUTPUT_NAME "linuxloader")
     target_compile_options(linuxloader_exe PRIVATE ${LINUXLOADER_EXE_C_FLAGS})
+
+    # FreeBSD games (Temple Run): their ELF mapped and run on the host's
+    # libraries (src/freebsd/fbsdRunner.c). Position-independent: the game
+    # takes the executables' usual address.
+    file(GLOB LINUXLOADER_FREEBSD_SRC src/freebsd/*.c)
+    add_executable(linuxloader_freebsd ${LINUXLOADER_FREEBSD_SRC})
+    target_compile_options(linuxloader_freebsd PRIVATE -m32 -fPIE -Wall -D_GNU_SOURCE)
+    set_target_properties(linuxloader_freebsd PROPERTIES LINK_FLAGS "-m32 -pie")
+    target_link_libraries(linuxloader_freebsd PRIVATE dl pthread)
 
     # Common options for shared libraries
     set(LIBS_C_FLAGS -m32 -mincoming-stack-boundary=2 -fPIC -shared)
@@ -73,20 +100,36 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux" AND NOT MINGW AND NOT CMAKE_C_COMPILER MATC
     target_compile_options(posixtime PRIVATE ${LIBS_C_FLAGS})
     add_custom_command(TARGET posixtime POST_BUILD COMMAND ln -s -f libposixtime.so ${CMAKE_BINARY_DIR}/libposixtime.so.1 COMMAND ln -s -f libposixtime.so ${CMAKE_BINARY_DIR}/libposixtime.so.2.4)
 
+    # libGLEW.so.1.3 (Global VR games)
+    add_library(glew_gvr SHARED src/loader/extraLibs/globalvr/libglew/libglew.c)
+    set_target_properties(glew_gvr PROPERTIES OUTPUT_NAME "GLEW")
+    target_link_libraries(glew_gvr ${SHARED_LINKER_FLAGS} dl)
+    target_compile_options(glew_gvr PRIVATE ${LIBS_C_FLAGS} -D_GNU_SOURCE)
+    add_custom_command(TARGET glew_gvr POST_BUILD COMMAND ln -s -f libGLEW.so ${CMAKE_BINARY_DIR}/libGLEW.so.1.3)
+
+    # libarcaderegistry.so.1 (Namco ES1: Gundam Senjo no Kizuna)
+    add_library(arcaderegistry SHARED src/loader/extraLibs/namco/libarcaderegistry/libarcaderegistry.c)
+    target_link_libraries(arcaderegistry ${SHARED_LINKER_FLAGS} pthread)
+    target_compile_options(arcaderegistry PRIVATE ${LIBS_C_FLAGS})
+    add_custom_command(TARGET arcaderegistry POST_BUILD COMMAND ln -s -f libarcaderegistry.so ${CMAKE_BINARY_DIR}/libarcaderegistry.so.1)
+
     # libsegaapi.so
     add_library(segaapi SHARED src/loader/audio/lindbergh/libsegaapi/libsegaapi.c)
+    target_include_directories(segaapi PRIVATE ${PROJECT_SOURCE_DIR}/src/FAudio)
     set(LIBSEGAAPI_C_FLAGS -m32 -mincoming-stack-boundary=2 -fPIC -shared)
-    set(LIBSEGAAPI_LINKER_FLAGS -O0 -g -m32 -Wl,-Bstatic -lFAudio -Wl,-Bdynamic -fPIC -shared)
+    set(LIBSEGAAPI_LINKER_FLAGS -O0 -g -m32 -fPIC -shared)
     target_link_libraries(segaapi ${LIBSEGAAPI_LINKER_FLAGS})
+    target_link_libraries(segaapi ${PROJECT_SOURCE_DIR}/libs/linux_x86/libFAudio.a)
     target_compile_options(segaapi PRIVATE ${LIBSEGAAPI_C_FLAGS})
 
     # linuxloader.so
-    set(LINUX_LOADER_SO_LINKER_FLAGS -m32 -Wl,-z,defs -rdynamic -static-libstdc++ -static-libgcc -lc -ldl -lGL -lglut -lX11 -lXcursor -lSDL3 -lSDL3_ttf -lSDL3_image -ludev -lm -lpthread -shared -lstdc++ -nostdlib)
+    set(LINUX_LOADER_SO_LINKER_FLAGS -m32 -Wl,-z,defs -rdynamic -static-libstdc++ -static-libgcc -lc -ldl -lGL -lglut -lX11 -lXcursor -lSDL3 -lSDL3_ttf -lSDL3_image -ludev -lm -lpthread -shared -lstdc++ -lgcc -nostdlib)
     set(LINUX_LOADER_SO_C_FLAGS -g -fPIC -m32 -mincoming-stack-boundary=2 -Wall -Wno-unused-variable -Wno-unused-function -D_GNU_SOURCE -Wno-format-truncation -Wno-strict-aliasing -Wno-discarded-qualifiers -Wno-stringop-truncation -Wno-format-overflow)
     file(GLOB LINUX_LOADER_OBJS
         src/loader/init.c
         src/loader/mainL.c
         src/loader/mainShared.c
+        src/loader/hostLinker.c
         src/loader/config/*.c
         src/loader/graphics/*.c
         src/loader/hardware/lindbergh/*.c
@@ -94,13 +137,91 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux" AND NOT MINGW AND NOT CMAKE_C_COMPILER MATC
         src/loader/log/*.c
         src/loader/patching/*.c
         src/loader/redirections/*.c
+        src/loader/common/*.c
+        src/loader/rawthrills/*.c
+        src/loader/namco/*.c
+        src/loader/teamplay/*.c
+        src/loader/globalvr/*.c
+        src/loader/roxor/*.c
+        src/loader/cecropia/*.c
+        src/loader/igs/*.c
+        src/loader/igs/*.cpp
+        src/loader/cosmodog/*.c
+        src/loader/paokai/*.c
+        src/loader/byoyoyo/*.c
+        src/loader/itech/*.c
+        src/loader/gaelco/*.c
         src/loader/graphics/shaderWork/*.c
         src/glad/src/gl.c)
+    # Dear ImGui (MIT), for overlays drawn over a game (Hero of Robots' card binder)
+    list(APPEND LINUX_LOADER_OBJS
+        src/imgui/imgui.cpp
+        src/imgui/imgui_draw.cpp
+        src/imgui/imgui_tables.cpp
+        src/imgui/imgui_widgets.cpp
+        src/imgui/imgui_impl_opengl3.cpp)
 
     add_library(linuxloader SHARED ${LINUX_LOADER_OBJS})
     set_target_properties(linuxloader PROPERTIES PREFIX "")
     target_link_libraries(linuxloader ${LINUX_LOADER_SO_LINKER_FLAGS} xdiff minhook dl)
-    target_compile_options(linuxloader PRIVATE ${LINUX_LOADER_SO_C_FLAGS})
+    target_compile_options(linuxloader PRIVATE "$<$<COMPILE_LANGUAGE:C>:${LINUX_LOADER_SO_C_FLAGS}>")
+    target_compile_options(linuxloader PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:-g;-fPIC;-m32;-mincoming-stack-boundary=2;-Wall;-D_GNU_SOURCE;-fno-exceptions;-fno-rtti>")
+    target_compile_definitions(linuxloader PRIVATE IMGUI_DISABLE_DEMO_WINDOWS IMGUI_DISABLE_DEBUG_TOOLS
+        OVERLAY_FONT_PATH=${PROJECT_SOURCE_DIR}/src/fonts/cozette.ttf)
+    target_include_directories(linuxloader PRIVATE ${PROJECT_SOURCE_DIR}/src/imgui)
+    # errno@GLIBC_2.0 for the Gaelco games, no other library's errno.
+    target_link_options(linuxloader PRIVATE -Wl,--version-script=${PROJECT_SOURCE_DIR}/src/loader/gaelco/gaelcoErrno.ver)
+    set_property(TARGET linuxloader APPEND PROPERTY LINK_DEPENDS ${PROJECT_SOURCE_DIR}/src/loader/gaelco/gaelcoErrno.ver)
+
+    # The 64-bit games (the Raw Thrills g7 dumps, the Unity games), which
+    # linuxloader hands to linuxloader64: it starts them with
+    # linuxloader64.so, their library, preloaded.  The library shares the
+    # loader's ini parser and gun border, and reads the same linuxloader.ini.
+    # g7_rt.so and halo_rt.so, its names when it was the g7 games' alone,
+    # link to it.
+    add_executable(linuxloader64
+        src/loader/loader64/linuxloader64.c
+        src/loader/loader64/game64.c
+        src/loader/config/iniParser.c)
+    target_compile_options(linuxloader64 PRIVATE -m64 -Wall -Wextra -Wno-format-truncation)
+    target_link_options(linuxloader64 PRIVATE -m64)
+
+    file(GLOB LOADER64_SO_SRC
+        src/loader/loader64/rt64.c
+        src/loader/rawthrills/g7/*.c
+        src/loader/rawthrills/g7/*.cpp
+        # the Raw Thrills Unity base, then its games
+        src/loader/rawthrills/unity/*.c
+        src/loader/rawthrills/nerf/*.c
+        src/loader/rawthrills/sb3/*.c
+        src/loader/rawthrills/tmnt/*.c
+        src/loader/rawthrills/mcoc/*.c
+        src/loader/rawthrills/mcoc/*.cpp)
+    add_library(loader64 SHARED
+        ${LOADER64_SO_SRC}
+        src/loader/config/iniParser.c
+        src/loader/input/evdevFfb.c
+        src/loader/graphics/border.c
+        src/loader/graphics/borderFrame.c
+        src/loader/graphics/frameScale.c
+        src/glad/src/gl.c
+        # Dear ImGui (MIT), for overlays drawn over a game (Minecraft's card binder)
+        src/imgui/imgui.cpp
+        src/imgui/imgui_draw.cpp
+        src/imgui/imgui_tables.cpp
+        src/imgui/imgui_widgets.cpp
+        src/imgui/imgui_impl_opengl3.cpp)
+    set_target_properties(loader64 PROPERTIES PREFIX "" OUTPUT_NAME "linuxloader64")
+    target_compile_options(loader64 PRIVATE -m64 -fPIC -Wall -Wextra)
+    target_compile_options(loader64 PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-fno-exceptions -fno-rtti>)
+    target_compile_definitions(loader64 PRIVATE IMGUI_DISABLE_DEMO_WINDOWS IMGUI_DISABLE_DEBUG_TOOLS
+        OVERLAY_FONT_PATH=${PROJECT_SOURCE_DIR}/src/fonts/cozette.ttf)
+    target_include_directories(loader64 PRIVATE ${PROJECT_SOURCE_DIR}/src/imgui ${PROJECT_SOURCE_DIR}/src/stb)
+    target_link_options(loader64 PRIVATE -m64)
+    target_link_libraries(loader64 PRIVATE dl pthread m)
+    add_custom_command(TARGET loader64 POST_BUILD
+        COMMAND ln -s -f linuxloader64.so ${CMAKE_BINARY_DIR}/g7_rt.so
+        COMMAND ln -s -f linuxloader64.so ${CMAKE_BINARY_DIR}/halo_rt.so)
 
 elseif(WIN32 OR MINGW OR CMAKE_C_COMPILER MATCHES "mingw")
 

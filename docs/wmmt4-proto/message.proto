@@ -1,0 +1,133 @@
+syntax = "proto2";
+package v388.protobuf;
+import "v388.proto";
+message Course {
+  optional int32 run_area_id = 1;
+  optional int32 start_ramp_id = 2;
+  optional int32 timezone = 3;
+  optional int32 innner_mode = 4;
+  optional int32 assist = 5;
+  optional int32 player_no = 6;
+  optional int32 player_max = 7;
+  optional int32 auto_select = 8;
+  optional int32 lamp_decision = 9;
+  optional int32 dist_decision = 10;
+  optional float dist_base = 11;
+  optional float dist_num = 12;
+  optional float dist_rnd = 13;
+  optional sint32 random_seed = 14;
+}
+message HeartBeat {
+  optional uint32 frame_number = 1;
+  optional string pcb_serial = 2;
+  optional int32 server_comm = 3;
+}
+message DriveCabinetState {
+  optional int32 iccard_rw_state = 1;
+  optional int32 vender_state = 2;
+  optional int32 ffb_state = 3;
+  optional int32 allnet_attestation = 4;
+  optional int32 update_attestation = 5;
+  optional int32 software_revision = 6;
+  optional int32 download_state = 7;
+  optional int32 download_revision = 8;
+  optional int32 download_progress = 9;
+  optional int32 update_revision = 10;
+  optional int32 event_mode = 11;
+  optional int32 event_mode_dist = 12;
+}
+message BatchSetting {
+  optional int32 coin_chute = 1;
+  optional int32 buycard_cost = 2;
+  optional int32 game_cost = 3;
+  optional int32 continue_cost = 4;
+  optional int32 fullcourse_cost = 5;
+  optional int32 freeplay = 6;
+  optional int32 wins_and_remains = 7;
+  optional int32 event_mode = 8;
+  optional int32 event_mode_dist = 9;
+  optional int32 close_type = 10;
+  optional int32 close_sun = 11;
+  optional int32 close_mon = 12;
+  optional int32 close_tue = 13;
+  optional int32 close_wed = 14;
+  optional int32 close_thu = 15;
+  optional int32 close_fri = 16;
+  optional int32 close_sat = 17;
+  optional int32 close_day = 18;
+  optional int32 software_revision = 19;
+  optional int32 sync_time = 20;
+  optional int32 event_mode_count = 21;
+  optional uint32 time_zone_type = 22;
+  optional uint32 time_day_light = 23;
+  optional int32 clock_offset = 24;
+}
+message Information {
+  optional int32 mode = 1;
+  optional .v388.protobuf.ModeState mode_state = 2;
+  optional sint32 menu_time_count = 3;
+  optional int32 bgm = 4;
+  optional bool is_waiting = 5;
+  optional int32 vs_rank = 6;
+  optional string vs_rank_list = 7;
+  optional uint32 vs_star_count = 8;
+  optional uint32 vs_consecutive_wins = 9;
+  optional uint32 owned_meters = 10;
+  optional sint32 attract_movie_id = 11;
+  optional uint32 maxi_coin = 12;
+  optional sint32 attract_ranking_id = 13;
+  optional sint32 attract_random_seed = 14;
+}
+message Message {
+  optional bytes race_packet = 1;
+  optional .v388.protobuf.Car car = 2;
+  optional .v388.protobuf.Course course = 3;
+  optional int32 vs_ok = 4;
+  optional .v388.protobuf.HeartBeat heart_beat = 5;
+  optional int32 batch_setting_state = 6;
+  optional .v388.protobuf.DriveCabinetState drive_cabinet_state = 7;
+  optional .v388.protobuf.BatchSetting batch_setting = 8;
+  optional .v388.protobuf.Information information = 9;
+}
+enum ModeState {
+  ModeState_None = -1;
+  ModeState_Vs_SelectBattle = 0;
+  ModeState_Vs_Deny = 1;
+  ModeState_Vs_Allow = 2;
+  ModeState_Vs_Join = 3;
+  ModeState_Vs_NewChallenger = 4;
+  ModeState_Vs_NewChallengerEnd = 5;
+  ModeState_Vs_SyncEntry = 6;
+  ModeState_Vs_SelectRunArea = 7;
+  ModeState_Vs_DecideRunArea = 8;
+  ModeState_Vs_SelectRamp = 9;
+  ModeState_Vs_DecideRamp = 10;
+  ModeState_Vs_SelectTimezone = 11;
+  ModeState_Vs_DecideTimezone = 12;
+  ModeState_Vs_Setting = 13;
+  ModeState_Vs_SettingEnd = 14;
+  ModeState_Vs_Loading = 15;
+  ModeState_Vs_LoadingEnd = 16;
+  ModeState_Vs_Introduction = 17;
+  ModeState_Vs_IntroductionEnd = 18;
+  ModeState_Vs_Race = 19;
+  ModeState_Vs_RaceEnd = 20;
+  ModeState_Vs_Continue = 21;
+  ModeState_Vs_ContinueYes = 22;
+  ModeState_Warning = 90;
+  ModeState_Attract_Event_Wait = 100;
+  ModeState_Attract_Promotion = 101;
+  ModeState_Attract_Movie_Sync = 102;
+  ModeState_Attract_Movie = 103;
+  ModeState_Attract_Title = 104;
+  ModeState_Attract_Team_Sync = 105;
+  ModeState_Attract_Team = 106;
+  ModeState_Attract_TaRanking = 107;
+  ModeState_Attract_StarRanking = 108;
+  ModeState_Attract_CoinRanking = 109;
+  ModeState_Attract_ShopCrown_Sync = 110;
+  ModeState_Attract_ShopCrown = 111;
+  ModeState_Attract_Logo_Sync = 112;
+  ModeState_Attract_Logo = 113;
+}
+

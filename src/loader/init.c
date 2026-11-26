@@ -18,6 +18,22 @@
 #include "../minhook/include/MinHook.h"
 #include "log/log.h"
 #include "version.h"
+#if defined(__linux__)
+#include "rawthrills/rawthrills.h"
+#include "namco/namcoEs1.h"
+#include "namco/namcoN2.h"
+#include "teamplay/teamplay.h"
+#include "globalvr/gvr.h"
+#include "roxor/roxor.h"
+#include "cecropia/cecropia.h"
+#include "igs/igs.h"
+#include "cosmodog/cosmodog.h"
+#include "paokai/paokai.h"
+#include "byoyoyo/byoyoyo.h"
+#include "itech/itech.h"
+#include "gaelco/gaelco.h"
+#include "common/desktopInput.h"
+#endif
 
 #if defined(__linux__)
 #include "input/evdevInput.h"
@@ -56,6 +72,270 @@ void initMain(char *configPath, char *controlsPath)
     gWidth = getConfig()->width;
     gHeight = getConfig()->height;
 
+#ifdef __linux__
+    // Raw Thrills games use none of the Lindbergh hardware. They also link
+    // SDL 1.2, whose SDL_Init() & co. shadow SDL3's in the global scope, so
+    // the SDL-based GPU detection below cannot run for them.
+    if (isRawThrillsGame())
+    {
+        printf("\nLinux Loader\nBy the Linux Loader Development Team 2026\n\n");
+        printf("  GAME:        %s\n", getGameName());
+        printf("  GAME ID:     %s\n", getGameId());
+        // Evdev input fills the (emulated) JVS state; the Raw Thrills I/O
+        // hooks feed it to the game's own input system.
+        if (getConfig()->inputMode == 2)
+        {
+            initJVS();
+            if (initEvdevControllers(&controllers) != 0)
+                exit(1);
+            for (int i = 0; i < controllers.count; i++)
+                if (controllers.controller[i].inUse)
+                    printf("  CONTROLLER:  %s\n", controllers.controller[i].name);
+        }
+        if (rtInit() != 0)
+            exit(1);
+        printf("\n");
+        return;
+    }
+
+    // Namco ES1 games: none of the Lindbergh hardware either, and SDL 1.2
+    // too. Their JVS I/O board is the loader's JVS emulation, on a serial
+    // port (see namco/namcoEs1.c), fed from evdev or the desktop keys.
+    if (isNamcoEs1Game())
+    {
+        printf("\nLinux Loader\nBy the Linux Loader Development Team 2026\n\n");
+        printf("  GAME:        %s\n", getGameName());
+        printf("  GAME ID:     %s\n", getGameId());
+        initJVS();
+        if (getConfig()->inputMode == 2)
+        {
+            if (initEvdevControllers(&controllers) != 0)
+                exit(1);
+            for (int i = 0; i < controllers.count; i++)
+                if (controllers.controller[i].inUse)
+                    printf("  CONTROLLER:  %s\n", controllers.controller[i].name);
+        }
+        if (namcoEs1Init() != 0)
+            exit(1);
+        printf("\n");
+        return;
+    }
+
+    // Namco N2 games: the same, with no X server on the cabinet: the window
+    // is the loader's (see namco/namcoN2.c).
+    if (isNamcoN2Game())
+    {
+        printf("\nLinux Loader\nBy the Linux Loader Development Team 2026\n\n");
+        printf("  GAME:        %s\n", getGameName());
+        printf("  GAME ID:     %s\n", getGameId());
+        initJVS();
+        if (getConfig()->inputMode == 2)
+        {
+            if (initEvdevControllers(&controllers) != 0)
+                exit(1);
+            for (int i = 0; i < controllers.count; i++)
+                if (controllers.controller[i].inUse)
+                    printf("  CONTROLLER:  %s\n", controllers.controller[i].name);
+        }
+        if (namcoN2Init() != 0)
+            exit(1);
+        printf("\n");
+        return;
+    }
+
+    // Global VR games keeping their own (SDL) window, America's Army: none
+    // of the Lindbergh hardware; their I/O daemon is the loader's (see
+    // globalvr/gvrLink.c), fed from evdev or the desktop.
+    if (isGvrGame() && gvrCurrentGame()->ownWindow)
+    {
+        printf("\nLinux Loader\nBy the Linux Loader Development Team 2026\n\n");
+        printf("  GAME:        %s\n", getGameName());
+        printf("  GAME ID:     %s\n", getGameId());
+        initJVS();
+        if (getConfig()->inputMode == 2)
+        {
+            if (initEvdevControllers(&controllers) != 0)
+                exit(1);
+            for (int i = 0; i < controllers.count; i++)
+                if (controllers.controller[i].inUse)
+                    printf("  CONTROLLER:  %s\n", controllers.controller[i].name);
+        }
+        desktopStartQuitWatch();
+        if (gvrInit() != 0)
+            exit(1);
+        printf("\n");
+        return;
+    }
+
+    // Roxor games (Tux Racer) keep their own SDL window too: none of the
+    // Lindbergh hardware; their parallel port I/O board is the loader's (see
+    // roxor/roxorIo.c), fed from evdev or the desktop.
+    if (isRoxorGame())
+    {
+        printf("\nLinux Loader\nBy the Linux Loader Development Team 2026\n\n");
+        printf("  GAME:        %s\n", getGameName());
+        printf("  GAME ID:     %s\n", getGameId());
+        initJVS();
+        if (getConfig()->inputMode == 2)
+        {
+            if (initEvdevControllers(&controllers) != 0)
+                exit(1);
+            for (int i = 0; i < controllers.count; i++)
+                if (controllers.controller[i].inUse)
+                    printf("  CONTROLLER:  %s\n", controllers.controller[i].name);
+        }
+        desktopStartQuitWatch();
+        // The board's functions are detoured (MinHook), as the Lindbergh
+        // path's hooks below are.
+        if (MH_Initialize() != MH_OK || roxorInit() != 0 || MH_EnableHook(MH_ALL_HOOKS) != MH_OK)
+        {
+            log_error("Roxor: cannot install the I/O board");
+            exit(1);
+        }
+        printf("\n");
+        return;
+    }
+
+    // Cecropia games (The Act) keep their own SDL window too: none of the
+    // Lindbergh hardware; their security board is the loader's, their knob
+    // and button fed from evdev or a gamepad besides the desktop's (see
+    // cecropia/cecropiaInput.c).
+    if (isCecropiaGame())
+    {
+        printf("\nLinux Loader\nBy the Linux Loader Development Team 2026\n\n");
+        printf("  GAME:        %s\n", getGameName());
+        printf("  GAME ID:     %s\n", getGameId());
+        initJVS();
+        if (getConfig()->inputMode == 2)
+        {
+            if (initEvdevControllers(&controllers) != 0)
+                exit(1);
+            for (int i = 0; i < controllers.count; i++)
+                if (controllers.controller[i].inUse)
+                    printf("  CONTROLLER:  %s\n", controllers.controller[i].name);
+        }
+        desktopStartQuitWatch();
+        if (MH_Initialize() != MH_OK || cecropiaInit() != 0 || MH_EnableHook(MH_ALL_HOOKS) != MH_OK)
+        {
+            log_error("The Act: cannot install the cabinet's hardware");
+            exit(1);
+        }
+        printf("\n");
+        return;
+    }
+
+    // IGS games (Gold Captain) keep their own window too (a static SDL 1.2):
+    // none of the Lindbergh hardware; their PLX card and the IGS036 behind
+    // it are the loader's, fed from evdev or the desktop (see igs/igsIo.c).
+    if (isIgsGame())
+    {
+        printf("\nLinux Loader\nBy the Linux Loader Development Team 2026\n\n");
+        printf("  GAME:        %s\n", getGameName());
+        printf("  GAME ID:     %s\n", getGameId());
+        initJVS();
+        if (getConfig()->inputMode == 2)
+        {
+            if (initEvdevControllers(&controllers) != 0)
+                exit(1);
+            for (int i = 0; i < controllers.count; i++)
+                if (controllers.controller[i].inUse)
+                    printf("  CONTROLLER:  %s\n", controllers.controller[i].name);
+        }
+        desktopStartQuitWatch();
+        if (MH_Initialize() != MH_OK || igsInit() != 0 || MH_EnableHook(MH_ALL_HOOKS) != MH_OK)
+        {
+            log_error("IGS: cannot install the cabinet's hardware");
+            exit(1);
+        }
+        printf("\n");
+        return;
+    }
+
+    // Paokai games (Go Go Strike) keep their own window too (Allegro's X11
+    // one): none of the Lindbergh hardware; their I/O card and trackball are
+    // the loader's, fed from evdev or the desktop (see paokai/paokaiIo.c).
+    if (isPaokaiGame())
+    {
+        printf("\nLinux Loader\nBy the Linux Loader Development Team 2026\n\n");
+        printf("  GAME:        %s\n", getGameName());
+        printf("  GAME ID:     %s\n", getGameId());
+        initJVS();
+        if (getConfig()->inputMode == 2)
+        {
+            if (initEvdevControllers(&controllers) != 0)
+                exit(1);
+            for (int i = 0; i < controllers.count; i++)
+                if (controllers.controller[i].inUse)
+                    printf("  CONTROLLER:  %s\n", controllers.controller[i].name);
+        }
+        desktopStartQuitWatch();
+        if (MH_Initialize() != MH_OK || paokaiInit() != 0 || MH_EnableHook(MH_ALL_HOOKS) != MH_OK)
+        {
+            log_error("Paokai: cannot install the cabinet's hardware");
+            exit(1);
+        }
+        printf("\n");
+        return;
+    }
+
+    // Byoyoyo games (Skycurser) keep their own window too (GameMaker's X11
+    // one): none of the Lindbergh hardware; the loader's input becomes their
+    // keys, fed from evdev or the desktop's gamepads (see
+    // byoyoyo/byoyoyoInput.c).
+    if (isByoyoyoGame())
+    {
+        printf("\nLinux Loader\nBy the Linux Loader Development Team 2026\n\n");
+        printf("  GAME:        %s\n", getGameName());
+        printf("  GAME ID:     %s\n", getGameId());
+        initJVS();
+        if (getConfig()->inputMode == 2)
+        {
+            if (initEvdevControllers(&controllers) != 0)
+                exit(1);
+            for (int i = 0; i < controllers.count; i++)
+                if (controllers.controller[i].inUse)
+                    printf("  CONTROLLER:  %s\n", controllers.controller[i].name);
+        }
+        desktopStartQuitWatch();
+        if (byoyoyoInit() != 0)
+        {
+            log_error("Byoyoyo: cannot install the cabinet's controls");
+            exit(1);
+        }
+        printf("\n");
+        return;
+    }
+
+    // Incredible Technologies games (Orange County Choppers Pinball) keep
+    // their own window too (X11 + GLX): none of the Lindbergh hardware; their
+    // I/O board and dongle are the loader's, fed from evdev or the desktop
+    // (see itech/itechIo.c).
+    if (isItechGame())
+    {
+        printf("\nLinux Loader\nBy the Linux Loader Development Team 2026\n\n");
+        printf("  GAME:        %s\n", getGameName());
+        printf("  GAME ID:     %s\n", getGameId());
+        initJVS();
+        if (getConfig()->inputMode == 2)
+        {
+            if (initEvdevControllers(&controllers) != 0)
+                exit(1);
+            for (int i = 0; i < controllers.count; i++)
+                if (controllers.controller[i].inUse)
+                    printf("  CONTROLLER:  %s\n", controllers.controller[i].name);
+        }
+        desktopStartQuitWatch();
+        if (MH_Initialize() != MH_OK || itechInit() != 0 || MH_EnableHook(MH_ALL_HOOKS) != MH_OK)
+        {
+            log_error("IT: cannot install the cabinet's hardware");
+            exit(1);
+        }
+        printf("\n");
+        return;
+    }
+#endif
+
+
     initFpsLimiter();
 
     getConfig()->GPUVendor = getGPUVendorID();
@@ -65,6 +345,7 @@ void initMain(char *configPath, char *controlsPath)
         log_error("Failed to detect GPU\nUsing default values\n");
         getConfig()->GPUVendor = UNKNOWN_GPU;
     }
+
 
     if (MH_Initialize() != MH_OK)
     {
@@ -83,6 +364,23 @@ void initMain(char *configPath, char *controlsPath)
     if (initResolutionPatches() != 0)
         exit(1);
     log_info("Resolution patches initialized");
+
+#ifdef __linux__
+    // Teamplay games run as the Lindbergh glut games do; their cabinet's
+    // checks are hooked here, before the hooks are enabled (see
+    // teamplay/teamplay.c).
+    if (isTeamplayGame() && teamplayInit() != 0)
+        exit(1);
+    // Global VR games too (see globalvr/gvr.c).
+    if (isGvrGame() && gvrInit() != 0)
+        exit(1);
+    // Cosmodog games too (see cosmodog/cosmodog.c).
+    if (isCosmodogGame() && cosmodogInit() != 0)
+        exit(1);
+    // Gaelco games too (see gaelco/gaelco.c).
+    if (isGaelcoGame() && gaelcoInit() != 0)
+        exit(1);
+#endif
 
     if (MH_EnableHook(MH_ALL_HOOKS) != MH_OK)
     {

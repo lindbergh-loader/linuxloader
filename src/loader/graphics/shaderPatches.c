@@ -27,6 +27,10 @@
 #include "../patching/flowControl.h"
 #include "../log/log.h"
 #include "glEntryRealign.h"
+#ifdef __linux__
+#include "../namco/namcoEs1.h"
+#include "../rawthrills/rawthrills.h"
+#endif
 #include "shaderWork/common.h"
 
 #include "shaderWork/abc.h"
@@ -296,6 +300,10 @@ void bridgeglEnable(GLenum cap)
     {
         cap = GL_FRAGMENT_PROGRAM_ARB;
     }
+    // Before the game's context is current (WMMT4's first glEnable): nothing
+    // to enable, as without a context.
+    if (!glad_glEnable)
+        return;
     glad_glEnable(cap);
 }
 
@@ -316,8 +324,170 @@ void bridgeglDisable(GLenum cap)
     {
         cap = GL_FRAGMENT_PROGRAM_ARB;
     }
+    // Before the game's context is current (WMMT4's first glEnable): nothing
+    // to enable, as without a context.
+    if (!glad_glDisable)
+        return;
     glad_glDisable(cap);
 }
+
+#ifdef __linux__
+// Shader sources the engines wrote for NVIDIA's compiler, which Mesa's
+// refuses: the family's fixes are applied in place, and the (concatenated)
+// source is passed on as a single string.
+// - Raw Thrills: the g5 bloom output demotion, and the g3 #version 1.20 with
+//   its sized gl_TexCoord (rtPatchShaderSource).
+// - Namco ES1: texture2DLod() (not in GLSL 1.20), and gl_TexCoord[] indexed
+//   by a variable (namcoEs1PatchShader).
+typedef void (*ShaderSourceFn)(GLuint, GLsizei, const GLchar *const *, const GLint *);
+
+// The sources concatenated, patched for the family, and handed to real.
+static void patchedShaderSource(ShaderSourceFn real, GLuint shader, GLsizei count, const GLchar *const *string,
+                                const GLint *length)
+{
+    size_t total = 0;
+    char *src, *out;
+
+    if ((!isRawThrillsGame() && !isNamcoEs1Game()) || count <= 0)
+        return real(shader, count, string, length);
+
+    for (GLsizei i = 0; i < count; i++)
+        total += length && length[i] >= 0 ? (size_t)length[i] : strlen(string[i]);
+    // Room for the patches' insertions.
+    if (!(src = malloc(total + 256)))
+        return real(shader, count, string, length);
+    out = src;
+    for (GLsizei i = 0; i < count; i++)
+    {
+        size_t n = length && length[i] >= 0 ? (size_t)length[i] : strlen(string[i]);
+        memcpy(out, string[i], n);
+        out += n;
+    }
+    *out = '\0';
+
+    if (isNamcoEs1Game())
+        namcoEs1PatchShader(src);
+    else
+        rtPatchShaderSource(src);
+
+    const GLchar *one = src;
+    real(shader, 1, &one, NULL);
+    free(src);
+}
+
+#undef glShaderSource
+void glShaderSource(GLuint shader, GLsizei count, const GLchar *const *string, const GLint *length)
+{
+    static ShaderSourceFn real;
+    if (!real)
+        real = (ShaderSourceFn)dlsym(RTLD_NEXT, "glShaderSource");
+    patchedShaderSource(real, shader, count, string, length);
+}
+
+// The Namco games' shader compiles and links that fail, with the driver's
+// message (a shader the driver refuses draws nothing).
+static void namcoShaderLog(GLuint object, int link, int arb)
+{
+    void (*getiv)(GLuint, GLenum, GLint *) = NULL;
+    void (*getLog)(GLuint, GLsizei, GLsizei *, char *) = NULL;
+    GLint ok = 1;
+    char log[2048] = "";
+
+    if (arb)
+    {
+        *(void **)&getiv = dlsym(RTLD_NEXT, "glGetObjectParameterivARB");
+        *(void **)&getLog = dlsym(RTLD_NEXT, "glGetInfoLogARB");
+    }
+    else
+    {
+        *(void **)&getiv = dlsym(RTLD_NEXT, link ? "glGetProgramiv" : "glGetShaderiv");
+        *(void **)&getLog = dlsym(RTLD_NEXT, link ? "glGetProgramInfoLog" : "glGetShaderInfoLog");
+    }
+    if (!getiv || !getLog)
+        return;
+    getiv(object, arb ? (link ? 0x8B82 : 0x8B81) : (link ? GL_LINK_STATUS : GL_COMPILE_STATUS), &ok);
+    if (ok)
+        return;
+    getLog(object, sizeof(log), NULL, log);
+    log_warn("Namco: shader %u %s failed: %s", object, link ? "link" : "compile", log);
+}
+
+#undef glCompileShader
+void glCompileShader(GLuint shader)
+{
+    static void (*real)(GLuint);
+    if (!real)
+        *(void **)&real = dlsym(RTLD_NEXT, "glCompileShader");
+    real(shader);
+    if (isNamcoEs1Game())
+        namcoShaderLog(shader, 0, 0);
+}
+
+#undef glLinkProgram
+void glLinkProgram(GLuint program)
+{
+    static void (*real)(GLuint);
+    if (!real)
+        *(void **)&real = dlsym(RTLD_NEXT, "glLinkProgram");
+    real(program);
+    if (isNamcoEs1Game())
+        namcoShaderLog(program, 1, 0);
+}
+
+#undef glCompileShaderARB
+void glCompileShaderARB(GLuint shader)
+{
+    static void (*real)(GLuint);
+    if (!real)
+        *(void **)&real = dlsym(RTLD_NEXT, "glCompileShaderARB");
+    real(shader);
+    if (isNamcoEs1Game())
+        namcoShaderLog(shader, 0, 1);
+}
+
+#undef glLinkProgramARB
+void glLinkProgramARB(GLuint program)
+{
+    static void (*real)(GLuint);
+    if (!real)
+        *(void **)&real = dlsym(RTLD_NEXT, "glLinkProgramARB");
+    real(program);
+    if (isNamcoEs1Game())
+        namcoShaderLog(program, 1, 1);
+}
+
+// Tank! Tank! Tank!'s assembly programs, written for NVIDIA's extended
+// profiles, which Mesa rejects: rewritten as plain ARB ones.
+#undef glProgramStringARB
+void glProgramStringARB(GLenum target, GLenum format, GLsizei len, const void *string)
+{
+    static void (*real)(GLenum, GLenum, GLsizei, const void *);
+    char *translated = NULL;
+
+    if (!real)
+        *(void **)&real = dlsym(RTLD_NEXT, "glProgramStringARB");
+    if (isNamcoEs1Game() && string && len > 0)
+        translated = namcoEs1ArbTranslate(string, len);
+    if (translated)
+    {
+        real(target, format, (GLsizei)strlen(translated), translated);
+        free(translated);
+        return;
+    }
+    real(target, format, len, string);
+}
+
+// The same through ARB_shader_objects (Dead Heat), whose handles are GLuint
+// on Linux.
+#undef glShaderSourceARB
+void glShaderSourceARB(GLuint shader, GLsizei count, const GLchar *const *string, const GLint *length)
+{
+    static ShaderSourceFn real;
+    if (!real)
+        real = (ShaderSourceFn)dlsym(RTLD_NEXT, "glShaderSourceARB");
+    patchedShaderSource(real, shader, count, string, length);
+}
+#endif
 
 /**
  *	The following 3 functions are replacements for SRTV and OR2
@@ -505,10 +675,21 @@ void srtvElfShaderPatcher()
  * some empty shaders.So we cache a good shader and then feed that shader to the
  * game instead of an empty one.
  */
+const char *(*cgCompiledProgramFilter)(const char *program);
+int (*cgCreateProgramFilter)(int profile, const char ***args);
+
 #ifdef __linux__
 char *cgGetProgramString(char *program, int e)
 {
     char *(*_cgGetProgramString)(char *program, int e) = dlsym(RTLD_NEXT, "cgGetProgramString");
+
+    // (the compiled program: assembly, its header "!!")
+    if (cgCompiledProgramFilter)
+    {
+        char *compiled = _cgGetProgramString(program, e);
+        return compiled && compiled[0] == '!' && compiled[1] == '!' ? (char *)cgCompiledProgramFilter(compiled)
+                                                                      : compiled;
+    }
 #else
 void *real_cgGetProgramString = NULL;
 
@@ -786,6 +967,8 @@ char *bridgeCgCreateProgram(uint32_t context, int program_type, const char *prog
         (char *(*)(uint32_t, int, const char *, int, const char *, const char **))real_cgCreateProgram;
 #endif
 
+    if (cgCreateProgramFilter)
+        profile = cgCreateProgramFilter(profile, &args);
     if (getConfig()->GPUVendor == NVIDIA_GPU)
     {
         if ((gId != LETS_GO_JUNGLE_SBLU && gId != LETS_GO_JUNGLE_SBLU_REVA && gId != LETS_GO_JUNGLE_SBNR_SPECIAL) ||
@@ -1135,6 +1318,61 @@ GLboolean gl_IsProgramNV(GLuint program)
     return glad_glIsProgramARB(program);
 }
 
+#ifdef __linux__
+// Star Trek: Voyager (and its service mode) names its textures itself, from
+// 1, without glGenTextures: it would bind the loader's (the scaled frame's,
+// the crosshairs'). Its names stand for names of the GL's own.
+static int gameNamesTextures(void)
+{
+    return gId == STAR_TREK_VOYAGER_TEAMPLAY || gId == STAR_TREK_VOYAGER_SERVICE_TEAMPLAY;
+}
+
+static GLuint *gameTextureNames;
+static GLuint gameTextureCount;
+
+static GLuint gameTextureName(GLuint texture, int create)
+{
+    if (!gameNamesTextures() || texture == 0)
+        return texture;
+    if (texture >= gameTextureCount)
+    {
+        if (!create)
+            return 0;
+        GLuint count = texture + 1024;
+        GLuint *names = realloc(gameTextureNames, count * sizeof(*names));
+        if (!names)
+            return texture;
+        memset(names + gameTextureCount, 0, (count - gameTextureCount) * sizeof(*names));
+        gameTextureNames = names;
+        gameTextureCount = count;
+    }
+    if (!gameTextureNames[texture] && create)
+        glad_glGenTextures(1, &gameTextureNames[texture]);
+    return gameTextureNames[texture];
+}
+
+#undef glDeleteTextures
+void glDeleteTextures(GLsizei n, const GLuint *textures)
+{
+    if (!glad_glDeleteTextures)
+        return;
+    if (!gameNamesTextures())
+    {
+        glad_glDeleteTextures(n, textures);
+        return;
+    }
+    for (GLsizei i = 0; i < n; i++)
+    {
+        GLuint name = gameTextureName(textures[i], 0);
+        if (name)
+        {
+            glad_glDeleteTextures(1, &name);
+            gameTextureNames[textures[i]] = 0;
+        }
+    }
+}
+#endif
+
 /**
  *   This function hook fixed the LOD (Level of Detail) for VF5 textures with Mesa
  */
@@ -1142,6 +1380,15 @@ GLboolean gl_IsProgramNV(GLuint program)
 #undef glBindTexture
 void glBindTexture(GLenum target, GLuint texture)
 {
+    // void (*_glBindTexture)(GLenum target, GLuint texture) = dlsym(RTLD_NEXT, "glBindTexture");
+    // _glBindTexture(target, texture);
+    // DHR's "no image" handle, -1 (a rival marker's camera frame when the
+    // rival has none, drawn over its photo): NVIDIA kept the bound texture,
+    // the marker's transparent border; Mesa makes it a new, empty texture
+    // that draws black over the face.
+    if (texture == 0xFFFFFFFFu && isNamcoEs1Game())
+        return;
+    texture = gameTextureName(texture, 1);
 #else
 void bridgeglBindTexture(GLenum target, GLuint texture)
 {
