@@ -434,6 +434,40 @@ static const IgsGame games[] = {
         .a36CatchUp = 1,
     },
     {
+        // Hero of Robots (child_linux, M100FA): the E2100, Ogre; its A36
+        // board's firmware embedded in the executable (0x09d45d80, decrypted
+        // to ../roms/), run from the dump's game/exe.
+        .crc32 = HERO_OF_ROBOTS_IGS,
+        .fileCrc32 = 0xd1319e55,
+        .rootPath = "/Robots",
+        .dataDirs = {NULL},
+        .frameWidth = 1280,
+        .frameHeight = 720,
+        .a36Rom = "../roms/heroofrobots_eprom.bin",
+        // the upload (P2A_Loader iInit, iReset, iUnInit, LoaderAdv
+        // iLoadDataPointer, iWaitINT: the board's link set up before it)
+        .a36Loader = {0x098ef8ba, 0x098efaf6, 0x098ef952, 0x098f098e, 0x098efed4},
+        // its firmware's RAM: up to 0x20ff0a94
+        .a36RamSize = 0x1000000,
+        .a36ExtSramSize = 0x1000000,
+        // its card reader: there, no card in it
+        .casCard = 1,
+        // the operator's chip (prepaid plays): there, with credit
+        .casChip = {0x08cd9b40, 0x08cd6800},
+        // its card dispenser and QR scanner, on serial ports
+        .rs232Initialize = 0x089208f0,
+        .rs232Dispenser = {0x0884a540, 0x0884b810},
+        .rs232Qr = {0x08917a20, 0x08918df0},
+        // its I/O board, on USART1 (the game's packets relayed)
+        .a36Stm32Usart = 2,
+        .a36FishBoard = 7,
+        .a36Stm32ByteCycles = 8600,
+        .a36Services = 0x0200f000,
+        .loadingEnds = 0x088248c0,
+        // (timers on the 20 MHz default: its watchdog's 10000 ticks outlast
+        // the loading screen, its LED blinks at 1 Hz)
+    },
+    {
         // MuziBox (mb, TeknoRaven's package): the A36 board, run from game/
         // (its relative paths), its firmware in roms/.
         .crc32 = MUZIBOX_IGS,

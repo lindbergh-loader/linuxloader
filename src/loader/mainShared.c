@@ -106,6 +106,7 @@ char *games[] = {"a.elf",
                  "OceanParty",     // IGS (Ocean Party)
                  "zombie",         // IGS (Demon Hunter)
                  "SWIN",           // IGS (Scratch)
+                 "child_linux",    // IGS (Hero of Robots)
                  "mb",             // IGS (MuziBox)
                  "pm3",            // IGS (Percussion Master 3)
                  "bowlgold",       // Cosmodog (Rockin' Bowl-O-Rama)

@@ -622,10 +622,12 @@ static void swapInterval(int interval)
     void (*ext)(void *, unsigned long, int) = getProc ? (void (*)(void *, unsigned long, int))getProc("glXSwapIntervalEXT") : NULL;
     void *(*display)(void) = (void *(*)(void))dlsym(RTLD_DEFAULT, "glXGetCurrentDisplay");
     unsigned long (*drawable)(void) = (unsigned long (*)(void))dlsym(RTLD_DEFAULT, "glXGetCurrentDrawable");
+    // (NVIDIA's GLX has EXT only, but glvnd hands out a do-nothing MESA
+    // entry point all the same: EXT first, MESA too for Mesa without it)
+    if (ext && display && drawable && display() && drawable())
+        ext(display(), drawable(), interval);
     if (mesa)
         mesa((unsigned)interval);
-    else if (ext && display && drawable && display())
-        ext(display(), drawable(), interval);
 }
 
 static void loadingSwaps(void)
