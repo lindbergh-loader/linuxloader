@@ -26,6 +26,19 @@ static const uint8_t sd4ChunkMasks[][16] = {
     {0x38, 0x07, 0x82, 0x04, 0xdc, 0xd6, 0x19, 0xd4, 0x1c, 0x71, 0x25, 0x96, 0x0f, 0xe4, 0x8d, 0x26},
 };
 
+// Crazy Shoot's dongle file 0xfff5 (the layout of Fish Hunter SKL 2's,
+// below): the packet keys its firmware sets (0x1000ad64) and its seed.
+static const uint8_t crazyShootHasp[40] = {
+    [0x10] = 0x63, 0x93, 0x97, 0x79, // 0x79979363
+    [0x14] = 0x97, 0x78, 0x04, 0x02, // 0x02047897
+    [0x18] = 0x41, 0x38, 0x00, 0x00, // 0x3841, the packets' checksum seed (0x1000af44)
+    // what the board runs on the PC's command 0x30 (0x1000b838): its three
+    // trampolines into the handlers it installs (0x10000244, 0x278, 0x298)
+    [0x1c] = 0x44, 0x02, 0x00, 0x10,
+    [0x20] = 0x78, 0x02, 0x00, 0x10,
+    [0x24] = 0x98, 0x02, 0x00, 0x10,
+};
+
 // Fish Hunter SKL 2's dongle file 0xfff5 as the game uses it: the FPGA user
 // key (0-15), the PC's and the board's first packet keys (0x10, 0x14), the
 // packets' checksum seed (0x18), the three words the board answers
@@ -432,6 +445,33 @@ static const IgsGame games[] = {
         .a36Services = 0x0200f000,
         .a36TimerClock = 65000000,
         .a36CatchUp = 1,
+    },
+    {
+        // Crazy Shoot (CrazyShoot, 2013): the E2100, a Unity 4.1 player run
+        // from the dump's game/ (its ShootRope_Data also as
+        // CrazyShoot_Data, the cabinet's link); its A36 board's firmware
+        // (the plugin's A36ROM image, decrypted to roms/) and upload, and
+        // the HASP dongle's API, in its plugin libPcShareram.so.
+        .crc32 = CRAZY_SHOOT_IGS,
+        .fileCrc32 = 0x0f8f5ede,
+        .rootPath = "/CrazyShoot",
+        .dataDirs = {NULL},
+        .frameWidth = 1920,
+        .frameHeight = 1080,
+        .a36Rom = "roms/crazyshoot_eprom.bin",
+        .a36Library = "libPcShareram.so",
+        // its I/O board, on USART1
+        .a36Stm32Usart = 2,
+        .a36FishBoard = 8,
+        // the internal ROM's services (Speed Driver 4's table)
+        .a36Services = 0x0200f300,
+        // the upload's header (the firmware checks it at start, 0x1000ac2c)
+        .a36Project = "CrazyShootCN",
+        .a36ProjectArea = "CrazyShootCN_E21",
+        .a36ProjectVersion = 0x2e << 5 | 1,
+        .haspFile = 0xfff5,
+        .haspMemory = crazyShootHasp,
+        .haspMemorySize = sizeof(crazyShootHasp),
     },
     {
         // Hero of Robots (child_linux, M100FA): the E2100, Ogre; its A36
