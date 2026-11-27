@@ -171,7 +171,7 @@ If you specify a configuration file either for the game settings or controls in 
 
 ## Windows
 ```
-C:\path\to\linuxloader.exe -g C:\path\to\game -o C:\path\to\configfile\myconfig.ini -c C:\path\to\configfile\mycontrols.ini
+C:\path\to\linuxloader.exe -g C:\path\to\game -c C:\path\to\configfile\myconfig.ini -o C:\path\to\configfile\mycontrols.ini
 ```
 
 ***NOTE*** When you specify a config file in the command line, you need to pass the path and the filename as shown above. If you don't provide a filename, the loader will not find the file.
